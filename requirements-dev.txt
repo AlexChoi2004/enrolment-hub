@@ -1,0 +1,5 @@
+-r requirements.txt
+ruff
+pre-commit
+detect-secrets
+pip-audit
