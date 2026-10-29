@@ -1,6 +1,7 @@
 """Subject catalogue pages. Business rules live in service.py."""
 from flask import Blueprint, abort, make_response, render_template, request
 
+from shared import security
 from shared.db import get_db
 from subject_catalogue import service
 
@@ -19,6 +20,7 @@ def _respond(template, status=200, **context):
 
 
 @bp.get("")
+@security.login_required
 def list_page():
     conn = get_db()
     categories = service.list_categories(conn)
@@ -41,6 +43,7 @@ def list_page():
 
 
 @bp.get("/<code>")
+@security.login_required
 def detail_page(code):
     if not service.is_valid_code(code):
         abort(400)

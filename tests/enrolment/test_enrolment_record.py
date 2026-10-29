@@ -1,7 +1,7 @@
 import pytest
 
-from accounts.service import hash_password
-from enrolment.service import get_record
+from accounts.service import create_user
+from enrolment.service import get_record, study_year
 from shared import db
 
 
@@ -9,20 +9,15 @@ from shared import db
 def second_student(app):
     """A second synthetic student with their own password and one record."""
     conn = db.connect(app.config["DATABASE"])
-    conn.execute(
-        "INSERT INTO users (student_number, display_name, password_hash, course_code)"
-        " VALUES ('OTHER0002', 'Other Student', ?, 'C09119')",
-        (hash_password("other-password"),),
-    )
-    user_id = conn.execute("SELECT id FROM users WHERE student_number='OTHER0002'").fetchone()["id"]
+    user = create_user(conn, "other.student@student.uni.edu.au", "Other#Pass1", "Autumn 2026")
     conn.execute(
         "INSERT INTO enrolments (user_id, subject_code, status, session_label)"
         " VALUES (?, '41052', 'completed', 'Autumn 2026')",
-        (user_id,),
+        (user["id"],),
     )
     conn.commit()
     conn.close()
-    return "OTHER0002", "other-password"
+    return "other.student@student.uni.edu.au", "Other#Pass1", user["student_number"]
 
 
 # --- the record itself -------------------------------------------------------
@@ -43,8 +38,9 @@ def test_completed_subjects_are_grouped_in_chronological_order(conn):
 
 def test_record_only_contains_the_requested_students_rows(conn):
     conn.execute(
-        "INSERT INTO users (id, student_number, display_name, password_hash, course_code)"
-        " VALUES (2, 'OTHER0002', 'Other', 'x', 'C09119')"
+        "INSERT INTO users (id, email, student_number, display_name, password_hash,"
+        " course_code, commencement_session)"
+        " VALUES (2, 'other.student@student.uni.edu.au', 'OTHER0002', 'Other', 'x', 'C09119', 'Autumn 2026')"
     )
     conn.execute(
         "INSERT INTO enrolments (user_id, subject_code, status, session_label)"
@@ -54,6 +50,14 @@ def test_record_only_contains_the_requested_students_rows(conn):
     assert other["counted_cp"] == 6
     demo_codes = {s["code"] for _, items in get_record(conn, 1)["completed_by_session"] for s in items}
     assert "41052" not in demo_codes
+
+
+def test_study_year_counts_the_commencement_year_as_year_1():
+    assert study_year("Autumn 2027") == 1
+    assert study_year("Spring 2027") == 1
+    assert study_year("Autumn 2026") == 2
+    assert study_year("Autumn 2025") == 3
+    assert study_year("Autumn 2025", current_session="Spring 2025") == 1
 
 
 # --- access control ----------------------------------------------------------
@@ -81,6 +85,7 @@ def test_logged_in_student_can_view_their_own_record(client, log_in):
     assert res.status_code == 200
     assert b"Data Structures and Algorithms" in res.data
     assert b"120 of 192 credit points" in res.data
+    assert b"Year 3" in res.data
     assert b"Advanced Software Development" in res.data  # in progress
 
 
@@ -97,15 +102,15 @@ def test_student_number_in_the_url_is_case_insensitive_for_the_owner(client, log
 
 
 def test_student_cannot_view_another_students_record(client, log_in, second_student):
-    number, password = second_student
-    log_in(number, password)
+    email, password, number = second_student
+    log_in(email, password)
     assert client.get("/students/DEMO0001/record").status_code == 403
     assert client.get(f"/students/{number}/record").status_code == 200
 
 
 def test_demo_student_cannot_view_the_other_students_record(client, log_in, second_student):
     log_in()
-    assert client.get(f"/students/{second_student[0]}/record").status_code == 403
+    assert client.get(f"/students/{second_student[2]}/record").status_code == 403
 
 
 def test_nonexistent_student_gets_the_same_403_as_another_student(client, log_in):
@@ -136,7 +141,7 @@ def test_record_is_unavailable_after_logout(client, log_in, csrf):
 
 
 def test_nav_shows_my_record_link_only_when_logged_in(client, log_in):
-    assert b"My record" not in client.get("/subjects").data
+    assert b"My record" not in client.get("/login").data
     log_in()
     assert b"My record" in client.get("/subjects").data
 

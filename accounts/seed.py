@@ -1,12 +1,15 @@
-"""Seed the single synthetic demo student."""
+"""Seed the synthetic demo student."""
 from functools import lru_cache
 
 from accounts.service import hash_password
 
+DEMO_EMAIL = "john.doe@student.uni.edu.au"
 DEMO_STUDENT_NUMBER = "DEMO0001"
 # Public demo credential for a synthetic student. Not a real account or password.
-DEMO_PASSWORD = "demo-student-2027"
+DEMO_PASSWORD = "Johndoe#1"
+DEMO_DISPLAY_NAME = "John Doe"
 DEMO_COURSE_CODE = "C09119"
+DEMO_COMMENCEMENT_SESSION = "Autumn 2025"  # two years before the app's current session
 
 
 @lru_cache(maxsize=1)
@@ -16,13 +19,18 @@ def _demo_password_hash():
 
 
 def seed_accounts(conn):
-    exists = conn.execute(
-        "SELECT 1 FROM users WHERE student_number = ?", (DEMO_STUDENT_NUMBER,)
-    ).fetchone()
+    exists = conn.execute("SELECT 1 FROM users WHERE email = ?", (DEMO_EMAIL,)).fetchone()
     if exists:
         return
     conn.execute(
-        "INSERT INTO users (student_number, display_name, password_hash, course_code)"
-        " VALUES (?, ?, ?, ?)",
-        (DEMO_STUDENT_NUMBER, "Demo Student", _demo_password_hash(), DEMO_COURSE_CODE),
+        "INSERT INTO users (email, student_number, display_name, password_hash,"
+        " course_code, commencement_session) VALUES (?, ?, ?, ?, ?, ?)",
+        (
+            DEMO_EMAIL,
+            DEMO_STUDENT_NUMBER,
+            DEMO_DISPLAY_NAME,
+            _demo_password_hash(),
+            DEMO_COURSE_CODE,
+            DEMO_COMMENCEMENT_SESSION,
+        ),
     )

@@ -1,18 +1,24 @@
+import re
+
 import pytest
 
+from accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
 from app import create_app
 from shared import db
 
+
+def log_in_as_demo(test_client):
+    """The catalogue needs a login, so these tests sign in as the demo student first."""
+    page = test_client.get("/login").get_data(as_text=True)
+    token = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
+    test_client.post("/login", data={"email": DEMO_EMAIL, "password": DEMO_PASSWORD, "csrf_token": token})
+    return test_client
+
+
 @pytest.fixture()
 def client(tmp_path):
-    app = create_app({"DATABASE": str(tmp_path / "t.db"), "TESTING": True})
-    return app.test_client()
-
-
-def test_root_redirects_to_subjects(client):
-    res = client.get("/")
-    assert res.status_code == 302
-    assert res.headers["Location"].endswith("/subjects")
+    app = create_app({"DATABASE": str(tmp_path / "t.db"), "TESTING": True, "SECRET_KEY": "k"})
+    return log_in_as_demo(app.test_client())
 
 
 def test_subjects_page_lists_subjects(client):
@@ -66,7 +72,7 @@ def test_unknown_status_is_not_shown_as_none(tmp_path):
     conn.execute("UPDATE subjects SET prereq_status = 'unknown' WHERE code = '33130'")
     conn.commit()
     conn.close()
-    res = app.test_client().get("/subjects/33130")
+    res = log_in_as_demo(app.test_client()).get("/subjects/33130")
     assert b"not in the supplied data" in res.data
     assert b"No prerequisites listed" not in res.data
 

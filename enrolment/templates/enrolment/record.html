@@ -4,12 +4,21 @@
 <h1>My record</h1>
 <p>
   {{ student.display_name }} · {{ student.student_number }}<br>
-  {{ course.name }}, {{ course.major_name }} major
+  {{ course.name }}, {{ course.major_name }} major<br>
+  <strong>Year {{ year }}</strong> · {{ current_session }}
+  {% if student.commencement_session == current_session %}(your first session){% endif %}
 </p>
 <p class="count">
   {{ record.counted_cp }} of {{ record.degree_total_cp }} credit points counted:
   {{ record.completed_cp }} completed, {{ record.enrolled_cp }} in progress.
 </p>
+
+{% if not record.enrolled and not record.completed_by_session %}
+  <div class="demo-note">
+    <p><strong>Welcome!</strong> You're starting Year 1 and haven't enrolled in anything yet.</p>
+    <p><a href="{{ url_for('catalogue.list_page') }}">Browse subjects</a> to see what the degree involves.</p>
+  </div>
+{% endif %}
 
 <h2>In progress</h2>
 {% if record.enrolled %}

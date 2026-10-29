@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Welcome · Enrolment Hub{% endblock %}
+{% block content %}
+<section class="welcome">
+  <h1>Welcome to Enrolment Hub</h1>
+  <p class="lead">
+    Plan your degree, see how subjects connect through prerequisites, and track your progress
+    towards Bachelor of Computing Science (Honours).
+  </p>
+  <p class="actions">
+    <a class="button" href="{{ url_for('accounts.login') }}">Log in</a>
+    <a class="button secondary" href="{{ url_for('accounts.register') }}">Create account</a>
+  </p>
+  {% if show_demo %}
+    <p class="demo-note">
+      Just looking? Log in with the demo student (two years into the degree):
+      <code>{{ demo_email }}</code> / <code>{{ demo_password }}</code>
+    </p>
+  {% endif %}
+  <p class="muted">
+    An independent educational prototype, not an official university system. All students are synthetic.
+  </p>
+</section>
+{% endblock %}

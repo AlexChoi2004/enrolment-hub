@@ -27,8 +27,10 @@ def prerequisites(conn):
 
 def test_demo_student_is_on_the_course_with_a_fixed_identity(conn):
     user = conn.execute("SELECT * FROM users WHERE student_number = ?", (DEMO_STUDENT_NUMBER,)).fetchone()
+    assert user["email"] == "john.doe@student.uni.edu.au"
+    assert user["display_name"] == "John Doe"
     assert user["course_code"] == "C09119"
-    assert user["display_name"] == "Demo Student"
+    assert user["commencement_session"] == "Autumn 2025"
 
 
 def test_demo_student_is_about_two_years_in(history):
