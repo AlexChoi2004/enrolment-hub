@@ -1,0 +1,17 @@
+<p class="count" id="count">{{ subjects|length }} subject{{ '' if subjects|length == 1 else 's' }}</p>
+{% for s in subjects %}
+  <details class="card">
+    <summary>
+      <span class="code">{{ s.code }}</span>
+      <span>{{ s.name }}</span>
+      <span class="badge">{{ s.credit_points }} cp</span>
+      <span class="badge">{{ s.category_label }}</span>
+      {% if s.is_synthetic %}<span class="badge warn">synthetic</span>{% endif %}
+      {% if s.prereq_status == 'supplied' %}<span class="badge">has prerequisites</span>
+      {% else %}<span class="badge warn">prerequisites not supplied</span>{% endif %}
+    </summary>
+    {% with subject=s %}{% include 'catalogue/_detail.html' %}{% endwith %}
+  </details>
+{% else %}
+  <p>No subjects match these filters.</p>
+{% endfor %}
