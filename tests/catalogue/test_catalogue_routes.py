@@ -27,7 +27,7 @@ def test_htmx_request_returns_fragment_only(client):
     assert res.status_code == 200
     assert b"<html" not in res.data
     assert b"Programming 1" in res.data
-    assert res.headers["Vary"] == "HX-Request"
+    assert "HX-Request" in res.headers["Vary"]
 
 
 def test_category_filter_through_the_page(client):

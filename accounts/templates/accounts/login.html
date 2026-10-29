@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Log in · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>Log in</h1>
+
+{% if show_demo %}
+  <p class="demo-note">
+    Demo login for this prototype: student number <code>{{ demo_student_number }}</code>,
+    password <code>{{ demo_password }}</code>. This is a synthetic student, not a real account.
+  </p>
+{% endif %}
+
+{% if message %}<p class="error" role="alert">{{ message }}</p>{% endif %}
+
+<form class="login-form" method="post" action="{{ url_for('accounts.login') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="next" value="{{ next_url }}">
+  <label>Student number
+    <input name="student_number" required maxlength="20" autocomplete="username" value="{{ student_number }}">
+  </label>
+  <label>Password
+    <input type="password" name="password" required maxlength="128" autocomplete="current-password">
+  </label>
+  <button type="submit">Log in</button>
+</form>
+{% endblock %}
