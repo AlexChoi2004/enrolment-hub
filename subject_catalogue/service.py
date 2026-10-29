@@ -114,7 +114,7 @@ def list_subjects(conn, filters=None):
     if filters.prereqs:
         sql += " AND s.prereq_status = ?"
         params.append(filters.prereqs)
-    sql += " ORDER BY c.sort_order, s.code"
+    sql += " ORDER BY c.sort_order, s.name COLLATE NOCASE, s.code"
     return _attach_relations(conn, conn.execute(sql, params).fetchall())
 
 

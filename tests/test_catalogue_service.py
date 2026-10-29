@@ -99,3 +99,13 @@ def test_parse_filters_accepts_valid_values():
 def test_parse_filters_rejects_malformed_values(args):
     with pytest.raises(FilterError):
         service.parse_filters(args, CATEGORIES)
+
+
+def test_subjects_are_grouped_by_category_then_sorted_by_name(conn):
+    result = service.list_subjects(conn)
+    order = [c["category"] for c in service.list_categories(conn)]
+    positions = [order.index(s["category"]) for s in result]
+    assert positions == sorted(positions)  # categories stay in degree order
+    core = [s["name"].lower() for s in result if s["category"] == "core"]
+    assert core == sorted(core)
+    assert core[0] == "business requirements modelling"

@@ -103,3 +103,17 @@ def test_prerequisite_filter_options_work_through_the_page(client):
     assert b"12 subjects" in required.data
     assert b"33 subjects" in none.data
     assert client.get("/subjects?prereqs=supplied").status_code == 400
+
+
+def test_cards_carry_category_and_prerequisite_classes(client):
+    with_rule = client.get("/subjects?q=41026")
+    assert b"cat-major_core" in with_rule.data
+    assert b"badge req" in with_rule.data
+    without_rule = client.get("/subjects?q=33130")
+    assert b"cat-core" in without_rule.data
+    assert b"badge none" in without_rule.data
+
+
+def test_page_shows_a_category_legend(client):
+    res = client.get("/subjects")
+    assert res.data.count(b"badge category cat-") == 5
