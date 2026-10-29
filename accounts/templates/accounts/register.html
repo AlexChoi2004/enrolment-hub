@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Create account · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>Create an account</h1>
+
+<p class="demo-note">
+  This is a prototype with synthetic data. Please use a <strong>made-up name</strong> and
+  don't enter real personal information. You'll start in Year 1, {{ current_session }}, with nothing enrolled.
+</p>
+
+{% if errors %}
+  <div class="error" role="alert">
+    <p>Please fix the following:</p>
+    <ul class="plain error-list">
+      {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
+<form class="login-form" method="post" action="{{ url_for('accounts.register') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <label>Email (firstname.lastname@student.uni.edu.au)
+    <input type="email" name="email" required maxlength="100" autocomplete="off" value="{{ email }}">
+  </label>
+  <label>Password
+    <input type="password" name="password" required maxlength="128" autocomplete="new-password">
+  </label>
+  <label>Confirm password
+    <input type="password" name="confirm_password" required maxlength="128" autocomplete="new-password">
+  </label>
+  <p class="muted">
+    Password: at least 8 characters, with an uppercase letter, a lowercase letter,
+    a number and a special character.
+  </p>
+  <button type="submit">Create account</button>
+</form>
+
+<p>Already have an account? <a href="{{ url_for('accounts.login') }}">Log in</a>.</p>
+{% endblock %}

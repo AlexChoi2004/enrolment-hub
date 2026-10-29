@@ -18,7 +18,7 @@ def me():
 @bp.get("/<student_number>/record")
 @security.login_required
 def record(student_number):
-    if not STUDENT_NUMBER_PATTERN.match(student_number):
+    if not STUDENT_NUMBER_PATTERN.fullmatch(student_number):
         abort(400)
     # Ownership check on the server: the URL is never trusted. Another student's record,
     # and a student number that does not exist, both get the same 403.
@@ -32,6 +32,8 @@ def record(student_number):
             student=g.user,
             course=service.get_course(conn, g.user["course_code"]),
             record=service.get_record(conn, g.user["id"]),
+            year=service.study_year(g.user["commencement_session"]),
+            current_session=service.CURRENT_SESSION,
         )
     )
     response.headers["Cache-Control"] = "no-store"  # personal data must not be cached

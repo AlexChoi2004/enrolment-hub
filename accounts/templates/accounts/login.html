@@ -5,8 +5,9 @@
 
 {% if show_demo %}
   <p class="demo-note">
-    Demo login for this prototype: student number <code>{{ demo_student_number }}</code>,
-    password <code>{{ demo_password }}</code>. This is a synthetic student, not a real account.
+    Demo login for this prototype: <code>{{ demo_email }}</code>,
+    password <code>{{ demo_password }}</code>. This is a synthetic student two years into the degree,
+    not a real account.
   </p>
 {% endif %}
 
@@ -15,12 +16,14 @@
 <form class="login-form" method="post" action="{{ url_for('accounts.login') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="hidden" name="next" value="{{ next_url }}">
-  <label>Student number
-    <input name="student_number" required maxlength="20" autocomplete="username" value="{{ student_number }}">
+  <label>Email
+    <input type="email" name="email" required maxlength="100" autocomplete="username" value="{{ email }}">
   </label>
   <label>Password
     <input type="password" name="password" required maxlength="128" autocomplete="current-password">
   </label>
   <button type="submit">Log in</button>
 </form>
+
+<p>New student? <a href="{{ url_for('accounts.register') }}">Create an account</a> and start in Year 1.</p>
 {% endblock %}

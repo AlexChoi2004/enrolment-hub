@@ -7,7 +7,7 @@ demonstrating eligibility checks: some subjects are now available, and some
 """
 from accounts.seed import DEMO_STUDENT_NUMBER
 
-CURRENT_SESSION = "Autumn 2027"
+from enrolment.service import CURRENT_SESSION
 
 # (session, status, subject codes). 16 completed subjects = 96 cp, then 4 in progress = 24 cp.
 DEMO_HISTORY = [

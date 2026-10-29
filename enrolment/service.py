@@ -1,5 +1,12 @@
 """Enrolment business logic (grows in later chunks)."""
 
+CURRENT_SESSION = "Autumn 2027"  # the session the prototype treats as "now"
+
+
+def study_year(commencement_session, current_session=CURRENT_SESSION):
+    """Which year of study a student is in (the year they start is Year 1)."""
+    return int(current_session.split()[1]) - int(commencement_session.split()[1]) + 1
+
 
 def session_sort_key(label):
     """Order session labels like 'Autumn 2025' chronologically (Autumn before Spring)."""

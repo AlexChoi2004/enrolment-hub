@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from accounts.seed import DEMO_PASSWORD, DEMO_STUDENT_NUMBER
+from accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
 from app import create_app
 from shared import db
 
@@ -46,13 +46,25 @@ def csrf(client):
 def log_in(client, csrf):
     """Submit the login form. Returns the response."""
 
-    def do(student_number=DEMO_STUDENT_NUMBER, password=DEMO_PASSWORD, **extra):
+    def do(email=DEMO_EMAIL, password=DEMO_PASSWORD, **extra):
+        data = {"email": email, "password": password, "csrf_token": csrf(), **extra}
+        return client.post("/login", data=data)
+
+    return do
+
+
+@pytest.fixture()
+def register(client, csrf):
+    """Submit the registration form. Returns the response."""
+
+    def do(email="jane.smith@student.uni.edu.au", password="Str0ng#Pass", confirm=None, **extra):
         data = {
-            "student_number": student_number,
+            "email": email,
             "password": password,
-            "csrf_token": csrf(),
+            "confirm_password": password if confirm is None else confirm,
+            "csrf_token": csrf("/register"),
             **extra,
         }
-        return client.post("/login", data=data)
+        return client.post("/register", data=data)
 
     return do

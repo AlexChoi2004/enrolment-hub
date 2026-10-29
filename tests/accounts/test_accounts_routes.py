@@ -2,7 +2,8 @@ import logging
 
 import pytest
 
-from accounts.seed import DEMO_PASSWORD, DEMO_STUDENT_NUMBER
+from accounts import service
+from accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
 from app import create_app
 
 
@@ -16,12 +17,17 @@ def test_login_page_renders_form_with_csrf_token(client):
     assert res.status_code == 200
     assert b'name="csrf_token"' in res.data
     assert b'type="password"' in res.data
+    assert b'type="email"' in res.data
     assert res.headers["Cache-Control"] == "no-store"
+
+
+def test_login_page_links_to_account_creation(client):
+    assert b"/register" in client.get("/login").data
 
 
 def test_demo_credentials_are_shown_by_default(client):
     res = client.get("/login")
-    assert DEMO_STUDENT_NUMBER.encode() in res.data
+    assert DEMO_EMAIL.encode() in res.data
     assert DEMO_PASSWORD.encode() in res.data
 
 
@@ -33,42 +39,44 @@ def test_demo_credentials_can_be_hidden(tmp_path):
     assert DEMO_PASSWORD.encode() not in res.data
 
 
-def test_successful_login_redirects_to_subjects_and_starts_a_session(client, log_in):
+def test_successful_login_goes_to_my_record_and_starts_a_session(client, log_in):
     res = log_in()
     assert res.status_code == 302
-    assert res.headers["Location"].endswith("/subjects")
+    assert res.headers["Location"].endswith("/students/me")
     assert logged_in(client)
     page = client.get("/subjects").get_data(as_text=True)
-    assert f"Log out ({DEMO_STUDENT_NUMBER})" in page
+    assert "Log out (John Doe)" in page
 
 
-def test_student_number_is_case_insensitive(client, log_in):
-    assert log_in(student_number="demo0001").status_code == 302
+def test_email_is_case_insensitive(client, log_in):
+    assert log_in(email="JOHN.DOE@Student.UNI.edu.au").status_code == 302
 
 
 def test_wrong_password_is_rejected_with_a_generic_message(client, log_in):
     res = log_in(password="wrong-password")
     assert res.status_code == 401
-    assert b"Incorrect student number or password" in res.data
+    assert b"Incorrect email or password" in res.data
     assert not logged_in(client)
 
 
-def test_unknown_student_gets_the_same_response_as_a_wrong_password(client, log_in):
+def test_unknown_email_gets_the_same_response_as_a_wrong_password(client, log_in):
     wrong_password = log_in(password="wrong-password")
-    unknown_student = log_in(student_number="NOBODY99")
-    assert unknown_student.status_code == wrong_password.status_code == 401
-    assert b"Incorrect student number or password" in unknown_student.data
-    assert b"does not exist" not in unknown_student.data
+    unknown_email = log_in(email="nobody.here@student.uni.edu.au")
+    assert unknown_email.status_code == wrong_password.status_code == 401
+    assert b"Incorrect email or password" in unknown_email.data
+    assert b"does not exist" not in unknown_email.data
 
 
 def test_missing_fields_return_400(client, csrf):
-    res = client.post("/login", data={"student_number": "", "password": "", "csrf_token": csrf()})
+    res = client.post("/login", data={"email": "", "password": "", "csrf_token": csrf()})
     assert res.status_code == 400
-    assert b"Enter your student number and password" in res.data
+    assert b"Enter your email and password" in res.data
 
 
-def test_malformed_student_number_returns_400(client, log_in):
-    assert log_in(student_number="DEMO 0001'; --").status_code == 400
+def test_malformed_email_returns_400_with_the_format_hint(client, log_in):
+    res = log_in(email="not-an-email")
+    assert res.status_code == 400
+    assert b"firstname.lastname@student.uni.edu.au" in res.data
     assert not logged_in(client)
 
 
@@ -78,17 +86,14 @@ def test_oversized_password_returns_400(client, log_in):
 
 def test_post_without_csrf_token_is_rejected(client):
     client.get("/login")
-    res = client.post("/login", data={"student_number": DEMO_STUDENT_NUMBER, "password": DEMO_PASSWORD})
+    res = client.post("/login", data={"email": DEMO_EMAIL, "password": DEMO_PASSWORD})
     assert res.status_code == 400
     assert not logged_in(client)
 
 
 def test_post_with_wrong_csrf_token_is_rejected(client):
     client.get("/login")
-    res = client.post(
-        "/login",
-        data={"student_number": DEMO_STUDENT_NUMBER, "password": DEMO_PASSWORD, "csrf_token": "forged"},
-    )
+    res = client.post("/login", data={"email": DEMO_EMAIL, "password": DEMO_PASSWORD, "csrf_token": "forged"})
     assert res.status_code == 400
     assert not logged_in(client)
 
@@ -128,7 +133,7 @@ def test_csrf_token_changes_after_login(client, csrf, log_in):
 def test_login_never_redirects_off_site(client, log_in, evil):
     res = log_in(next=evil)
     assert res.status_code == 302
-    assert res.headers["Location"].endswith("/subjects")
+    assert res.headers["Location"].endswith("/students/me")
     assert "evil" not in res.headers["Location"]
 
 
@@ -149,17 +154,18 @@ def test_session_cookie_is_httponly_and_samesite(client, log_in):
     assert "SameSite=Lax" in cookie
 
 
-def test_passwords_are_never_written_to_the_log(client, log_in, caplog):
+def test_passwords_and_emails_are_never_written_to_the_log(client, log_in, caplog):
     caplog.set_level(logging.DEBUG)
     log_in(password="SuperSecret!123")
     log_in()
     assert "SuperSecret!123" not in caplog.text
     assert DEMO_PASSWORD not in caplog.text
-    assert "Failed login for student number DEMO0001" in caplog.text
+    assert DEMO_EMAIL not in caplog.text
+    assert f"Failed login for account {service.email_fingerprint(DEMO_EMAIL)}" in caplog.text
 
 
 def test_pages_carry_security_headers(client):
-    res = client.get("/subjects")
+    res = client.get("/login")
     assert "default-src 'self'" in res.headers["Content-Security-Policy"]
     assert res.headers["X-Content-Type-Options"] == "nosniff"
     assert res.headers["X-Frame-Options"] == "DENY"
@@ -168,9 +174,15 @@ def test_pages_carry_security_headers(client):
 def test_stale_session_for_a_missing_user_is_treated_as_logged_out(client):
     with client.session_transaction() as s:
         s["user_id"] = 9999
-    page = client.get("/subjects").get_data(as_text=True)
+    page = client.get("/login").get_data(as_text=True)
     assert "Log in" in page
     assert "Log out" not in page
+
+
+def test_nav_offers_login_and_create_account_to_visitors(client):
+    page = client.get("/login").get_data(as_text=True)
+    assert "Log in" in page and "Create account" in page
+    assert 'href="/subjects"' not in page
 
 
 def test_secret_key_is_random_when_not_configured(monkeypatch, tmp_path):

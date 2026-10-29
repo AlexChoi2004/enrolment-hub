@@ -5,9 +5,10 @@ from datetime import timedelta
 from pathlib import Path
 
 import click
-from flask import Flask, jsonify, redirect, url_for
+from flask import Flask, g, jsonify, redirect, render_template, url_for
 
 from accounts.routes import bp as accounts_bp
+from accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
 from enrolment.routes import bp as enrolment_bp
 from shared import db, security
 from shared.web import shared_bp
@@ -30,6 +31,7 @@ def create_app(test_config=None):
         SESSION_COOKIE_SECURE=os.getenv("SESSION_COOKIE_SECURE") == "1",
         PERMANENT_SESSION_LIFETIME=timedelta(hours=2),
         SHOW_DEMO_CREDENTIALS=True,
+        MAX_ACCOUNTS=200,  # stops anyone filling the database with sign-ups
     )
     if test_config:
         app.config.update(test_config)
@@ -47,7 +49,15 @@ def create_app(test_config=None):
 
     @app.get("/")
     def index():
-        return redirect(url_for("catalogue.list_page"))
+        # Students go straight to their record; visitors see a welcome screen.
+        if g.get("user"):
+            return redirect(url_for("enrolment.me"))
+        return render_template(
+            "welcome.html",
+            show_demo=app.config["SHOW_DEMO_CREDENTIALS"],
+            demo_email=DEMO_EMAIL,
+            demo_password=DEMO_PASSWORD,
+        )
 
     @app.get("/health")
     def health():
