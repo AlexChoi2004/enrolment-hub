@@ -1,33 +1,64 @@
 # Enrolment Hub
 
-A small microservice-style enrolment application for a single degree
-(Bachelor of Computing Science (Honours)). It uses **synthetic students only**
-and handbook-style subject data. It is an independent learning project and is
-not affiliated with or connected to any university system.
+[![CI](https://github.com/AlexChoi2004/enrolment-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/AlexChoi2004/enrolment-hub/actions/workflows/ci.yml)
 
-Built in releases: R0 (core app) -> R1 (RAG, MCP, AI mode) -> R2 (multi-agent).
+A small enrolment and degree-planning prototype for one course: Bachelor of Computing Science
+(Honours), Enterprise Software Development major. Built with Flask, SQLite and HTMX.
 
-## Features (one folder each)
+It is an independent educational project, **not an official university system**. All students
+are synthetic. Subject codes, names, credit points, categories and prerequisite rules are
+supplied reference data (not independently verified); session offerings and general electives
+are invented examples.
 
-| Folder | What it does |
-|---|---|
-| `accounts/` | Register, log in, hashed passwords, signed tokens |
-| `subject-catalogue/` | Browse and search subjects, prerequisites, credit points |
-| `enrolment/` | Enrol and drop, prerequisite / capacity / clash checks |
-| `degree-planner/` | Plan sessions and track progress against course rules |
+## What it does so far
 
-Each feature has `frontend/` (Flask + HTMX), `backend/` (API),
-`database/` (SQLite behind its own API) and `tests/`.
-A backend never opens another feature's SQLite file; it calls that feature's
-database API instead.
+- **Subject catalogue:** search by name or code; filter by category, session and prerequisites;
+  expandable details; colour-coded categories with the requirement stated under each heading
+- **Accounts:** login with salted password hashing, lockout after repeated failures,
+  CSRF protection, safe redirects, strict security headers
+- **My record:** a synthetic demo student two years into the degree; a student can only view
+  their own record (enforced on the server)
+
+Planned: prerequisite and eligibility checks on enrolment, a degree progress planner, a basic
+timetable with clash detection, and optional RAG/MCP features.
+
+## Run it
+
+```bash
+python -m venv .venv
+source .venv/Scripts/activate      # Mac/Linux: source .venv/bin/activate
+pip install -r requirements.txt
+python app.py                      # http://127.0.0.1:5000
+```
+
+Demo login (synthetic student): `DEMO0001` / `demo-student-2027`
+
+Optional settings (environment variables): `SECRET_KEY` (stable session key; a random one is
+generated if unset), `SESSION_COOKIE_SECURE=1` (when serving over HTTPS), `DATABASE_PATH`.
+
+Reset the demo data: `flask --app app reset-demo`
+
+## Test
+
+```bash
+python -m pytest -q
+```
+
+Tests run automatically on every push and pull request (GitHub Actions).
+
+## Layout
+
+app.py app factory and configuration
+accounts/ login, password hashing, lockout
+subject_catalogue/ catalogue pages, search and filters
+enrolment/ student records
+shared/ database helpers, security helpers, base template, CSS
+tests/ one folder per feature
+docs/ ethics, security and evidence notes
+
 
 ## Docs
 
-- `docs/ETHICS.md` data governance and responsible AI note
-- `docs/SECURITY.md` secure coding case study
-- `docs/EVIDENCE_LOG.md` hours, commits and what I actually did
-- `docs/portfolio/` screenshots and write-ups for the report
-
-## Run (filled in as releases land)
-
-See each release folder in `docs/`.
+- `docs/ETHICS.md`: data governance and responsible AI note (in progress)
+- `docs/SECURITY.md`: secure coding case study (in progress)
+- `docs/EVIDENCE_LOG.md`: development log
