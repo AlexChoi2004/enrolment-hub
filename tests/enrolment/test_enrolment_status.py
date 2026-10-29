@@ -34,7 +34,13 @@ def test_subjects_with_met_prerequisites_are_available(conn):
 
 
 def test_subjects_with_no_prerequisites_are_available_if_not_taken(conn):
-    assert status(demo(conn), "41759") == "available"  # Capstone has no supplied rule
+    assert status(demo(conn), "43030") == "available"  # Professional Practice: no rule, offered both sessions
+
+
+def test_a_subject_is_blocked_when_every_session_it_is_offered_in_is_full(conn):
+    result = demo(conn)
+    assert status(result, "41759") == "blocked"  # Capstone is Autumn only, and Autumn is full
+    assert result["subjects"]["41759"]["reasons"] == ["Autumn 2027 is full (24 of 24 credit points)"]
 
 
 def test_a_prerequisite_that_is_only_in_progress_does_not_unlock_a_subject(conn):
@@ -68,7 +74,7 @@ def test_major_electives_stay_open_until_three_are_chosen(conn):
     result = demo(conn)
     progress = result["categories"]["major_elective"]
     assert (progress["completed"], progress["enrolled"], progress["counted_cp"]) == (0, 1, 6)
-    assert status(result, "31777") == "available"
+    assert status(result, "31260") == "available"  # Fundamentals of Interaction Design: offered both sessions
 
 
 def test_major_electives_close_when_three_are_chosen(conn):
@@ -83,7 +89,7 @@ def test_major_electives_close_when_three_are_chosen(conn):
 
 
 def test_a_non_elective_subject_is_never_blocked_by_an_elective_limit(conn):
-    assert status(demo(conn), "41759") == "available"
+    assert status(demo(conn), "43030") == "available"
 
 
 # --- category progress --------------------------------------------------------
