@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}My record · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>My record</h1>
+<p>
+  {{ student.display_name }} · {{ student.student_number }}<br>
+  {{ course.name }}, {{ course.major_name }} major
+</p>
+<p class="count">
+  {{ record.counted_cp }} of {{ record.degree_total_cp }} credit points counted:
+  {{ record.completed_cp }} completed, {{ record.enrolled_cp }} in progress.
+</p>
+
+<h2>In progress</h2>
+{% if record.enrolled %}
+  <table class="table">
+    <thead><tr><th>Code</th><th>Subject</th><th>Category</th><th>Session</th><th>cp</th></tr></thead>
+    <tbody>
+      {% for s in record.enrolled %}
+        <tr>
+          <td class="code">{{ s.code }}</td><td>{{ s.name }}</td><td>{{ s.category_label }}</td>
+          <td>{{ s.session_label }}</td><td>{{ s.credit_points }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No subjects in progress.</p>
+{% endif %}
+
+<h2>Completed</h2>
+{% for label, subjects in record.completed_by_session %}
+  <h3>{{ label }}</h3>
+  <table class="table">
+    <tbody>
+      {% for s in subjects %}
+        <tr>
+          <td class="code">{{ s.code }}</td><td>{{ s.name }}</td><td>{{ s.category_label }}</td>
+          <td>{{ s.credit_points }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No completed subjects.</p>
+{% endfor %}
+{% endblock %}

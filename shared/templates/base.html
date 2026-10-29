@@ -14,6 +14,7 @@
     <nav>
       <a href="{{ url_for('catalogue.list_page') }}">Subjects</a>
       {% if current_user %}
+        <a href="{{ url_for('enrolment.me') }}">My record</a>
         <form class="inline" method="post" action="{{ url_for('accounts.logout') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="link-button">Log out ({{ current_user.student_number }})</button>

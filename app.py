@@ -4,9 +4,11 @@ import secrets
 from datetime import timedelta
 from pathlib import Path
 
+import click
 from flask import Flask, jsonify, redirect, url_for
 
 from accounts.routes import bp as accounts_bp
+from enrolment.routes import bp as enrolment_bp
 from shared import db, security
 from shared.web import shared_bp
 from subject_catalogue.routes import bp as catalogue_bp
@@ -41,6 +43,7 @@ def create_app(test_config=None):
     app.register_blueprint(shared_bp)
     app.register_blueprint(accounts_bp)
     app.register_blueprint(catalogue_bp)
+    app.register_blueprint(enrolment_bp)
 
     @app.get("/")
     def index():
@@ -49,6 +52,15 @@ def create_app(test_config=None):
     @app.get("/health")
     def health():
         return jsonify(status="ok")
+
+    @app.cli.command("reset-demo")
+    def reset_demo():
+        """Delete the database and rebuild it with fresh synthetic demo data."""
+        path = app.config["DATABASE"]
+        if os.path.exists(path):
+            os.remove(path)
+        db.build_database(path)
+        click.echo("Demo data reset.")
 
     return app
 

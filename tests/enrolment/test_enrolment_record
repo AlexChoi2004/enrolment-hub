@@ -1,0 +1,159 @@
+import pytest
+
+from accounts.service import hash_password
+from enrolment.service import get_record
+from shared import db
+
+
+@pytest.fixture()
+def second_student(app):
+    """A second synthetic student with their own password and one record."""
+    conn = db.connect(app.config["DATABASE"])
+    conn.execute(
+        "INSERT INTO users (student_number, display_name, password_hash, course_code)"
+        " VALUES ('OTHER0002', 'Other Student', ?, 'C09119')",
+        (hash_password("other-password"),),
+    )
+    user_id = conn.execute("SELECT id FROM users WHERE student_number='OTHER0002'").fetchone()["id"]
+    conn.execute(
+        "INSERT INTO enrolments (user_id, subject_code, status, session_label)"
+        " VALUES (?, '41052', 'completed', 'Autumn 2026')",
+        (user_id,),
+    )
+    conn.commit()
+    conn.close()
+    return "OTHER0002", "other-password"
+
+
+# --- the record itself -------------------------------------------------------
+
+def test_record_totals_match_the_demo_history(conn):
+    record = get_record(conn, 1)
+    assert record["completed_cp"] == 96
+    assert record["enrolled_cp"] == 24
+    assert record["counted_cp"] == 120
+    assert record["degree_total_cp"] == 192
+    assert len(record["enrolled"]) == 4
+
+
+def test_completed_subjects_are_grouped_in_chronological_order(conn):
+    sessions = [label for label, _ in get_record(conn, 1)["completed_by_session"]]
+    assert sessions == ["Autumn 2025", "Spring 2025", "Autumn 2026", "Spring 2026"]
+
+
+def test_record_only_contains_the_requested_students_rows(conn):
+    conn.execute(
+        "INSERT INTO users (id, student_number, display_name, password_hash, course_code)"
+        " VALUES (2, 'OTHER0002', 'Other', 'x', 'C09119')"
+    )
+    conn.execute(
+        "INSERT INTO enrolments (user_id, subject_code, status, session_label)"
+        " VALUES (2, '41052', 'completed', 'Autumn 2026')"
+    )
+    other = get_record(conn, 2)
+    assert other["counted_cp"] == 6
+    demo_codes = {s["code"] for _, items in get_record(conn, 1)["completed_by_session"] for s in items}
+    assert "41052" not in demo_codes
+
+
+# --- access control ----------------------------------------------------------
+
+def test_anonymous_visitor_is_redirected_to_login(client):
+    res = client.get("/students/DEMO0001/record")
+    assert res.status_code == 302
+    assert "/login" in res.headers["Location"]
+    assert "next=/students/DEMO0001/record" in res.headers["Location"]
+
+
+def test_anonymous_htmx_request_gets_401_with_redirect_hint(client):
+    res = client.get("/students/DEMO0001/record", headers={"HX-Request": "true"})
+    assert res.status_code == 401
+    assert res.headers["HX-Redirect"].endswith("/login")
+
+
+def test_me_redirects_anonymous_visitors_to_login(client):
+    assert "/login" in client.get("/students/me").headers["Location"]
+
+
+def test_logged_in_student_can_view_their_own_record(client, log_in):
+    log_in()
+    res = client.get("/students/DEMO0001/record")
+    assert res.status_code == 200
+    assert b"Data Structures and Algorithms" in res.data
+    assert b"120 of 192 credit points" in res.data
+    assert b"Advanced Software Development" in res.data  # in progress
+
+
+def test_me_redirects_to_own_record(client, log_in):
+    log_in()
+    res = client.get("/students/me")
+    assert res.status_code == 302
+    assert res.headers["Location"].endswith("/students/DEMO0001/record")
+
+
+def test_student_number_in_the_url_is_case_insensitive_for_the_owner(client, log_in):
+    log_in()
+    assert client.get("/students/demo0001/record").status_code == 200
+
+
+def test_student_cannot_view_another_students_record(client, log_in, second_student):
+    number, password = second_student
+    log_in(number, password)
+    assert client.get("/students/DEMO0001/record").status_code == 403
+    assert client.get(f"/students/{number}/record").status_code == 200
+
+
+def test_demo_student_cannot_view_the_other_students_record(client, log_in, second_student):
+    log_in()
+    assert client.get(f"/students/{second_student[0]}/record").status_code == 403
+
+
+def test_nonexistent_student_gets_the_same_403_as_another_student(client, log_in):
+    log_in()
+    assert client.get("/students/NOBODY99/record").status_code == 403
+
+
+def test_malformed_student_number_returns_400(client, log_in):
+    log_in()
+    assert client.get("/students/bad!id/record").status_code == 400
+
+
+def test_record_page_is_not_cacheable(client, log_in):
+    log_in()
+    assert client.get("/students/DEMO0001/record").headers["Cache-Control"] == "no-store"
+
+
+def test_record_page_does_not_expose_password_hashes(client, log_in):
+    log_in()
+    page = client.get("/students/DEMO0001/record").get_data(as_text=True)
+    assert "scrypt" not in page and "pbkdf2" not in page and "password_hash" not in page
+
+
+def test_record_is_unavailable_after_logout(client, log_in, csrf):
+    log_in()
+    client.post("/logout", data={"csrf_token": csrf("/subjects")})
+    assert client.get("/students/DEMO0001/record").status_code == 302
+
+
+def test_nav_shows_my_record_link_only_when_logged_in(client, log_in):
+    assert b"My record" not in client.get("/subjects").data
+    log_in()
+    assert b"My record" in client.get("/subjects").data
+
+
+# --- demo reset --------------------------------------------------------------
+
+def test_reset_demo_command_restores_the_demo_data(app):
+    conn = db.connect(app.config["DATABASE"])
+    conn.execute("DELETE FROM enrolments")
+    conn.commit()
+    conn.close()
+
+    result = app.test_cli_runner().invoke(args=["reset-demo"])
+    assert result.exit_code == 0
+    assert "Demo data reset" in result.output
+
+    conn = db.connect(app.config["DATABASE"])
+    count = conn.execute("SELECT COUNT(*) AS n FROM enrolments").fetchone()["n"]
+    conn.close()
+    assert count == 20
