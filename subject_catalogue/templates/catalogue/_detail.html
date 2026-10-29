@@ -1,0 +1,31 @@
+<div class="detail">
+  <p>
+    <strong>{{ subject.credit_points }} credit points</strong> ·
+    {{ subject.category_label }} ·
+    Offered: {{ subject.sessions_offered }} <span class="badge" title="Session offerings are invented for this prototype and are not from the official handbook">example data</span>
+  </p>
+  {% if subject.description %}<p>{{ subject.description }}</p>
+  {% else %}<p class="muted">No description in the supplied data.</p>{% endif %}
+
+  <h3>Prerequisites</h3>
+  {% if subject.prereq_status == 'required' %}
+    <ul class="plain">
+      {% for p in subject.prerequisites %}
+        <li><a href="{{ url_for('catalogue.detail_page', code=p.code) }}">{{ p.code }} {{ p.name }}</a></li>
+      {% endfor %}
+    </ul>
+  {% elif subject.prereq_status == 'none' %}
+    <p>No prerequisites listed in the supplied data.</p>
+  {% else %}
+    <p class="notice">Prerequisites for this subject are not in the supplied data. This does not mean there are none.</p>
+  {% endif %}
+
+  {% if subject.unlocks %}
+    <h3>Leads to</h3>
+    <ul class="plain">
+      {% for u in subject.unlocks %}
+        <li><a href="{{ url_for('catalogue.detail_page', code=u.code) }}">{{ u.code }} {{ u.name }}</a></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>

@@ -1,0 +1,64 @@
+:root {
+  --bg: #f6f7f9; --card: #ffffff; --text: #1d2433; --muted: #5b6577;
+  --border: #dfe3ea; --accent: #2457d6; --ok: #1a7f4b; --warn: #8a5a00; --bad: #b42318;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+       background: var(--bg); color: var(--text); line-height: 1.5; }
+.site-header { display: flex; gap: 2rem; align-items: center; padding: .9rem 1.5rem;
+               background: var(--card); border-bottom: 1px solid var(--border); }
+.brand { font-weight: 700; color: var(--text); text-decoration: none; }
+.site-header nav a { color: var(--accent); text-decoration: none; margin-right: 1rem; }
+.container { max-width: 960px; margin: 1.5rem auto; padding: 0 1rem; }
+.site-footer { max-width: 960px; margin: 2rem auto; padding: 0 1rem; color: var(--muted); font-size: .85rem; }
+h1 { margin-top: 0; }
+.filters { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1rem; }
+.filters label { display: flex; flex-direction: column; font-size: .8rem; color: var(--muted); gap: .2rem; }
+.filters input, .filters select { padding: .45rem .6rem; border: 1px solid var(--border);
+                                   border-radius: 6px; font-size: .95rem; min-width: 12rem; }
+.filters button { align-self: flex-end; padding: .5rem .9rem; border: 0; border-radius: 6px;
+                  background: var(--accent); color: #fff; cursor: pointer; }
+.count { color: var(--muted); margin: .25rem 0 .75rem; }
+.card { background: var(--card); border: 1px solid var(--border); border-left: 5px solid var(--c, var(--border));
+        border-radius: 8px; padding: .75rem 1rem; margin-bottom: .6rem; }
+.card summary { cursor: pointer; display: flex; flex-direction: column; gap: .35rem; list-style: none; }
+.card summary::-webkit-details-marker { display: none; }
+.card-title { display: flex; align-items: baseline; gap: .6rem; }
+.card-title .name { flex: 1; }
+.chev { color: var(--muted); transition: transform .15s; }
+details[open] .chev { transform: rotate(180deg); }
+.card-badges { display: flex; flex-wrap: wrap; gap: .4rem; }
+.code { font-family: ui-monospace, Consolas, monospace; font-weight: 700; }
+.badge { font-size: .72rem; padding: .1rem .5rem; border-radius: 999px; border: 1px solid var(--border);
+         color: var(--muted); background: #f1f3f7; }
+.badge.warn { color: var(--warn); border-color: #ecd9a8; background: #fff7e0; }
+.detail { margin-top: .6rem; padding-top: .6rem; border-top: 1px dashed var(--border); }
+.detail h3 { margin: .6rem 0 .2rem; font-size: .9rem; color: var(--muted); text-transform: uppercase; }
+.notice { color: var(--warn); }
+.error { color: var(--bad); }
+ul.plain { margin: .2rem 0; padding-left: 1.1rem; }
+a { color: var(--accent); }
+
+
+/* Category colours: one custom property (--c) drives the card edge and the badge. */
+.cat-core { --c: #2457d6; }
+.cat-honours_core { --c: #7a3fc2; }
+.cat-major_core { --c: #0f8b8d; }
+.cat-major_elective { --c: #e0a800; }
+.cat-general_elective { --c: #6b7280; }
+.badge.category { color: var(--c); border-color: var(--c);
+                  background: color-mix(in srgb, var(--c) 12%, white); }
+.badge.category.cat-major_elective { color: #7a5b00; }
+.legend { margin: 0 0 .75rem; display: flex; flex-wrap: wrap; gap: .4rem; }
+
+
+/* Prerequisite facts: neutral slate = has prerequisites, soft green = none.
+   Solid red/green fills are kept for the student's own status (blocked / eligible). */
+.badge.req { color: #334155; border-color: #94a3b8; background: #e8edf4; }
+.badge.none { color: var(--ok); border-color: #b7e0c8; background: #e9f7ef; }
+
+
+/* Category headings */
+.group { margin-top: 1.4rem; }
+.group-title { margin: 0; font-size: 1.15rem; padding-bottom: .25rem; border-bottom: 3px solid var(--c, var(--border)); }
+.group-rule { margin: .3rem 0 .7rem; color: var(--muted); font-size: .9rem; }

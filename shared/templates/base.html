@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Enrolment Hub{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('shared.static', filename='theme.css') }}">
+  <script src="{{ url_for('shared.static', filename='htmx.min.js') }}" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('catalogue.list_page') }}">Enrolment Hub</a>
+    <nav>
+      <a href="{{ url_for('catalogue.list_page') }}">Subjects</a>
+    </nav>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    Independent educational prototype, not an official university system.
+    Subject codes, names, credit points and prerequisite rules are supplied reference data;
+    session offerings and general electives are illustrative. All students are synthetic.
+  </footer>
+</body>
+</html>
