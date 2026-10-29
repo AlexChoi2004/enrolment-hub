@@ -21,7 +21,13 @@ h1 { margin-top: 0; }
 .count { color: var(--muted); margin: .25rem 0 .75rem; }
 .card { background: var(--card); border: 1px solid var(--border); border-left: 5px solid var(--c, var(--border));
         border-radius: 8px; padding: .75rem 1rem; margin-bottom: .6rem; }
-.card summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: .5rem; align-items: baseline; }
+.card summary { cursor: pointer; display: flex; flex-direction: column; gap: .35rem; list-style: none; }
+.card summary::-webkit-details-marker { display: none; }
+.card-title { display: flex; align-items: baseline; gap: .6rem; }
+.card-title .name { flex: 1; }
+.chev { color: var(--muted); transition: transform .15s; }
+details[open] .chev { transform: rotate(180deg); }
+.card-badges { display: flex; flex-wrap: wrap; gap: .4rem; }
 .code { font-family: ui-monospace, Consolas, monospace; font-weight: 700; }
 .badge { font-size: .72rem; padding: .1rem .5rem; border-radius: 999px; border: 1px solid var(--border);
          color: var(--muted); background: #f1f3f7; }
