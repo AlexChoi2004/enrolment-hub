@@ -62,3 +62,20 @@ a { color: var(--accent); }
 .group { margin-top: 1.4rem; }
 .group-title { margin: 0; font-size: 1.15rem; padding-bottom: .25rem; border-bottom: 3px solid var(--c, var(--border)); }
 .group-rule { margin: .3rem 0 .7rem; color: var(--muted); font-size: .9rem; }
+
+
+/* Login and account controls */
+.inline { display: inline; margin: 0; }
+.link-button { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font: inherit; }
+.login-form { display: flex; flex-direction: column; gap: .8rem; max-width: 22rem; }
+.login-form label { display: flex; flex-direction: column; font-size: .85rem; color: var(--muted); gap: .2rem; }
+.login-form input { padding: .5rem .6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; }
+.login-form button { padding: .55rem 1rem; border: 0; border-radius: 6px; background: var(--accent); color: #fff; cursor: pointer; }
+.demo-note { background: #eef3fd; border: 1px solid #c9d6f5; padding: .6rem .8rem; border-radius: 8px; font-size: .9rem; }
+
+
+/* Record tables */
+.table { width: 100%; border-collapse: collapse; background: var(--card); margin-bottom: 1rem; }
+.table th, .table td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--border); }
+.table th { font-size: .8rem; color: var(--muted); text-transform: uppercase; }
+h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
