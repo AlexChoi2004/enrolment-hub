@@ -2,7 +2,7 @@
   <p>
     <strong>{{ subject.credit_points }} credit points</strong> ·
     {{ subject.category_label }} ·
-    Offered: {{ subject.sessions_offered }} <span class="badge">illustrative</span>
+    Offered: {{ subject.sessions_offered }} <span class="badge" title="Session offerings are invented for this prototype and are not from the official handbook">example data</span>
   </p>
   {% if subject.description %}<p>{{ subject.description }}</p>
   {% else %}<p class="muted">No description in the supplied data.</p>{% endif %}
