@@ -29,9 +29,11 @@ def list_page():
         return _respond("catalogue/error.html", status=400, message=str(exc))
 
     template = "catalogue/_results.html" if _is_htmx() else "catalogue/index.html"
+    subjects = service.list_subjects(conn, filters)
     return _respond(
         template,
-        subjects=service.list_subjects(conn, filters),
+        subjects=subjects,
+        groups=service.group_by_category(subjects, categories),
         categories=categories,
         filters=filters,
         sessions=service.SESSIONS,

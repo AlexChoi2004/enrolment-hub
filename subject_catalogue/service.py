@@ -9,6 +9,8 @@ from dataclasses import dataclass
 SESSIONS = ("Autumn", "Spring")
 PREREQ_FILTERS = ("required", "none")
 MAX_QUERY_LENGTH = 50
+ELECTIVE_CATEGORIES = {"major_elective", "general_elective"}
+ELECTIVE_CREDIT_POINTS = 6  # every elective in the supplied data is 6 cp
 CODE_PATTERN = re.compile(r"^[A-Za-z0-9]{3,10}$")
 
 
@@ -30,10 +32,38 @@ def is_valid_code(code):
 
 def list_categories(conn):
     rows = conn.execute(
-        "SELECT category, label, required_credit_points"
-        " FROM requirement_categories ORDER BY sort_order"
+        "SELECT c.category, c.label, c.required_credit_points,"
+        " COUNT(s.code) AS subject_count"
+        " FROM requirement_categories c"
+        " LEFT JOIN subjects s ON s.category = c.category"
+        " GROUP BY c.category ORDER BY c.sort_order"
     ).fetchall()
     return [dict(r) for r in rows]
+
+
+def category_rule(category, subject_count, required_credit_points):
+    """Plain-English requirement shown under each category heading."""
+    if category in ELECTIVE_CATEGORIES:
+        choose = required_credit_points // ELECTIVE_CREDIT_POINTS
+        return f"Choose {choose} of {subject_count} \u00b7 {required_credit_points} cp required"
+    return f"All {subject_count} required \u00b7 {required_credit_points} cp"
+
+
+def group_by_category(subjects, categories):
+    """Group already-sorted subjects under their category, in degree order."""
+    groups = []
+    for c in categories:
+        items = [s for s in subjects if s["category"] == c["category"]]
+        if items:
+            groups.append(
+                {
+                    "category": c["category"],
+                    "label": c["label"],
+                    "rule": category_rule(c["category"], c["subject_count"], c["required_credit_points"]),
+                    "subjects": items,
+                }
+            )
+    return groups
 
 
 def parse_filters(args, valid_categories):

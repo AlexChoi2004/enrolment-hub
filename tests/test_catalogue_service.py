@@ -109,3 +109,33 @@ def test_subjects_are_grouped_by_category_then_sorted_by_name(conn):
     core = [s["name"].lower() for s in result if s["category"] == "core"]
     assert core == sorted(core)
     assert core[0] == "business requirements modelling"
+
+
+def test_categories_report_how_many_subjects_they_hold(conn):
+    counts = {c["category"]: c["subject_count"] for c in service.list_categories(conn)}
+    assert counts == {
+        "core": 16, "honours_core": 3, "major_core": 5, "major_elective": 9, "general_elective": 12,
+    }
+
+
+def test_category_rules_are_plain_english(conn):
+    cats = {c["category"]: c for c in service.list_categories(conn)}
+
+    def rule(key):
+        c = cats[key]
+        return service.category_rule(key, c["subject_count"], c["required_credit_points"])
+
+    assert rule("core") == "All 16 required \u00b7 96 cp"
+    assert rule("honours_core") == "All 3 required \u00b7 24 cp"
+    assert rule("major_elective") == "Choose 3 of 9 \u00b7 18 cp required"
+    assert rule("general_elective") == "Choose 4 of 12 \u00b7 24 cp required"
+
+
+def test_grouping_keeps_degree_order_and_skips_empty_groups(conn):
+    categories = service.list_categories(conn)
+    groups = service.group_by_category(service.list_subjects(conn), categories)
+    assert [g["category"] for g in groups] == [c["category"] for c in categories]
+    only_core = service.group_by_category(
+        service.list_subjects(conn, Filters(category="core")), categories
+    )
+    assert [g["category"] for g in only_core] == ["core"]

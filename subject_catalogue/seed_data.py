@@ -22,7 +22,7 @@ CATEGORIES = [
     ("core", "Core subjects", 96, 1),
     ("honours_core", "Honours core", 24, 2),
     ("major_core", "Major core", 30, 3),
-    ("major_elective", "Major electives (choose 3)", 18, 4),
+    ("major_elective", "Major electives", 18, 4),
     ("general_elective", "General electives", 24, 5),
 ]
 TOTAL_CREDIT_POINTS = 192

@@ -1,23 +1,29 @@
 <p class="count" id="count">{{ subjects|length }} subject{{ '' if subjects|length == 1 else 's' }}</p>
-{% for s in subjects %}
-  <details class="card cat-{{ s.category }}">
-    <summary>
-      <span class="card-title">
-        <span class="code">{{ s.code }}</span>
-        <span class="name">{{ s.name }}</span>
-        <span class="chev" aria-hidden="true">▾</span>
-      </span>
-      <span class="card-badges">
-        <span class="badge">{{ s.credit_points }} cp</span>
-        <span class="badge category">{{ s.category_label }}</span>
-        {% if s.is_synthetic %}<span class="badge warn">synthetic</span>{% endif %}
-        {% if s.prereq_status == 'required' %}<span class="badge req">has prerequisites</span>
-        {% elif s.prereq_status == 'none' %}<span class="badge none">no prerequisites</span>
-        {% else %}<span class="badge warn">prerequisites not supplied</span>{% endif %}
-      </span>
-    </summary>
-    {% with subject=s %}{% include 'catalogue/_detail.html' %}{% endwith %}
-  </details>
+{% for g in groups %}
+  <section class="group cat-{{ g.category }}">
+    <h2 class="group-title">{{ g.label }}</h2>
+    <p class="group-rule">{{ g.rule }}</p>
+    {% for s in g.subjects %}
+      <details class="card cat-{{ s.category }}">
+        <summary>
+          <span class="card-title">
+            <span class="code">{{ s.code }}</span>
+            <span class="name">{{ s.name }}</span>
+            <span class="chev" aria-hidden="true">▾</span>
+          </span>
+          <span class="card-badges">
+            <span class="badge">{{ s.credit_points }} cp</span>
+            <span class="badge category">{{ s.category_label }}</span>
+            {% if s.is_synthetic %}<span class="badge warn">synthetic</span>{% endif %}
+            {% if s.prereq_status == 'required' %}<span class="badge req">has prerequisites</span>
+            {% elif s.prereq_status == 'none' %}<span class="badge none">no prerequisites</span>
+            {% else %}<span class="badge warn">prerequisites not supplied</span>{% endif %}
+          </span>
+        </summary>
+        {% with subject=s %}{% include 'catalogue/_detail.html' %}{% endwith %}
+      </details>
+    {% endfor %}
+  </section>
 {% else %}
   <p>No subjects match these filters.</p>
 {% endfor %}

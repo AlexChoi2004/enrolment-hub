@@ -51,7 +51,14 @@ a { color: var(--accent); }
 .badge.category.cat-major_elective { color: #7a5b00; }
 .legend { margin: 0 0 .75rem; display: flex; flex-wrap: wrap; gap: .4rem; }
 
+
 /* Prerequisite facts: neutral slate = has prerequisites, soft green = none.
    Solid red/green fills are kept for the student's own status (blocked / eligible). */
 .badge.req { color: #334155; border-color: #94a3b8; background: #e8edf4; }
 .badge.none { color: var(--ok); border-color: #b7e0c8; background: #e9f7ef; }
+
+
+/* Category headings */
+.group { margin-top: 1.4rem; }
+.group-title { margin: 0; font-size: 1.15rem; padding-bottom: .25rem; border-bottom: 3px solid var(--c, var(--border)); }
+.group-rule { margin: .3rem 0 .7rem; color: var(--muted); font-size: .9rem; }

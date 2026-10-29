@@ -114,6 +114,15 @@ def test_cards_carry_category_and_prerequisite_classes(client):
     assert b"badge none" in without_rule.data
 
 
-def test_page_shows_a_category_legend(client):
+def test_page_has_a_heading_and_rule_for_each_category(client):
     res = client.get("/subjects")
-    assert res.data.count(b"badge category cat-") == 5
+    assert res.data.count(b'class="group-title"') == 5
+    assert b"All 16 required" in res.data
+    assert b"Choose 3 of 9" in res.data
+    assert b"Choose 4 of 12" in res.data
+
+
+def test_empty_categories_are_hidden_when_filtering(client):
+    res = client.get("/subjects?category=honours_core")
+    assert res.data.count(b'class="group-title"') == 1
+    assert b"Honours core" in res.data

@@ -35,9 +35,6 @@
   </label>
   <button type="submit">Apply</button>
 </form>
-<p class="legend">
-  {% for c in categories %}<span class="badge category cat-{{ c.category }}">{{ c.label }}</span> {% endfor %}
-</p>
 
 <div id="results">
   {% include 'catalogue/_results.html' %}
