@@ -11,7 +11,12 @@
   {% if subject.prereq_status == 'required' %}
     <ul class="plain">
       {% for p in subject.prerequisites %}
-        <li><a href="{{ url_for('catalogue.detail_page', code=p.code) }}">{{ p.code }} {{ p.name }}</a></li>
+        <li>
+          <a href="{{ url_for('catalogue.detail_page', code=p.code) }}">{{ p.code }} {{ p.name }}</a>
+          {% if p.state == 'completed' %}<span class="met">&#10003; completed</span>
+          {% elif p.state == 'enrolled' %}<span class="unmet">in progress (not yet met)</span>
+          {% else %}<span class="unmet">&#10007; not completed</span>{% endif %}
+        </li>
       {% endfor %}
     </ul>
   {% elif subject.prereq_status == 'none' %}

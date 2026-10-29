@@ -18,6 +18,15 @@
       {% endfor %}
     </select>
   </label>
+  <label>Status
+    <select name="status">
+      <option value="">Any</option>
+      <option value="available" {{ 'selected' if filters.status == 'available' }}>Can enrol</option>
+      <option value="blocked" {{ 'selected' if filters.status == 'blocked' }}>Can't enrol</option>
+      <option value="enrolled" {{ 'selected' if filters.status == 'enrolled' }}>Enrolled</option>
+      <option value="completed" {{ 'selected' if filters.status == 'completed' }}>Completed</option>
+    </select>
+  </label>
   <label>Session
     <select name="session">
       <option value="">Any</option>

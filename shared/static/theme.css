@@ -94,3 +94,22 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 .button { display: inline-block; padding: .65rem 1.3rem; border-radius: 6px; background: var(--accent);
           color: #fff; text-decoration: none; border: 1px solid var(--accent); }
 .button.secondary { background: var(--card); color: var(--accent); }
+
+
+/* Student status: completed and can't-enrol are greyed, enrolled is tinted green */
+.card.status-completed, .card.status-blocked { background: #eceff3; }
+.card.status-completed .name, .card.status-blocked .name,
+.card.status-completed .code, .card.status-blocked .code { color: var(--muted); }
+.card.status-enrolled { background: #eaf7ee; border-color: #b7e0c8; }
+.badge.st-completed { background: #6b7280; color: #fff; border-color: #6b7280; }
+.badge.st-enrolled { background: var(--ok); color: #fff; border-color: var(--ok); }
+.badge.st-available { background: var(--accent); color: #fff; border-color: var(--accent); }
+.badge.st-blocked { background: var(--bad); color: #fff; border-color: var(--bad); }
+.card-note { font-size: .85rem; color: var(--muted); }
+.met { color: var(--ok); font-size: .85rem; margin-left: .4rem; }
+.unmet { color: var(--bad); font-size: .85rem; margin-left: .4rem; }
+
+/* A finished requirement is greyed out as a whole */
+.group-complete { opacity: .7; filter: grayscale(.8); }
+.group-note { margin: 0 0 .7rem; font-weight: 600; color: var(--muted); }
+.tick { color: var(--ok); }

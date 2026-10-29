@@ -1,6 +1,7 @@
 """Subject catalogue pages. Business rules live in service.py."""
-from flask import Blueprint, abort, make_response, render_template, request
+from flask import Blueprint, abort, g, make_response, render_template, request
 
+from enrolment import service as enrolment_service
 from shared import security
 from shared.db import get_db
 from subject_catalogue import service
@@ -31,11 +32,13 @@ def list_page():
         return _respond("catalogue/error.html", status=400, message=str(exc))
 
     template = "catalogue/_results.html" if _is_htmx() else "catalogue/index.html"
+    progress = enrolment_service.evaluate_subjects(conn, g.user["id"])
     subjects = service.list_subjects(conn, filters)
+    subjects = service.filter_by_status(service.attach_status(subjects, progress), filters.status)
     return _respond(
         template,
         subjects=subjects,
-        groups=service.group_by_category(subjects, categories),
+        groups=service.group_by_category(subjects, categories, progress),
         categories=categories,
         filters=filters,
         sessions=service.SESSIONS,
@@ -47,7 +50,9 @@ def list_page():
 def detail_page(code):
     if not service.is_valid_code(code):
         abort(400)
-    subject = service.get_subject(get_db(), code)
+    conn = get_db()
+    subject = service.get_subject(conn, code)
     if subject is None:
         abort(404)
+    service.attach_status([subject], enrolment_service.evaluate_subjects(conn, g.user["id"]))
     return _respond("catalogue/detail.html", subject=subject)
