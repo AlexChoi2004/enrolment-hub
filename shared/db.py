@@ -48,9 +48,11 @@ def init_schema(conn):
 
 def seed_db(conn):
     # Imported here so each feature can add its own seeder in later chunks.
+    from accounts.seed import seed_accounts
     from subject_catalogue.seed import seed_catalogue
 
     seed_catalogue(conn)
+    seed_accounts(conn)
     conn.commit()
 
 
