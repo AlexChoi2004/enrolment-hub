@@ -45,6 +45,11 @@
   <button type="submit">Apply</button>
 </form>
 
+<p class="loads">
+  {% for label, cp in session_loads.items() %}
+    <span class="load{{ ' load-full' if cp >= max_cp }}">{{ label }}: {{ cp }} of {{ max_cp }} credit points</span>
+  {% endfor %}
+</p>
 <div id="results">
   {% include 'catalogue/_results.html' %}
 </div>

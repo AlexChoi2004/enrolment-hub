@@ -25,6 +25,40 @@
     <p class="notice">Prerequisites for this subject are not in the supplied data. This does not mean there are none.</p>
   {% endif %}
 
+  {% if subject.status == 'available' %}
+    <form class="enrol-form" method="post" action="{{ url_for('enrolment.enrol') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="subject_code" value="{{ subject.code }}">
+      <input type="hidden" name="next" value="{{ next_url }}">
+      {% if subject.enrol_sessions|length == 1 %}
+        <input type="hidden" name="session_label" value="{{ subject.enrol_sessions[0] }}">
+        <button type="submit" class="btn">Enrol for {{ subject.enrol_sessions[0] }}</button>
+      {% else %}
+        <label>Session
+          <select name="session_label">
+            {% for label in subject.enrol_sessions %}<option value="{{ label }}">{{ label }}</option>{% endfor %}
+          </select>
+        </label>
+        <button type="submit" class="btn">Enrol</button>
+      {% endif %}
+    </form>
+  {% elif subject.status == 'enrolled' %}
+    <div class="enrol-actions">
+      <form class="enrol-form" method="post" action="{{ url_for('enrolment.withdraw', code=subject.code) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ next_url }}">
+        <button type="submit" class="btn btn-danger">Withdraw</button>
+      </form>
+      {% for label in subject.move_sessions %}
+        <form class="enrol-form" method="post" action="{{ url_for('enrolment.move', code=subject.code) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="session_label" value="{{ label }}">
+          <input type="hidden" name="next" value="{{ next_url }}">
+          <button type="submit" class="btn btn-secondary">Move to {{ label }}</button>
+        </form>
+      {% endfor %}
+    </div>
+  {% endif %}
   {% if subject.unlocks %}
     <h3>Leads to</h3>
     <ul class="plain">

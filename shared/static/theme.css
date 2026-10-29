@@ -113,3 +113,21 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 .group-complete { opacity: .7; filter: grayscale(.8); }
 .group-note { margin: 0 0 .7rem; font-weight: 600; color: var(--muted); }
 .tick { color: var(--ok); }
+
+
+/* Enrol, withdraw and move */
+.flash { padding: .6rem .9rem; border-radius: 8px; margin: 0 0 1rem; border: 1px solid var(--border); }
+.flash-success { background: #e9f7ef; border-color: #b7e0c8; color: #14532d; }
+.flash-error { background: #fdecea; border-color: #f2b8b5; color: #7a1c14; }
+.enrol-form { display: inline-flex; gap: .5rem; align-items: center; margin: .6rem .5rem 0 0; }
+.enrol-form label { flex-direction: row; display: inline-flex; align-items: center; gap: .4rem; font-size: .85rem; color: var(--muted); }
+.enrol-form select { padding: .35rem .5rem; border: 1px solid var(--border); border-radius: 6px; }
+.btn { padding: .45rem .9rem; border: 1px solid var(--accent); border-radius: 6px; background: var(--accent); color: #fff; cursor: pointer; font-size: .9rem; }
+.btn-danger { background: var(--card); color: var(--bad); border-color: var(--bad); }
+.btn-secondary { background: var(--card); color: var(--accent); }
+.enrol-actions { display: flex; flex-wrap: wrap; }
+.actions-cell { white-space: nowrap; }
+.actions-cell .enrol-form { margin: 0 .4rem 0 0; }
+.loads { display: flex; flex-wrap: wrap; gap: .6rem; margin: 0 0 .8rem; font-size: .9rem; }
+.load { padding: .15rem .6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--card); }
+.load-full { border-color: var(--bad); color: var(--bad); }
