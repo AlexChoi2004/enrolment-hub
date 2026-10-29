@@ -42,6 +42,9 @@ def list_page():
         categories=categories,
         filters=filters,
         sessions=service.SESSIONS,
+        session_loads=progress["session_loads"],
+        max_cp=enrolment_service.MAX_CP_PER_SESSION,
+        next_url=request.full_path.rstrip("?"),
     )
 
 
@@ -55,4 +58,4 @@ def detail_page(code):
     if subject is None:
         abort(404)
     service.attach_status([subject], enrolment_service.evaluate_subjects(conn, g.user["id"]))
-    return _respond("catalogue/detail.html", subject=subject)
+    return _respond("catalogue/detail.html", subject=subject, next_url=request.path)

@@ -20,15 +20,36 @@
   </div>
 {% endif %}
 
+<p class="loads">
+  {% for label, cp in session_loads.items() %}
+    <span class="load{{ ' load-full' if cp >= max_cp }}">{{ label }}: {{ cp }} of {{ max_cp }} credit points</span>
+  {% endfor %}
+</p>
+
 <h2>In progress</h2>
 {% if record.enrolled %}
   <table class="table">
-    <thead><tr><th>Code</th><th>Subject</th><th>Category</th><th>Session</th><th>cp</th></tr></thead>
+    <thead><tr><th>Code</th><th>Subject</th><th>Category</th><th>Session</th><th>cp</th><th></th></tr></thead>
     <tbody>
       {% for s in record.enrolled %}
         <tr>
           <td class="code">{{ s.code }}</td><td>{{ s.name }}</td><td>{{ s.category_label }}</td>
           <td>{{ s.session_label }}</td><td>{{ s.credit_points }}</td>
+          <td class="actions-cell">
+            <form class="enrol-form" method="post" action="{{ url_for('enrolment.withdraw', code=s.code) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="next" value="{{ next_url }}">
+              <button type="submit" class="btn btn-danger">Withdraw</button>
+            </form>
+            {% for label in s.move_sessions %}
+              <form class="enrol-form" method="post" action="{{ url_for('enrolment.move', code=s.code) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="session_label" value="{{ label }}">
+                <input type="hidden" name="next" value="{{ next_url }}">
+                <button type="submit" class="btn btn-secondary">Move to {{ label }}</button>
+              </form>
+            {% endfor %}
+          </td>
         </tr>
       {% endfor %}
     </tbody>

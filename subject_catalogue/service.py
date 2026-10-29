@@ -59,6 +59,8 @@ def attach_status(subjects, progress):
         subject["status"] = info["status"]
         subject["note"] = info["note"]
         subject["reasons"] = info["reasons"]
+        subject["enrol_sessions"] = info["sessions"]
+        subject["move_sessions"] = info["move_sessions"]
         for prereq in subject["prerequisites"]:
             prereq["state"] = records.get(prereq["code"], "none")  # completed, enrolled or none
     return subjects
