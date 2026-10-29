@@ -1,5 +1,6 @@
 import pytest
 
+from enrolment.service import evaluate_subjects
 from subject_catalogue import service
 from subject_catalogue.service import FilterError, Filters
 
@@ -139,3 +140,81 @@ def test_grouping_keeps_degree_order_and_skips_empty_groups(conn):
         service.list_subjects(conn, Filters(category="core")), categories
     )
     assert [g["category"] for g in only_core] == ["core"]
+
+
+# --- student status on the catalogue -------------------------------------------
+
+def demo_subjects(conn, filters=None):
+    progress = evaluate_subjects(conn, 1)
+    subjects = service.attach_status(service.list_subjects(conn, filters), progress)
+    return subjects, progress
+
+
+def test_attach_status_adds_status_and_note(conn):
+    subjects, _ = demo_subjects(conn)
+    by_code = {s["code"]: s for s in subjects}
+    assert by_code["41039"]["status"] == "completed"
+    assert by_code["41026"]["status"] == "enrolled"
+    assert by_code["41052"]["status"] == "available"
+    assert by_code["32931"]["status"] == "blocked"
+    assert by_code["32931"]["note"].startswith("Needs 32144")
+
+
+def test_prerequisites_are_marked_met_in_progress_or_not_met(conn):
+    by_code = {s["code"]: s for s in demo_subjects(conn)[0]}
+    assert [p["state"] for p in by_code["41026"]["prerequisites"]] == ["completed"]  # needs 41025
+    assert [p["state"] for p in by_code["32931"]["prerequisites"]] == ["enrolled"]  # needs 32144
+    conn.execute("DELETE FROM enrolments WHERE subject_code = '41039'")
+    refreshed = {s["code"]: s for s in demo_subjects(conn)[0]}
+    assert [p["state"] for p in refreshed["48024"]["prerequisites"]] == ["none"]
+
+
+def test_status_filter_keeps_only_matching_subjects(conn):
+    subjects, _ = demo_subjects(conn)
+    completed = service.filter_by_status(subjects, "completed")
+    assert len(completed) == 16
+    assert all(s["status"] == "completed" for s in completed)
+    assert len(service.filter_by_status(subjects, "enrolled")) == 4
+    assert service.filter_by_status(subjects, "") == subjects
+
+
+def test_status_values_are_validated():
+    assert service.parse_filters({"status": "available"}, CATEGORIES).status == "available"
+    with pytest.raises(FilterError):
+        service.parse_filters({"status": "maybe"}, CATEGORIES)
+
+
+def test_general_electives_heading_reports_four_of_four_and_is_complete(conn):
+    subjects, progress = demo_subjects(conn)
+    groups = {g["category"]: g for g in service.group_by_category(subjects, service.list_categories(conn), progress)}
+    general = groups["general_elective"]
+    assert general["rule"] == "Choose 4 of 12 \u00b7 4 of 4 chosen"
+    assert general["complete"] is True
+    assert "can't enrol in any more general electives" in general["note"]
+
+
+def test_major_electives_heading_is_not_complete_yet(conn):
+    subjects, progress = demo_subjects(conn)
+    groups = {g["category"]: g for g in service.group_by_category(subjects, service.list_categories(conn), progress)}
+    assert groups["major_elective"]["rule"] == "Choose 3 of 9 \u00b7 1 of 3 chosen"
+    assert groups["major_elective"]["complete"] is False
+    assert groups["major_elective"]["note"] == ""
+
+
+def test_required_section_heading_reports_progress(conn):
+    subjects, progress = demo_subjects(conn)
+    groups = {g["category"]: g for g in service.group_by_category(subjects, service.list_categories(conn), progress)}
+    assert groups["core"]["rule"] == "All 16 required \u00b7 9 completed, 1 in progress"
+    assert groups["core"]["complete"] is False
+
+
+def test_a_fully_completed_required_section_is_marked_complete(conn):
+    conn.execute("DELETE FROM enrolments WHERE subject_code IN ('41026')")
+    conn.executemany(
+        "INSERT OR IGNORE INTO enrolments (user_id, subject_code, status, session_label) VALUES (1, ?, 'completed', 'Autumn 2027')",
+        [("41026",), ("41759",)],
+    )
+    subjects, progress = demo_subjects(conn)
+    groups = {g["category"]: g for g in service.group_by_category(subjects, service.list_categories(conn), progress)}
+    assert groups["major_core"]["complete"] is True
+    assert groups["major_core"]["note"] == "Everything in this section is completed."

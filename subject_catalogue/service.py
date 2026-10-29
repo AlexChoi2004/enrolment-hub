@@ -8,6 +8,7 @@ from dataclasses import dataclass
 
 SESSIONS = ("Autumn", "Spring")
 PREREQ_FILTERS = ("required", "none")
+STATUS_FILTERS = ("completed", "enrolled", "available", "blocked")
 MAX_QUERY_LENGTH = 50
 ELECTIVE_CATEGORIES = {"major_elective", "general_elective"}
 ELECTIVE_CREDIT_POINTS = 6  # every elective in the supplied data is 6 cp
@@ -24,6 +25,7 @@ class Filters:
     category: str = ""
     session: str = ""
     prereqs: str = ""
+    status: str = ""
 
 
 def is_valid_code(code):
@@ -49,20 +51,62 @@ def category_rule(category, subject_count, required_credit_points):
     return f"All {subject_count} required \u00b7 {required_credit_points} cp"
 
 
-def group_by_category(subjects, categories):
-    """Group already-sorted subjects under their category, in degree order."""
+def attach_status(subjects, progress):
+    """Add the student's status, a one-line note and met/not-met flags to each subject."""
+    records = progress["records"]
+    for subject in subjects:
+        info = progress["subjects"][subject["code"]]
+        subject["status"] = info["status"]
+        subject["note"] = info["note"]
+        subject["reasons"] = info["reasons"]
+        for prereq in subject["prerequisites"]:
+            prereq["state"] = records.get(prereq["code"], "none")  # completed, enrolled or none
+    return subjects
+
+
+def filter_by_status(subjects, status):
+    return [s for s in subjects if s["status"] == status] if status else subjects
+
+def group_by_category(subjects, categories, progress=None):
+    """Group already-sorted subjects under their category, in degree order.
+
+    With a student's progress, each heading also reports how far they are through the
+    requirement, and a finished requirement is marked complete (the page greys it out).
+    """
     groups = []
     for c in categories:
         items = [s for s in subjects if s["category"] == c["category"]]
-        if items:
-            groups.append(
-                {
-                    "category": c["category"],
-                    "label": c["label"],
-                    "rule": category_rule(c["category"], c["subject_count"], c["required_credit_points"]),
-                    "subjects": items,
-                }
-            )
+        if not items:
+            continue
+        rule = category_rule(c["category"], c["subject_count"], c["required_credit_points"])
+        complete, note = False, ""
+        if progress is not None:
+            p = progress["categories"][c["category"]]
+            if c["category"] in ELECTIVE_CATEGORIES:
+                choose = c["required_credit_points"] // ELECTIVE_CREDIT_POINTS
+                chosen = p["completed"] + p["enrolled"]
+                rule = f"Choose {choose} of {c['subject_count']} \u00b7 {chosen} of {choose} chosen"
+                complete = chosen >= choose
+                if complete:
+                    note = f"Requirement complete: you can't enrol in any more {c['label'].lower()}."
+            else:
+                rule = (
+                    f"All {c['subject_count']} required \u00b7 "
+                    f"{p['completed']} completed, {p['enrolled']} in progress"
+                )
+                complete = p["completed"] >= c["subject_count"]
+                if complete:
+                    note = "Everything in this section is completed."
+        groups.append(
+            {
+                "category": c["category"],
+                "label": c["label"],
+                "rule": rule,
+                "complete": complete,
+                "note": note,
+                "subjects": items,
+            }
+        )
     return groups
 
 
@@ -72,6 +116,7 @@ def parse_filters(args, valid_categories):
     category = (args.get("category") or "").strip()
     session = (args.get("session") or "").strip()
     prereqs = (args.get("prereqs") or "").strip()
+    status = (args.get("status") or "").strip()
 
     if len(q) > MAX_QUERY_LENGTH:
         raise FilterError(f"Search text must be {MAX_QUERY_LENGTH} characters or fewer.")
@@ -81,7 +126,9 @@ def parse_filters(args, valid_categories):
         raise FilterError("Unknown session.")
     if prereqs and prereqs not in PREREQ_FILTERS:
         raise FilterError("Unknown prerequisite filter.")
-    return Filters(q=q, category=category, session=session, prereqs=prereqs)
+    if status and status not in STATUS_FILTERS:
+        raise FilterError("Unknown status filter.")
+    return Filters(q=q, category=category, session=session, prereqs=prereqs, status=status)
 
 
 def _escape_like(text):

@@ -1,10 +1,11 @@
 <p class="count" id="count">{{ subjects|length }} subject{{ '' if subjects|length == 1 else 's' }}</p>
 {% for g in groups %}
-  <section class="group cat-{{ g.category }}">
-    <h2 class="group-title">{{ g.label }}</h2>
+  <section class="group cat-{{ g.category }}{{ ' group-complete' if g.complete }}">
+    <h2 class="group-title">{{ g.label }}{% if g.complete %} <span class="tick" aria-label="complete">&#10003;</span>{% endif %}</h2>
     <p class="group-rule">{{ g.rule }}</p>
+    {% if g.note %}<p class="group-note">{{ g.note }}</p>{% endif %}
     {% for s in g.subjects %}
-      <details class="card cat-{{ s.category }}">
+      <details class="card cat-{{ s.category }} status-{{ s.status }}">
         <summary>
           <span class="card-title">
             <span class="code">{{ s.code }}</span>
@@ -12,6 +13,10 @@
             <span class="chev" aria-hidden="true">▾</span>
           </span>
           <span class="card-badges">
+            {% if s.status == 'completed' %}<span class="badge st-completed">&#10003; Completed</span>
+            {% elif s.status == 'enrolled' %}<span class="badge st-enrolled">Enrolled</span>
+            {% elif s.status == 'available' %}<span class="badge st-available">Can enrol</span>
+            {% else %}<span class="badge st-blocked">Can't enrol</span>{% endif %}
             <span class="badge">{{ s.credit_points }} cp</span>
             <span class="badge category">{{ s.category_label }}</span>
             {% if s.is_synthetic %}<span class="badge warn">synthetic</span>{% endif %}
@@ -19,6 +24,7 @@
             {% elif s.prereq_status == 'none' %}<span class="badge none">no prerequisites</span>
             {% else %}<span class="badge warn">prerequisites not supplied</span>{% endif %}
           </span>
+          {% if s.note %}<span class="card-note">{{ s.note }}</span>{% endif %}
         </summary>
         {% with subject=s %}{% include 'catalogue/_detail.html' %}{% endwith %}
       </details>

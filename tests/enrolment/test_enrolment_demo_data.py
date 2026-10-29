@@ -101,3 +101,10 @@ def test_rebuilding_the_database_gives_identical_demo_history(tmp_path):
         return [tuple(r) for r in rows]
 
     assert snapshot("a.db") == snapshot("b.db")
+
+
+def test_all_four_general_electives_are_completed(conn, history):
+    electives = [h for h in history if h["subject_code"].startswith("SYN")]
+    assert len(electives) == 4
+    assert all(h["status"] == "completed" for h in electives)
+    assert sum(h["credit_points"] for h in electives) == 24  # the whole general elective requirement

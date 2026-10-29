@@ -1,4 +1,11 @@
-"""Enrolment business logic (grows in later chunks)."""
+"""Enrolment business logic: a student's record and which subjects they can take.
+
+`evaluate_subjects` is the single place the eligibility rules live, so the catalogue
+page and (next) the enrol endpoint can never disagree about what a student may do.
+"""
+from collections import defaultdict
+
+from subject_catalogue.service import ELECTIVE_CATEGORIES, ELECTIVE_CREDIT_POINTS
 
 CURRENT_SESSION = "Autumn 2027"  # the session the prototype treats as "now"
 
@@ -56,3 +63,68 @@ def get_record(conn, user_id):
         "counted_cp": completed_cp + enrolled_cp,  # one row per subject, so never double counted
         "degree_total_cp": degree_total,
     }
+
+
+def evaluate_subjects(conn, user_id):
+    """Work out, for one student, the status of every subject.
+
+    Statuses: completed, enrolled, available (can enrol now) or blocked (with reasons).
+    A subject is blocked if a prerequisite is not COMPLETED (in progress does not count)
+    or if its elective requirement is already full. Only this student's rows are read.
+
+    Returns {"subjects": {code: info}, "categories": {category: progress}, "records": {code: status}}.
+    """
+    records = {}
+    sessions = {}
+    for row in conn.execute(
+        "SELECT subject_code, status, session_label FROM enrolments WHERE user_id = ?", (user_id,)
+    ):
+        records[row["subject_code"]] = row["status"]
+        sessions[row["subject_code"]] = row["session_label"]
+
+    subjects = conn.execute("SELECT code, name, category, credit_points FROM subjects").fetchall()
+    names = {s["code"]: s["name"] for s in subjects}
+    prerequisites = defaultdict(list)
+    for row in conn.execute("SELECT subject_code, prereq_code FROM prerequisites ORDER BY prereq_code"):
+        prerequisites[row["subject_code"]].append(row["prereq_code"])
+
+    categories = {}
+    for row in conn.execute(
+        "SELECT category, label, required_credit_points FROM requirement_categories"
+    ):
+        categories[row["category"]] = {
+            "label": row["label"],
+            "required_cp": row["required_credit_points"],
+            "pool": 0,
+            "completed": 0,
+            "enrolled": 0,
+            "counted_cp": 0,
+        }
+    for s in subjects:
+        progress = categories[s["category"]]
+        progress["pool"] += 1
+        state = records.get(s["code"])
+        if state in ("completed", "enrolled"):
+            progress[state] += 1
+            progress["counted_cp"] += s["credit_points"]  # one record per subject: no double counting
+
+    result = {}
+    for s in subjects:
+        code = s["code"]
+        state = records.get(code)
+        reasons = []
+        if state == "completed":
+            status, note = "completed", f"Completed in {sessions[code]}"
+        elif state == "enrolled":
+            status, note = "enrolled", f"In progress in {sessions[code]}"
+        else:
+            missing = [p for p in prerequisites[code] if records.get(p) != "completed"]
+            if missing:
+                reasons.append("Needs " + ", ".join(f"{p} {names[p]}" for p in missing))
+            progress = categories[s["category"]]
+            if s["category"] in ELECTIVE_CATEGORIES and progress["counted_cp"] >= progress["required_cp"]:
+                reasons.append(f"{progress['label']} requirement already complete")
+            status = "blocked" if reasons else "available"
+            note = " · ".join(reasons)
+        result[code] = {"status": status, "reasons": reasons, "note": note}
+    return {"subjects": result, "categories": categories, "records": records}

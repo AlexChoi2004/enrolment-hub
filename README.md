@@ -14,7 +14,8 @@ are invented examples.
 
 - **Subject catalogue:** search by name or code; filter by category, session and prerequisites;
   expandable details; colour-coded categories with the requirement stated under each heading
-- **Accounts:** login with salted password hashing, lockout after repeated failures,
+- **Accounts:** create an account (`firstname.lastname@student.uni.edu.au`, with password rules and
+  clear error messages) or log in; salted password hashing, lockout after repeated failures,
   CSRF protection, safe redirects, strict security headers
 - **My record:** a synthetic demo student two years into the degree; a student can only view
   their own record (enforced on the server)
@@ -31,7 +32,8 @@ pip install -r requirements.txt
 python app.py                      # http://127.0.0.1:5000
 ```
 
-Demo login (synthetic student): `DEMO0001` / `demo-student-2027`
+Demo login (synthetic student, two years into the degree): `john.doe@student.uni.edu.au` / `Johndoe#1`.
+Or click **Create an account** to start as a new Year 1 student with nothing enrolled.
 
 Optional settings (environment variables): `SECRET_KEY` (stable session key; a random one is
 generated if unset), `SESSION_COOKIE_SECURE=1` (when serving over HTTPS), `DATABASE_PATH`.
