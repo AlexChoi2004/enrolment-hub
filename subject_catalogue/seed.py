@@ -28,8 +28,9 @@ def seed_catalogue(conn):
         "INSERT OR IGNORE INTO prerequisites (subject_code, prereq_code) VALUES (?, ?)",
         PREREQUISITES,
     )
-    # A subject only counts as "known" if a rule was supplied for it.
+    # The supplied list is treated as complete: subjects with a rule require
+    # prerequisites, every other subject has none (the column default).
     conn.execute(
-        "UPDATE subjects SET prereq_status = 'supplied'"
+        "UPDATE subjects SET prereq_status = 'required'"
         " WHERE code IN (SELECT DISTINCT subject_code FROM prerequisites)"
     )

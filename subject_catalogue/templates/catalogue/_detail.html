@@ -8,12 +8,14 @@
   {% else %}<p class="muted">No description in the supplied data.</p>{% endif %}
 
   <h3>Prerequisites</h3>
-  {% if subject.prereq_status == 'supplied' %}
+  {% if subject.prereq_status == 'required' %}
     <ul class="plain">
       {% for p in subject.prerequisites %}
         <li><a href="{{ url_for('catalogue.detail_page', code=p.code) }}">{{ p.code }} {{ p.name }}</a></li>
       {% endfor %}
     </ul>
+  {% elif subject.prereq_status == 'none' %}
+    <p>No prerequisites listed in the supplied data.</p>
   {% else %}
     <p class="notice">Prerequisites for this subject are not in the supplied data. This does not mean there are none.</p>
   {% endif %}

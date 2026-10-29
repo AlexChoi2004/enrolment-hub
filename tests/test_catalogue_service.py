@@ -35,12 +35,12 @@ def test_session_filter_includes_subjects_offered_both_sessions(conn):
     assert all(s["sessions_offered"] in ("Autumn", "Both") for s in result)
 
 
-def test_prerequisite_filter_supplied_vs_not_supplied(conn):
-    supplied = service.list_subjects(conn, Filters(prereqs="supplied"))
-    unknown = service.list_subjects(conn, Filters(prereqs="not_supplied"))
-    assert len(supplied) == 12
-    assert len(unknown) == 33
-    assert codes(supplied).isdisjoint(codes(unknown))
+def test_prerequisite_filter_required_vs_none(conn):
+    required = service.list_subjects(conn, Filters(prereqs="required"))
+    none = service.list_subjects(conn, Filters(prereqs="none"))
+    assert len(required) == 12
+    assert len(none) == 33
+    assert codes(required).isdisjoint(codes(none))
 
 
 def test_percent_sign_is_not_a_wildcard(conn):
@@ -61,9 +61,9 @@ def test_relations_are_attached(conn):
     assert "41026" in [u["code"] for u in intro["unlocks"]]
 
 
-def test_unknown_prerequisites_have_empty_list_and_unknown_status(conn):
+def test_subject_without_a_rule_has_no_prerequisites(conn):
     subject = service.get_subject(conn, "33130")
-    assert subject["prereq_status"] == "not_supplied"
+    assert subject["prereq_status"] == "none"
     assert subject["prerequisites"] == []
 
 
@@ -82,9 +82,9 @@ def test_valid_code_pattern():
 
 def test_parse_filters_accepts_valid_values():
     f = service.parse_filters(
-        {"q": " web ", "category": "core", "session": "Spring", "prereqs": "supplied"}, CATEGORIES
+        {"q": " web ", "category": "core", "session": "Spring", "prereqs": "required"}, CATEGORIES
     )
-    assert f == Filters(q="web", category="core", session="Spring", prereqs="supplied")
+    assert f == Filters(q="web", category="core", session="Spring", prereqs="required")
 
 
 @pytest.mark.parametrize(

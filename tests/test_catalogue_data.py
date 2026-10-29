@@ -81,11 +81,22 @@ def test_specific_prerequisite_rule(conn):
     assert row["prereq_code"] == "41025"
 
 
-def test_unknown_prerequisites_are_not_reported_as_none(conn):
-    known = conn.execute("SELECT prereq_status FROM subjects WHERE code='41026'").fetchone()[0]
-    unknown = conn.execute("SELECT prereq_status FROM subjects WHERE code='33130'").fetchone()[0]
-    assert known == "supplied"
-    assert unknown == "not_supplied"
+def test_subjects_with_a_rule_require_prerequisites_and_others_have_none(conn):
+    with_rule = conn.execute("SELECT prereq_status FROM subjects WHERE code='41026'").fetchone()[0]
+    without_rule = conn.execute("SELECT prereq_status FROM subjects WHERE code='33130'").fetchone()[0]
+    assert with_rule == "required"
+    assert without_rule == "none"
+
+
+def test_schema_still_allows_an_explicit_unknown_status(conn):
+    conn.execute("UPDATE subjects SET prereq_status = 'unknown' WHERE code = '33130'")
+    status = conn.execute("SELECT prereq_status FROM subjects WHERE code='33130'").fetchone()[0]
+    assert status == "unknown"
+
+
+def test_schema_rejects_other_prerequisite_statuses(conn):
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute("UPDATE subjects SET prereq_status = 'maybe' WHERE code = '33130'")
 
 
 def test_prerequisite_graph_has_no_cycles(conn):

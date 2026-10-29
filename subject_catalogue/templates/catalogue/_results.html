@@ -7,7 +7,8 @@
       <span class="badge">{{ s.credit_points }} cp</span>
       <span class="badge">{{ s.category_label }}</span>
       {% if s.is_synthetic %}<span class="badge warn">synthetic</span>{% endif %}
-      {% if s.prereq_status == 'supplied' %}<span class="badge">has prerequisites</span>
+      {% if s.prereq_status == 'required' %}<span class="badge">has prerequisites</span>
+      {% elif s.prereq_status == 'none' %}<span class="badge">no prerequisites</span>
       {% else %}<span class="badge warn">prerequisites not supplied</span>{% endif %}
     </summary>
     {% with subject=s %}{% include 'catalogue/_detail.html' %}{% endwith %}

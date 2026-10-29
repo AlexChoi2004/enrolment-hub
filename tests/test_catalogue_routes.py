@@ -1,7 +1,7 @@
 import pytest
 
 from app import create_app
-
+from shared import db
 
 @pytest.fixture()
 def client(tmp_path):
@@ -54,9 +54,21 @@ def test_detail_page_shows_prerequisite(client):
     assert b"Introduction to Software Development" in res.data
 
 
-def test_unknown_prerequisites_are_not_shown_as_none(client):
+def test_subject_without_a_rule_says_no_prerequisites(client):
     res = client.get("/subjects/33130")
+    assert b"No prerequisites listed in the supplied data." in res.data
+
+
+def test_unknown_status_is_not_shown_as_none(tmp_path):
+    path = tmp_path / "t.db"
+    app = create_app({"DATABASE": str(path), "TESTING": True})
+    conn = db.connect(str(path))
+    conn.execute("UPDATE subjects SET prereq_status = 'unknown' WHERE code = '33130'")
+    conn.commit()
+    conn.close()
+    res = app.test_client().get("/subjects/33130")
     assert b"not in the supplied data" in res.data
+    assert b"No prerequisites listed" not in res.data
 
 
 def test_malformed_subject_code_returns_400(client):
@@ -81,3 +93,13 @@ def test_synthetic_electives_are_labelled(client):
 
 def test_static_theme_is_served(client):
     assert client.get("/static/theme.css").status_code == 200
+
+
+def test_prerequisite_filter_options_work_through_the_page(client):
+    required = client.get("/subjects?prereqs=required")
+    none = client.get("/subjects?prereqs=none")
+    assert required.status_code == 200
+    assert none.status_code == 200
+    assert b"12 subjects" in required.data
+    assert b"33 subjects" in none.data
+    assert client.get("/subjects?prereqs=supplied").status_code == 400

@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass
 
 SESSIONS = ("Autumn", "Spring")
-PREREQ_FILTERS = ("supplied", "not_supplied")
+PREREQ_FILTERS = ("required", "none")
 MAX_QUERY_LENGTH = 50
 CODE_PATTERN = re.compile(r"^[A-Za-z0-9]{3,10}$")
 

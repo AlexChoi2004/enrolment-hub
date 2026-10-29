@@ -23,10 +23,11 @@ CREATE TABLE IF NOT EXISTS subjects (
     description      TEXT NOT NULL DEFAULT '',
     -- 1 = invented for this prototype (generated general electives).
     is_synthetic     INTEGER NOT NULL DEFAULT 0 CHECK (is_synthetic IN (0, 1)),
-    -- 'supplied'     = a prerequisite rule was supplied for this subject.
-    -- 'not_supplied' = we do NOT know its prerequisites (never means "none").
-    prereq_status    TEXT NOT NULL DEFAULT 'not_supplied'
-                     CHECK (prereq_status IN ('supplied', 'not_supplied'))
+    -- 'required' = the supplied data lists prerequisites for this subject.
+    -- 'none'     = the supplied data lists no prerequisites for this subject.
+    -- 'unknown'  = prerequisites genuinely not known (keeps "unknown" distinct from "none").
+    prereq_status    TEXT NOT NULL DEFAULT 'none'
+                     CHECK (prereq_status IN ('required', 'none', 'unknown'))
 );
 
 CREATE TABLE IF NOT EXISTS prerequisites (
