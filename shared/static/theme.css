@@ -19,8 +19,8 @@ h1 { margin-top: 0; }
 .filters button { align-self: flex-end; padding: .5rem .9rem; border: 0; border-radius: 6px;
                   background: var(--accent); color: #fff; cursor: pointer; }
 .count { color: var(--muted); margin: .25rem 0 .75rem; }
-.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px;
-        padding: .75rem 1rem; margin-bottom: .6rem; }
+.card { background: var(--card); border: 1px solid var(--border); border-left: 5px solid var(--c, var(--border));
+        border-radius: 8px; padding: .75rem 1rem; margin-bottom: .6rem; }
 .card summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: .5rem; align-items: baseline; }
 .code { font-family: ui-monospace, Consolas, monospace; font-weight: 700; }
 .badge { font-size: .72rem; padding: .1rem .5rem; border-radius: 999px; border: 1px solid var(--border);
@@ -32,3 +32,20 @@ h1 { margin-top: 0; }
 .error { color: var(--bad); }
 ul.plain { margin: .2rem 0; padding-left: 1.1rem; }
 a { color: var(--accent); }
+
+
+/* Category colours: one custom property (--c) drives the card edge and the badge. */
+.cat-core { --c: #2457d6; }
+.cat-honours_core { --c: #7a3fc2; }
+.cat-major_core { --c: #0f8b8d; }
+.cat-major_elective { --c: #e0a800; }
+.cat-general_elective { --c: #6b7280; }
+.badge.category { color: var(--c); border-color: var(--c);
+                  background: color-mix(in srgb, var(--c) 12%, white); }
+.badge.category.cat-major_elective { color: #7a5b00; }
+.legend { margin: 0 0 .75rem; display: flex; flex-wrap: wrap; gap: .4rem; }
+
+/* Prerequisite facts: neutral slate = has prerequisites, soft green = none.
+   Solid red/green fills are kept for the student's own status (blocked / eligible). */
+.badge.req { color: #334155; border-color: #94a3b8; background: #e8edf4; }
+.badge.none { color: var(--ok); border-color: #b7e0c8; background: #e9f7ef; }
