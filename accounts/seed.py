@@ -6,7 +6,7 @@ from accounts.service import hash_password
 DEMO_EMAIL = "john.doe@student.uni.edu.au"
 DEMO_STUDENT_NUMBER = "DEMO0001"
 # Public demo credential for a synthetic student. Not a real account or password.
-DEMO_PASSWORD = "Johndoe#1"
+DEMO_PASSWORD = "Johndoe#1"  # noqa: S105 (intentionally public; shown on the login page)
 DEMO_DISPLAY_NAME = "John Doe"
 DEMO_COURSE_CODE = "C09119"
 DEMO_COMMENCEMENT_SESSION = "Autumn 2025"  # two years before the app's current session
