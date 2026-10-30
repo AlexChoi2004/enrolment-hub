@@ -5,7 +5,7 @@
     <p class="group-rule">{{ g.rule }}</p>
     {% if g.note %}<p class="group-note">{{ g.note }}</p>{% endif %}
     {% for s in g.subjects %}
-      <details class="card cat-{{ s.category }} status-{{ s.status }}">
+      <details class="card cat-{{ s.category }} status-{{ s.status }}" id="card-{{ s.code }}">
         <summary>
           <span class="card-title">
             <span class="code">{{ s.code }}</span>

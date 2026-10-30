@@ -10,14 +10,17 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 | 2026-10-29 | 2 (security)  | Added users table, salted password hashing, login lockout, input validation, synthetic demo student and 30 tests         | 30 MIN | PR #3 |
 | 2026-10-29 | 2 (security)  | Login and logout, sessions, CSRF protection, security headers, record page with ownership check                          | 1 HOUR | PR #4 |
 | 2026-10-29 | 2 (security)  | Email login, account creation with password rules, generated student numbers, welcome screen, login-only catalogue       | 1 HOUR | PR #5 |
-| 2026-10-29 | 3 (dev tools) | Single eligibility function for every subject (completed, enrolled, can enrol, can't enrol with reasons),                |
-             |               |   elective limits, greyed-out requirements on the Subjects page, status filter, 39 new tests                             | 30 MIN | PR #6 |
-| 2026-10-29 | 2 (security) and 3 (dev tools) | Enrol, withdraw and move between sessions, 24 credit point limit per session, whole-year planning,      |
-             |                                | CSRF on every change, ownership enforced on the server, atomic room check, 69 new tests                 | 1 HOUR | PR #7 |
+| 2026-10-29 | 3 (dev tools) | Single eligibility function for every subject (completed, enrolled, can enrol, can't enrol with reasons),                | 30 MIN | PR #6 |
+             |               |   elective limits, greyed-out requirements on the Subjects page, status filter, 39 new tests                             |        |       |
+| 2026-10-29 | 2 (security) and 3 (dev tools) | Enrol, withdraw and move between sessions, 24 credit point limit per session, whole-year planning,      | 1 HOUR | PR #7 |
+             |                                | CSRF on every change, ownership enforced on the server, atomic room check, 69 new tests                 |        |       |
 | 2026-10-30 | 2 (security) and 3 (dev tools) | Added Ruff security rules and a dependency audit to CI; ran detect-secrets locally                      | 10 MIN | PR #8 |
-| 2026-10-30 | 3 (dev tools) | Moved navigation (Subjects, Record on the left; Profile on the right), added a profile page with details, progress,      |
-             |               |   what the app stores, and the log out button, 15 new tests                                                              | 15 MIN | PR #9 |
-
+| 2026-10-30 | 3 (dev tools) | Moved navigation (Subjects, Record on the left; Profile on the right), added a profile page with details, progress,      | 15 MIN | PR #9 |
+             |               |   what the app stores, and the log out button, 15 new tests                                                              |        |       |
+| 2026-10-30 | 3 (dev tools) | Built the degree planner: plan subjects into future sessions (add, move, remove, clear), placement rules (offering,      | 1 HOUR | PR #10|
+                                24 cp, prerequisites in an earlier session, elective limits), suggested plan, outstanding requirements, stale-plan      |        |       |
+                                warnings and the nav link; kept finished elective sections visible with a completion note; kept scroll position and     |        |       |
+                                open cards after actions; floating messages; 465 tests                                                                  |        |       |
 
 ## Things that went wrong or changed
 
@@ -50,6 +53,23 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Left the Degree planner and Timetable links out of the nav until those pages exist, so there are no dead links
 - Decided the email is shown on the profile page only, and kept it out of the session user used by every other page
 - Saved the profile page template one folder too high, which broke 10 tests with "template not found"; the test run named the missing file and I moved it
+
+### PR #10: Degree planner
+- Decided a plan is separate from enrolling, and a subject leaves the plan automatically once I enrol in it
+- Let the planner treat a prerequisite as met when it is planned or enrolled in an earlier session, which is looser than enrolling (needs completed); this is 
+  what makes planning a whole chain ahead possible
+- Decided planned subjects count towards elective limits, and kept the same 24 credit point cap per session
+- Chose a ten-session planning window (five years) so a suggested plan has room to spread out; a new student's plan fits in eight
+- Found that a suggested plan can place Honours Project B before Honours Project A, because the supplied prerequisite data only links A to 
+  Technology Research Preparation; I did not invent a rule and noted it as a data limitation
+- Made suggestions use exactly the same checks as manual changes, and added a test that every suggested placement passes them
+- Saved the planner page as `index,html` with a comma instead of `index.html`, so Flask could not find it; I only spotted it when I looked closely at the file 
+  name and renamed it
+- Changed finished elective sections to stay on screen with a "you've already completed or chosen all" note instead of disappearing, so the page does not 
+  seem to lose information
+- Reloading the page after every action sent me back to the top, so I added a small script that remembers the scroll position and which cards were open; 
+  I could only check the server side and the script's syntax, so the behaviour itself needs checking by hand in the browser
+- Moved confirmation and error messages into floating messages in the corner, because once I stay where I was on the page, messages at the top would be out of sight
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
