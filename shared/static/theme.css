@@ -160,3 +160,12 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 .card.plan-complete { background: #eceff3; }
 .card.plan-complete .name { color: var(--muted); }
 .card.plan-complete .group-note { margin: .3rem 0 0; }
+
+
+/* Messages stay in view wherever you are on the page, then fade out */
+.toasts { position: fixed; top: 4.2rem; right: 1rem; z-index: 50; display: flex; flex-direction: column;
+          gap: .5rem; max-width: min(26rem, calc(100vw - 2rem)); }
+.toast { margin: 0; padding: .7rem 1rem; border-radius: 8px; border: 1px solid var(--border);
+         box-shadow: 0 4px 14px rgba(0, 0, 0, .12); animation: toast-out .4s ease 10s forwards; }
+@keyframes toast-out { to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { .toast { animation: none; } }

@@ -7,6 +7,7 @@
   <title>{% block title %}Enrolment Hub{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('shared.static', filename='theme.css') }}">
   <script src="{{ url_for('shared.static', filename='htmx.min.js') }}" defer></script>
+  <script src="{{ url_for('shared.static', filename='keep-scroll.js') }}" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -29,9 +30,13 @@
   </header>
   <main class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        <p class="flash flash-{{ category }}" role="status">{{ message }}</p>
-      {% endfor %}
+      {% if messages %}
+        <div class="toasts">
+          {% for category, message in messages %}
+            <p class="toast flash-{{ category }}" role="status">{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
     {% endwith %}
     {% block content %}{% endblock %}
   </main>

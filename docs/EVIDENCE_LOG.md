@@ -10,13 +10,13 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 | 2026-10-29 | 2 (security)  | Added users table, salted password hashing, login lockout, input validation, synthetic demo student and 30 tests         | 30 MIN | PR #3 |
 | 2026-10-29 | 2 (security)  | Login and logout, sessions, CSRF protection, security headers, record page with ownership check                          | 1 HOUR | PR #4 |
 | 2026-10-29 | 2 (security)  | Email login, account creation with password rules, generated student numbers, welcome screen, login-only catalogue       | 1 HOUR | PR #5 |
-| 2026-10-29 | 3 (dev tools) | Single eligibility function for every subject (completed, enrolled, can enrol, can't enrol with reasons),                |
-             |               |   elective limits, greyed-out requirements on the Subjects page, status filter, 39 new tests                             | 30 MIN | PR #6 |
-| 2026-10-29 | 2 (security) and 3 (dev tools) | Enrol, withdraw and move between sessions, 24 credit point limit per session, whole-year planning,      |
-             |                                | CSRF on every change, ownership enforced on the server, atomic room check, 69 new tests                 | 1 HOUR | PR #7 |
+| 2026-10-29 | 3 (dev tools) | Single eligibility function for every subject (completed, enrolled, can enrol, can't enrol with reasons),                | 30 MIN | PR #6 |
+             |               |   elective limits, greyed-out requirements on the Subjects page, status filter, 39 new tests                             |        |       |
+| 2026-10-29 | 2 (security) and 3 (dev tools) | Enrol, withdraw and move between sessions, 24 credit point limit per session, whole-year planning,      | 1 HOUR | PR #7 |
+             |                                | CSRF on every change, ownership enforced on the server, atomic room check, 69 new tests                 |        |       |
 | 2026-10-30 | 2 (security) and 3 (dev tools) | Added Ruff security rules and a dependency audit to CI; ran detect-secrets locally                      | 10 MIN | PR #8 |
-| 2026-10-30 | 3 (dev tools) | Moved navigation (Subjects, Record on the left; Profile on the right), added a profile page with details, progress,      |
-             |               |   what the app stores, and the log out button, 15 new tests                                                              | 15 MIN | PR #9 |
+| 2026-10-30 | 3 (dev tools) | Moved navigation (Subjects, Record on the left; Profile on the right), added a profile page with details, progress,      | 15 MIN | PR #9 |
+             |               |   what the app stores, and the log out button, 15 new tests                                                              |        |       |
 
 
 ## Things that went wrong or changed
