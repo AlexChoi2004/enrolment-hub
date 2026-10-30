@@ -38,7 +38,7 @@ def session_sort_key(label):
 
 def get_course(conn, course_code):
     row = conn.execute(
-        "SELECT code, name, major_name FROM courses WHERE code = ?", (course_code,)
+        "SELECT code, name, major_code, major_name FROM courses WHERE code = ?", (course_code,)
     ).fetchone()
     return dict(row) if row else None
 

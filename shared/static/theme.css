@@ -131,3 +131,16 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 .loads { display: flex; flex-wrap: wrap; gap: .6rem; margin: 0 0 .8rem; font-size: .9rem; }
 .load { padding: .15rem .6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--card); }
 .load-full { border-color: var(--bad); color: var(--bad); }
+
+
+/* Navigation: main links on the left, account on the right */
+.nav-main { display: flex; gap: 1.2rem; }
+.nav-account { margin-left: auto; display: flex; gap: 1.2rem; }
+.site-header nav a { margin-right: 0; }
+.site-header nav a[aria-current="page"] { font-weight: 700; border-bottom: 2px solid var(--accent); }
+
+/* Profile */
+.profile-list { display: grid; grid-template-columns: 9rem 1fr; gap: .5rem 1rem; background: var(--card);
+                border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.2rem; margin: 0 0 1.5rem; }
+.profile-list dt { color: var(--muted); }
+.profile-list dd { margin: 0; }

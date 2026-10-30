@@ -45,7 +45,8 @@ def test_successful_login_goes_to_my_record_and_starts_a_session(client, log_in)
     assert res.headers["Location"].endswith("/students/me")
     assert logged_in(client)
     page = client.get("/subjects").get_data(as_text=True)
-    assert "Log out (John Doe)" in page
+    assert ">Profile<" in page
+    assert "Log out" not in page  # logging out now lives on the profile page
 
 
 def test_email_is_case_insensitive(client, log_in):

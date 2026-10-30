@@ -134,6 +134,16 @@ def get_user(conn, user_id):
     return dict(row) if row else None
 
 
+def get_profile(conn, user_id):
+    """The details shown on the student's own profile page (never includes the password hash)."""
+    row = conn.execute(
+        "SELECT email, student_number, display_name, course_code, commencement_session"
+        " FROM users WHERE id = ?",
+        (user_id,),
+    ).fetchone()
+    return dict(row) if row else None
+
+
 def create_user(conn, email, password, commencement_session, course_code="C09119"):
     """Create an account and return it (without any password data).
 
