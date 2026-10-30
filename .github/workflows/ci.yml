@@ -21,3 +21,18 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run tests
         run: python -m pytest -q
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install security tools
+        run: pip install ruff pip-audit
+      - name: Ruff security rules (application code)
+        run: ruff check --select S --exclude tests .
+      - name: Known vulnerabilities in dependencies
+        run: pip-audit -r requirements.txt
