@@ -140,10 +140,10 @@ def test_record_is_unavailable_after_logout(client, log_in, csrf):
     assert client.get("/students/DEMO0001/record").status_code == 302
 
 
-def test_nav_shows_my_record_link_only_when_logged_in(client, log_in):
-    assert b"My record" not in client.get("/login").data
+def test_nav_shows_the_record_link_only_when_logged_in(client, log_in):
+    assert b'href="/students/me"' not in client.get("/login").data
     log_in()
-    assert b"My record" in client.get("/subjects").data
+    assert b'href="/students/me"' in client.get("/subjects").data
 
 
 # --- demo reset --------------------------------------------------------------

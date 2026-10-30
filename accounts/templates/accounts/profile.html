@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Profile · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>Profile</h1>
+
+{% if is_demo %}
+  <p class="demo-note">This is the shared demo student. Anything you change on it can be reset with <code>flask --app app reset-demo</code>.</p>
+{% endif %}
+
+<dl class="profile-list">
+  <dt>Name</dt><dd>{{ person.display_name }}</dd>
+  <dt>Student ID</dt><dd>{{ person.student_number }}</dd>
+  <dt>Email</dt><dd>{{ person.email }}</dd>
+  <dt>Degree</dt><dd>{{ course.name }} ({{ course.code }})</dd>
+  <dt>Major</dt><dd>{{ course.major_name }} ({{ course.major_code }})</dd>
+  <dt>Started</dt><dd>{{ person.commencement_session }}</dd>
+  <dt>Now</dt><dd>Year {{ year }} · {{ current_session }}</dd>
+  <dt>Progress</dt>
+  <dd>
+    {{ record.counted_cp }} of {{ record.degree_total_cp }} credit points counted
+    ({{ record.completed_cp }} completed, {{ record.enrolled_cp }} in progress).
+    <a href="{{ url_for('enrolment.me') }}">See your record</a>
+  </dd>
+</dl>
+
+<h2>What this app stores about you</h2>
+<ul class="plain">
+  <li>Your email, a generated student ID, and a name taken from your email</li>
+  <li>Your password, only as a salted hash (never the password itself)</li>
+  <li>Your degree, your starting session, and your enrolment records</li>
+  <li>Nothing else: no sensitive details such as ethnicity, health or address, and nothing is sent to third parties</li>
+</ul>
+
+<h2>Account</h2>
+<form class="inline" method="post" action="{{ url_for('accounts.logout') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="btn btn-danger">Log out</button>
+</form>
+{% endblock %}

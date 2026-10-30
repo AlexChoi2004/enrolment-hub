@@ -11,14 +11,15 @@
 <body>
   <header class="site-header">
     <a class="brand" href="{{ url_for('index') }}">Enrolment Hub</a>
-    <nav>
+    <nav class="nav-main">
       {% if current_user %}
-        <a href="{{ url_for('catalogue.list_page') }}">Subjects</a>
-        <a href="{{ url_for('enrolment.me') }}">My record</a>
-        <form class="inline" method="post" action="{{ url_for('accounts.logout') }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="link-button">Log out ({{ current_user.display_name }})</button>
-        </form>
+        <a href="{{ url_for('catalogue.list_page') }}"{% if request.blueprint == 'catalogue' %} aria-current="page"{% endif %}>Subjects</a>
+        <a href="{{ url_for('enrolment.me') }}"{% if request.blueprint == 'enrolment' %} aria-current="page"{% endif %}>Record</a>
+      {% endif %}
+    </nav>
+    <nav class="nav-account">
+      {% if current_user %}
+        <a href="{{ url_for('accounts.profile') }}"{% if request.endpoint == 'accounts.profile' %} aria-current="page"{% endif %}>Profile</a>
       {% else %}
         <a href="{{ url_for('accounts.login') }}">Log in</a>
         <a href="{{ url_for('accounts.register') }}">Create account</a>

@@ -12,7 +12,8 @@ from flask import (
 )
 
 from accounts import service
-from accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
+from accounts.seed import DEMO_EMAIL, DEMO_PASSWORD, DEMO_STUDENT_NUMBER
+from enrolment import service as enrolment_service
 from enrolment.service import CURRENT_SESSION
 from shared import security
 from shared.db import get_db
@@ -134,6 +135,26 @@ def register():
 
     _start_session(user)
     return redirect(url_for("enrolment.me"))
+
+
+@bp.get("/profile")
+@security.login_required
+def profile():
+    conn = get_db()
+    person = service.get_profile(conn, g.user["id"])
+    response = make_response(
+        render_template(
+            "accounts/profile.html",
+            person=person,
+            course=enrolment_service.get_course(conn, person["course_code"]),
+            year=enrolment_service.study_year(person["commencement_session"]),
+            current_session=CURRENT_SESSION,
+            record=enrolment_service.get_record(conn, g.user["id"]),
+            is_demo=person["student_number"] == DEMO_STUDENT_NUMBER,
+        )
+    )
+    response.headers["Cache-Control"] = "no-store"  # personal data must not be cached
+    return response
 
 
 @bp.post("/logout")
