@@ -248,6 +248,8 @@ def enrol(conn, user_id, subject_code, session_label):
     if cur.rowcount != 1:
         conn.rollback()
         raise EnrolmentError(f"{session_label} is full, so {label} could not be added.")
+    # The subject is now enrolled, so it no longer belongs in the plan.
+    conn.execute("DELETE FROM planned_subjects WHERE user_id = ? AND subject_code = ?", (user_id, subject_code))
     conn.commit()
     return label
 
