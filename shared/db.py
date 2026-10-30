@@ -15,6 +15,7 @@ SCHEMA_FILES = [
     ROOT / "subject_catalogue" / "schema.sql",
     ROOT / "accounts" / "schema.sql",
     ROOT / "enrolment" / "schema.sql",
+    ROOT / "timetable" / "schema.sql",
     ROOT / "degree_planner" / "schema.sql",
 ]
 
@@ -51,10 +52,12 @@ def seed_db(conn):
     from accounts.seed import seed_accounts
     from enrolment.seed import seed_enrolment
     from subject_catalogue.seed import seed_catalogue
+    from timetable.seed import seed_timetable
 
     seed_catalogue(conn)
     seed_accounts(conn)
     seed_enrolment(conn)
+    seed_timetable(conn)
     conn.commit()
 
 
