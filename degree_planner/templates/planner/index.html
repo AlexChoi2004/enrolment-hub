@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% block title %}Degree planner · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>Degree planner</h1>
+<p>
+  Plan the sessions ahead. A plan is not an enrolment: you enrol from the Subjects page when you are ready,
+  and a subject leaves your plan once you enrol in it.
+</p>
+
+<p class="loads">
+  <span class="load">{{ plan.completed_cp }} cp completed</span>
+  <span class="load">{{ plan.enrolled_cp }} cp enrolled</span>
+  <span class="load">{{ plan.planned_cp }} cp planned</span>
+  <span class="load{{ ' load-full' if plan.remaining_cp }}">{{ plan.remaining_cp }} cp still to plan</span>
+  <span class="load">of {{ plan.degree_total_cp }} cp</span>
+</p>
+
+{% if plan.complete %}
+  <p class="flash flash-success">Your plan covers every requirement of the degree.</p>
+{% endif %}
+
+<div class="plan-actions">
+  <form class="enrol-form" method="post" action="{{ url_for('planner.suggest') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn">Suggest a plan</button>
+  </form>
+  {% if plan.has_plan %}
+    <form class="enrol-form" method="post" action="{{ url_for('planner.clear') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-danger">Clear plan</button>
+    </form>
+  {% endif %}
+</div>
+
+{% if plan.problems %}
+  <div class="flash flash-error">
+    <p>Problems with your plan:</p>
+    <ul class="plain">{% for p in plan.problems %}<li>{{ p }}</li>{% endfor %}</ul>
+  </div>
+{% endif %}
+
+<h2>Plan by session</h2>
+{% for s in plan.sessions %}
+  <section class="plan-session">
+    <h3>{{ s.label }}
+      <span class="load{{ ' load-full' if s.load_cp >= max_cp }}">{{ s.load_cp }} of {{ max_cp }} credit points</span>
+    </h3>
+    {% if s.enrolled or s.planned %}
+      <table class="table">
+        <tbody>
+          {% for e in s.enrolled %}
+            <tr class="plan-enrolled">
+              <td class="code">{{ e.code }}</td><td>{{ e.name }}</td><td>{{ e.credit_points }} cp</td>
+              <td><span class="badge st-enrolled">Enrolled</span></td><td></td>
+            </tr>
+          {% endfor %}
+          {% for p in s.planned %}
+            <tr class="plan-planned{{ ' plan-problem' if p.problem }}">
+              <td class="code">{{ p.code }}</td>
+              <td>{{ p.name }}{% if p.problem %}<br><span class="unmet">{{ p.problem }}</span>{% endif %}</td>
+              <td>{{ p.credit_points }} cp</td>
+              <td><span class="badge st-planned">Planned</span></td>
+              <td class="actions-cell">
+                {% if p.move_sessions %}
+                  <form class="enrol-form" method="post" action="{{ url_for('planner.move', code=p.code) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <select name="session_label" aria-label="Move {{ p.code }} to">
+                      {% for label in p.move_sessions %}<option value="{{ label }}">{{ label }}</option>{% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-secondary">Move</button>
+                  </form>
+                {% endif %}
+                <form class="enrol-form" method="post" action="{{ url_for('planner.remove', code=p.code) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-danger">Remove</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">Nothing planned.</p>
+    {% endif %}
+  </section>
+{% endfor %}
+
+<h2>Still to plan</h2>
+{% if plan.outstanding %}
+  <table class="table">
+    <thead><tr><th>Code</th><th>Subject</th><th>Requirement</th><th>cp</th><th></th></tr></thead>
+    <tbody>
+      {% for o in plan.outstanding %}
+        <tr>
+          <td class="code">{{ o.code }}</td><td>{{ o.name }}</td><td>{{ o.category_label }}</td><td>{{ o.credit_points }}</td>
+          <td class="actions-cell">
+            {% if o.sessions %}
+              <form class="enrol-form" method="post" action="{{ url_for('planner.add') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="subject_code" value="{{ o.code }}">
+                <select name="session_label" aria-label="Plan {{ o.code }} for">
+                  {% for label in o.sessions %}<option value="{{ label }}">{{ label }}</option>{% endfor %}
+                </select>
+                <button type="submit" class="btn">Add to plan</button>
+              </form>
+            {% else %}
+              <span class="muted">Plan its prerequisites first</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>Every required subject is completed, enrolled or planned.</p>
+{% endif %}
+
+{% for need in plan.elective_needs %}
+  <details class="card">
+    <summary>
+      <span class="card-title"><span class="name">{{ need.label }}: choose {{ need.need }} more</span><span class="chev" aria-hidden="true">▾</span></span>
+    </summary>
+    <table class="table">
+      <tbody>
+        {% for c in need.candidates %}
+          <tr>
+            <td class="code">{{ c.code }}</td><td>{{ c.name }}</td><td>{{ c.credit_points }} cp</td>
+            <td class="actions-cell">
+              {% if c.sessions %}
+                <form class="enrol-form" method="post" action="{{ url_for('planner.add') }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="subject_code" value="{{ c.code }}">
+                  <select name="session_label" aria-label="Plan {{ c.code }} for">
+                    {% for label in c.sessions %}<option value="{{ label }}">{{ label }}</option>{% endfor %}
+                  </select>
+                  <button type="submit" class="btn">Add to plan</button>
+                </form>
+              {% else %}
+                <span class="muted">Plan its prerequisites first</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </details>
+{% endfor %}
+{% endblock %}

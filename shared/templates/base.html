@@ -14,6 +14,7 @@
     <nav class="nav-main">
       {% if current_user %}
         <a href="{{ url_for('catalogue.list_page') }}"{% if request.blueprint == 'catalogue' %} aria-current="page"{% endif %}>Subjects</a>
+        <a href="{{ url_for('planner.page') }}"{% if request.blueprint == 'planner' %} aria-current="page"{% endif %}>Degree planner</a>
         <a href="{{ url_for('enrolment.me') }}"{% if request.blueprint == 'enrolment' %} aria-current="page"{% endif %}>Record</a>
       {% endif %}
     </nav>

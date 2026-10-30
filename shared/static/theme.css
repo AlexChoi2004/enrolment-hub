@@ -144,3 +144,13 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
                 border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.2rem; margin: 0 0 1.5rem; }
 .profile-list dt { color: var(--muted); }
 .profile-list dd { margin: 0; }
+
+
+/* Degree planner */
+.plan-actions { display: flex; flex-wrap: wrap; margin: 0 0 1rem; }
+.plan-session { margin-bottom: 1rem; }
+.plan-session h3 { display: flex; align-items: center; gap: .6rem; margin: 1rem 0 .3rem; color: var(--text); font-size: 1.05rem; }
+.plan-enrolled td { background: #eaf7ee; }
+.plan-planned td { background: #eef3fd; }
+.plan-problem td { background: #fdecea; }
+.badge.st-planned { background: var(--accent); color: #fff; border-color: var(--accent); }
