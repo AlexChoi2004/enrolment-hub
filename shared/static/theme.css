@@ -154,3 +154,9 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 .plan-planned td { background: #eef3fd; }
 .plan-problem td { background: #fdecea; }
 .badge.st-planned { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+
+/* A finished elective requirement stays visible, greyed, with a note */
+.card.plan-complete { background: #eceff3; }
+.card.plan-complete .name { color: var(--muted); }
+.card.plan-complete .group-note { margin: .3rem 0 0; }

@@ -192,7 +192,7 @@ def get_plan(conn, user_id):
             })
         sessions.append({"label": label, "load_cp": loads[label], "enrolled": enrolled, "planned": planned})
 
-    outstanding, elective_needs = [], []
+    outstanding, elective_needs, elective_sections = [], [], []
     categories = {}
     for subject in subjects.values():
         categories.setdefault(subject["category"], subject)
@@ -201,17 +201,24 @@ def get_plan(conn, user_id):
         untaken = [s for s in members if s["code"] not in state["records"] and s["code"] not in state["plan"]]
         if category in ELECTIVE_CATEGORIES:
             counted = _category_counted(state, category)
+            choose = sample["required_cp"] // ELECTIVE_CREDIT_POINTS
+            chosen = counted // ELECTIVE_CREDIT_POINTS
             need = max(0, (sample["required_cp"] - counted) // ELECTIVE_CREDIT_POINTS)
+            section = {
+                "label": sample["category_label"],
+                "choose": choose,  # how many the degree asks for
+                "chosen": chosen,  # completed, enrolled or planned so far
+                "need": need,
+                "complete": need == 0,
+                "candidates": [
+                    {"code": s["code"], "name": s["name"], "credit_points": s["credit_points"],
+                     "sessions": _valid_sessions(state, s["code"])}
+                    for s in sorted(untaken, key=lambda s: s["name"].lower())
+                ] if need else [],
+            }
+            elective_sections.append(section)  # always shown, so a finished section stays visible
             if need:
-                elective_needs.append({
-                    "label": sample["category_label"],
-                    "need": need,
-                    "candidates": [
-                        {"code": s["code"], "name": s["name"], "credit_points": s["credit_points"],
-                         "sessions": _valid_sessions(state, s["code"])}
-                        for s in sorted(untaken, key=lambda s: s["name"].lower())
-                    ],
-                })
+                elective_needs.append(section)
             elif counted > sample["required_cp"]:
                 problems.append(f"Your plan has more {sample['category_label'].lower()} than the degree needs.")
         else:
@@ -236,6 +243,7 @@ def get_plan(conn, user_id):
         "sessions": sessions,
         "outstanding": outstanding,
         "elective_needs": elective_needs,
+        "elective_sections": elective_sections,
         "problems": problems,
         "completed_cp": cp("completed"),
         "enrolled_cp": cp("enrolled"),

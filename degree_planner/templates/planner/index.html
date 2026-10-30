@@ -115,34 +115,44 @@
   <p>Every required subject is completed, enrolled or planned.</p>
 {% endif %}
 
-{% for need in plan.elective_needs %}
-  <details class="card">
-    <summary>
-      <span class="card-title"><span class="name">{{ need.label }}: choose {{ need.need }} more</span><span class="chev" aria-hidden="true">▾</span></span>
-    </summary>
-    <table class="table">
-      <tbody>
-        {% for c in need.candidates %}
-          <tr>
-            <td class="code">{{ c.code }}</td><td>{{ c.name }}</td><td>{{ c.credit_points }} cp</td>
-            <td class="actions-cell">
-              {% if c.sessions %}
-                <form class="enrol-form" method="post" action="{{ url_for('planner.add') }}">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <input type="hidden" name="subject_code" value="{{ c.code }}">
-                  <select name="session_label" aria-label="Plan {{ c.code }} for">
-                    {% for label in c.sessions %}<option value="{{ label }}">{{ label }}</option>{% endfor %}
-                  </select>
-                  <button type="submit" class="btn">Add to plan</button>
-                </form>
-              {% else %}
-                <span class="muted">Plan its prerequisites first</span>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </details>
+{% for sec in plan.elective_sections %}
+  {% if sec.complete %}
+    <div class="card plan-complete">
+      <span class="card-title"><span class="name">{{ sec.label }}</span><span class="tick" aria-label="complete">&#10003;</span></span>
+      <p class="group-note">You've already completed or chosen all {{ sec.choose }} {{ sec.label|lower }} ({{ sec.chosen }} of {{ sec.choose }}).</p>
+    </div>
+  {% else %}
+    <details class="card" id="electives-{{ sec.label|lower|replace(' ', '-') }}">
+      <summary>
+        <span class="card-title">
+          <span class="name">{{ sec.label }}: choose {{ sec.need }} more ({{ sec.chosen }} of {{ sec.choose }} chosen)</span>
+          <span class="chev" aria-hidden="true">▾</span>
+        </span>
+      </summary>
+      <table class="table">
+        <tbody>
+          {% for c in sec.candidates %}
+            <tr>
+              <td class="code">{{ c.code }}</td><td>{{ c.name }}</td><td>{{ c.credit_points }} cp</td>
+              <td class="actions-cell">
+                {% if c.sessions %}
+                  <form class="enrol-form" method="post" action="{{ url_for('planner.add') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="subject_code" value="{{ c.code }}">
+                    <select name="session_label" aria-label="Plan {{ c.code }} for">
+                      {% for label in c.sessions %}<option value="{{ label }}">{{ label }}</option>{% endfor %}
+                    </select>
+                    <button type="submit" class="btn">Add to plan</button>
+                  </form>
+                {% else %}
+                  <span class="muted">Plan its prerequisites first</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </details>
+  {% endif %}
 {% endfor %}
 {% endblock %}
