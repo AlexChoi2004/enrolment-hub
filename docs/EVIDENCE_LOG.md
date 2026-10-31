@@ -68,7 +68,6 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Changed finished elective sections to stay on screen with a "you've already completed or chosen all" note instead of disappearing, so the page does not 
   seem to lose information
 - Reloading the page after every action sent me back to the top, so I added a small script that remembers the scroll position and which cards were open; 
-  I could only check the server side and the script's syntax, so the behaviour itself needs checking by hand in the browser
 - Moved confirmation and error messages into floating messages in the corner, because once I stay where I was on the page, messages at the top would be out of sight
 
 ## AI assistance used (disclose in the report as the subject requires)

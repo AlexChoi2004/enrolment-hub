@@ -1,14 +1,15 @@
 """Timetable: the weekly classes for the sessions a student is enrolled in.
 
-Every enrolled subject brings its lecture automatically. The student picks one tutorial per
-subject. A choice is refused if it overlaps any lecture or other chosen tutorial in that session.
-Lectures of two enrolled subjects can overlap (the invented timetable has a few such pairs);
-that is not blocked, but it is detected and shown as a clash.
+Every enrolled subject brings its lecture automatically. Depending on the subject, the student
+then picks one class for each tutorial and workshop. Choosing a class that overlaps another is
+allowed, but it is detected, warned about and drawn in red so it can be fixed.
 """
 from enrolment.service import CURRENT_SESSION, open_sessions
 
 DAYS = ("Mon", "Tue", "Wed", "Thu", "Fri")
 FIRST_HOUR, LAST_HOUR = 8, 19  # the grid shows 8:00 up to 19:00
+COMPONENTS = ("tutorial", "tutorial2", "workshop")  # the parts a student chooses; lectures are automatic
+COLOURS = 8  # each subject in a session gets its own colour, reused after this many
 
 
 class TimetableError(Exception):
@@ -40,6 +41,11 @@ def describe(c):
     return f"{c['subject_code']} {c['name'].lower()} ({when(c)})"
 
 
+def component_label(name):
+    """'Tutorial 2 C' -> 'Tutorial 2' (the class name without its option letter)."""
+    return name.rsplit(" ", 1)[0]
+
+
 # --- loading -----------------------------------------------------------------------------------
 
 def _enrolled(conn, user_id, session_label):
@@ -54,65 +60,77 @@ def _enrolled(conn, user_id, session_label):
 
 
 def _classes(conn, codes, season):
-    by_subject = {c: {"lecture": None, "tutorials": []} for c in codes}
+    """{code: {"lecture": row or None, "components": {component: [option rows]}}}"""
+    by_subject = {c: {"lecture": None, "components": {}} for c in codes}
     for r in conn.execute("SELECT * FROM classes WHERE season = ? ORDER BY id", (season,)):
         row = dict(r)
         if row["subject_code"] not in by_subject:
             continue
-        if row["kind"] == "lecture":
+        if row["component"] == "lecture":
             by_subject[row["subject_code"]]["lecture"] = row
         else:
-            by_subject[row["subject_code"]]["tutorials"].append(row)
+            by_subject[row["subject_code"]]["components"].setdefault(row["component"], []).append(row)
     return by_subject
 
 
 def _choices(conn, user_id, codes, season):
+    """{(code, component): chosen class row}"""
     chosen = {}
     for r in conn.execute(
-        "SELECT cc.subject_code AS chosen_for, c.* FROM class_choices cc JOIN classes c ON c.id = cc.class_id"
+        "SELECT cc.subject_code AS chosen_for, cc.component AS chosen_component, c.*"
+        " FROM class_choices cc JOIN classes c ON c.id = cc.class_id"
         " WHERE cc.user_id = ? AND c.season = ?",
         (user_id, season),
     ):
         row = dict(r)
-        subject = row.pop("chosen_for")
+        subject, component = row.pop("chosen_for"), row.pop("chosen_component")
         if subject in codes:
-            chosen[subject] = row
+            chosen[(subject, component)] = row
     return chosen
 
 
-# --- the weekly grid -----------------------------------------------------------------------------
+# --- the weekly layout -----------------------------------------------------------------------------
 
-def build_grid(items):
-    """Lay classes out as hour rows by day columns. Returns (rows, left_out).
+def layout_days(items):
+    """Group classes by day and give each a lane, so overlapping classes sit side by side.
 
-    A class spanning two hours becomes a cell with rowspan 2, and the cell beneath it is marked
-    as covered. A class that overlaps one already placed is left out (it shows up as a clash).
+    Returns one column per weekday. Every item gets `lane` and `lanes` (how many lanes its
+    cluster of overlapping classes needs) and `clash` (True if it overlaps any other class).
     """
-    occupied = {day: {} for day in DAYS}
-    placed = {}
-    left_out = []
-    for item in sorted(items, key=lambda c: (c["start_hour"], c["subject_code"], c["kind"])):
-        hours = range(item["start_hour"], item["start_hour"] + item["duration"])
-        if any(h in occupied[item["day"]] for h in hours):
-            left_out.append(item)
-            continue
-        for h in hours:
-            occupied[item["day"]][h] = item
-        placed[(item["day"], item["start_hour"])] = item
+    items = [dict(i) for i in items]
+    for item in items:
+        item["clash"] = any(other is not item and overlaps(item, other) for other in items)
 
-    rows = []
-    for hour in range(FIRST_HOUR, LAST_HOUR):
-        cells = []
-        for day in DAYS:
-            item = placed.get((day, hour))
-            if item:
-                cells.append({"item": item, "rowspan": item["duration"]})
-            elif hour in occupied[day]:
-                cells.append({"skip": True})
-            else:
-                cells.append(None)
-        rows.append({"hour": hour, "label": f"{hour}:00", "cells": cells})
-    return rows, left_out
+    columns = []
+    for day in DAYS:
+        day_items = sorted(
+            (i for i in items if i["day"] == day),
+            key=lambda i: (i["start_hour"], i["subject_code"], i["component"]),
+        )
+        clusters, current, current_end = [], [], 0
+        for item in day_items:
+            if current and item["start_hour"] >= current_end:
+                clusters.append(current)
+                current, current_end = [], 0
+            current.append(item)
+            current_end = max(current_end, item["start_hour"] + item["duration"])
+        if current:
+            clusters.append(current)
+        for cluster in clusters:
+            lane_ends = []
+            for item in cluster:
+                end = item["start_hour"] + item["duration"]
+                for lane, lane_end in enumerate(lane_ends):
+                    if lane_end <= item["start_hour"]:
+                        item["lane"], lane_ends[lane] = lane, end
+                        break
+                else:
+                    item["lane"] = len(lane_ends)
+                    lane_ends.append(end)
+            for item in cluster:
+                item["lanes"] = len(lane_ends)
+        columns.append({"day": day, "items": day_items})
+    return columns
 
 
 # --- reading (Read) --------------------------------------------------------------------------------
@@ -125,112 +143,130 @@ def get_timetable(conn, user_id, session_label):
     chosen = _choices(conn, user_id, codes, season)
 
     items = []
-    for s in subjects:
-        lecture = catalogue[s["code"]]["lecture"]
-        if lecture:
-            items.append({**lecture, "subject_name": s["name"]})
-        if s["code"] in chosen:
-            items.append({**chosen[s["code"]], "subject_name": s["name"]})
+    for index, s in enumerate(subjects):
+        extra = {"subject_name": s["name"], "colour": index % COLOURS}
+        if catalogue[s["code"]]["lecture"]:
+            items.append({**catalogue[s["code"]]["lecture"], **extra})
+        for component in COMPONENTS:
+            if (s["code"], component) in chosen:
+                items.append({**chosen[(s["code"], component)], **extra})
 
-    cards = []
-    for s in subjects:
-        # A new tutorial may overlap anything except the tutorial it would replace.
-        blockers = [i for i in items if not (i["subject_code"] == s["code"] and i["kind"] == "tutorial")]
-        options = []
-        for t in catalogue[s["code"]]["tutorials"]:
-            clash = next((b for b in blockers if overlaps(t, b)), None)
-            options.append({
-                "id": t["id"], "name": t["name"], "when": when(t), "room": t["room"],
-                "chosen": s["code"] in chosen and chosen[s["code"]]["id"] == t["id"],
-                "clash": f"clashes with {describe(clash)}" if clash else None,
-            })
+    cards, needs = [], []
+    for index, s in enumerate(subjects):
+        components = []
+        for component in COMPONENTS:
+            rows = catalogue[s["code"]]["components"].get(component)
+            if not rows:
+                continue
+            # A new choice is compared with everything except the class it would replace.
+            blockers = [i for i in items if not (i["subject_code"] == s["code"] and i["component"] == component)]
+            options = []
+            for r in rows:
+                clash = next((b for b in blockers if overlaps(r, b)), None)
+                options.append({
+                    "id": r["id"], "name": r["name"], "when": when(r), "room": r["room"],
+                    "chosen": (s["code"], component) in chosen and chosen[(s["code"], component)]["id"] == r["id"],
+                    "clash": f"clashes with {describe(clash)}" if clash else None,
+                })
+            label = component_label(rows[0]["name"])
+            picked = next((o for o in options if o["chosen"]), None)
+            if not picked:
+                needs.append(f"{s['code']} {label}")
+            components.append({"component": component, "label": label, "chosen": picked, "options": options})
         lecture = catalogue[s["code"]]["lecture"]
         cards.append({
-            "code": s["code"], "name": s["name"],
+            "code": s["code"], "name": s["name"], "colour": index % COLOURS,
             "lecture": {"when": when(lecture), "room": lecture["room"]} if lecture else None,
-            "chosen": next((o for o in options if o["chosen"]), None),
-            "options": options,
+            "components": components,
         })
 
+    columns = layout_days(items)
     clashes = []
     for i, a in enumerate(items):
         for b in items[i + 1:]:
             if overlaps(a, b):
                 clashes.append(f"{describe(a)} clashes with {describe(b)}.")
-    rows, _left_out = build_grid(items)
     return {
         "label": session_label,
         "subjects": cards,
-        "grid": rows,
-        "days": DAYS,
+        "columns": columns,
+        "hours": [f"{h}:00" for h in range(FIRST_HOUR, LAST_HOUR)],
         "clashes": clashes,
-        "needs_tutorial": [c["code"] for c in cards if not c["chosen"]],
+        "needs_choice": needs,
     }
 
 
-# --- choosing and dropping a tutorial (Create, Update, Delete) ---------------------------------------------
+# --- choosing and dropping a class (Create, Update, Delete) -------------------------------------------------
 
 def choose_class(conn, user_id, subject_code, class_id):
-    """Pick (or change) the tutorial for a subject the student is enrolled in."""
+    """Pick (or change) the class for one tutorial or workshop of a subject the student is enrolled in.
+
+    An overlap with another class is allowed: it comes back in `clashes` so it can be warned about.
+    """
     enrolment = conn.execute(
         "SELECT e.session_label, e.status, s.name FROM enrolments e JOIN subjects s ON s.code = e.subject_code"
         " WHERE e.user_id = ? AND e.subject_code = ?",
         (user_id, subject_code),
     ).fetchone()
     if enrolment is None or enrolment["status"] != "enrolled":
-        raise TimetableError(f"You are not enrolled in {subject_code}, so there is no tutorial to choose.")
+        raise TimetableError(f"You are not enrolled in {subject_code}, so there is nothing to choose.")
     label = f"{subject_code} {enrolment['name']}"
     session_label = enrolment["session_label"]
 
     row = conn.execute("SELECT * FROM classes WHERE id = ?", (class_id,)).fetchone()
     if row is None or row["subject_code"] != subject_code:
         raise TimetableError(f"That class does not belong to {label}.")
-    if row["kind"] != "tutorial":
-        raise TimetableError("Lectures are added automatically. Choose a tutorial.")
+    if row["component"] == "lecture":
+        raise TimetableError("Lectures are added automatically. Choose a tutorial or workshop.")
     if row["season"] != season_of(session_label):
         raise TimetableError(
-            f"That tutorial runs in {row['season']}, but you are enrolled in {label} for {session_label}."
+            f"That class runs in {row['season']}, but you are enrolled in {label} for {session_label}."
         )
+    row = dict(row)
 
     subjects = _enrolled(conn, user_id, session_label)
     codes = [s["code"] for s in subjects]
     catalogue = _classes(conn, codes, row["season"])
     chosen = _choices(conn, user_id, codes, row["season"])
-    for s in subjects:
-        if catalogue[s["code"]]["lecture"]:
-            blockers = [catalogue[s["code"]]["lecture"]]
-        else:
-            blockers = []
-        if s["code"] in chosen and s["code"] != subject_code:  # the tutorial being replaced is not a blocker
-            blockers.append(chosen[s["code"]])
-        for b in blockers:
-            if overlaps(row, b):
-                raise TimetableError(f"{row['name']} for {label} clashes with {describe(b)}.")
+    others = [c["lecture"] for c in catalogue.values() if c["lecture"]]
+    others += [r for key, r in chosen.items() if key != (subject_code, row["component"])]  # the one being replaced is not an "other"
+    clashes = [describe(o) for o in others if overlaps(row, o)]
 
     existing = conn.execute(
-        "SELECT id FROM class_choices WHERE user_id = ? AND subject_code = ?", (user_id, subject_code)
+        "SELECT id FROM class_choices WHERE user_id = ? AND subject_code = ? AND component = ?",
+        (user_id, subject_code, row["component"]),
     ).fetchone()
     if existing:
         conn.execute("UPDATE class_choices SET class_id = ? WHERE id = ?", (class_id, existing["id"]))
     else:
         conn.execute(
-            "INSERT INTO class_choices (user_id, subject_code, class_id) VALUES (?, ?, ?)",
-            (user_id, subject_code, class_id),
+            "INSERT INTO class_choices (user_id, subject_code, component, class_id) VALUES (?, ?, ?, ?)",
+            (user_id, subject_code, row["component"], class_id),
         )
     conn.commit()
-    return {"label": label, "session": session_label, "tutorial": f"{row['name']} ({when(row)})", "updated": bool(existing)}
+    return {
+        "label": label,
+        "session": session_label,
+        "class": f"{row['name']} ({when(row)})",
+        "updated": bool(existing),
+        "clashes": clashes,
+    }
 
 
-def drop_class(conn, user_id, subject_code):
+def drop_class(conn, user_id, subject_code, component):
     row = conn.execute(
-        "SELECT cc.id, e.session_label, s.name FROM class_choices cc"
+        "SELECT cc.id, e.session_label, s.name, c.name AS class_name FROM class_choices cc"
         " JOIN enrolments e ON e.user_id = cc.user_id AND e.subject_code = cc.subject_code"
-        " JOIN subjects s ON s.code = cc.subject_code"
-        " WHERE cc.user_id = ? AND cc.subject_code = ?",
-        (user_id, subject_code),
+        " JOIN subjects s ON s.code = cc.subject_code JOIN classes c ON c.id = cc.class_id"
+        " WHERE cc.user_id = ? AND cc.subject_code = ? AND cc.component = ?",
+        (user_id, subject_code, component),
     ).fetchone()
     if row is None:
-        raise TimetableError(f"You have not chosen a tutorial for {subject_code}.")
+        raise TimetableError(f"You have not chosen that class for {subject_code}.")
     conn.execute("DELETE FROM class_choices WHERE id = ?", (row["id"],))
     conn.commit()
-    return {"label": f"{subject_code} {row['name']}", "session": row["session_label"]}
+    return {
+        "label": f"{subject_code} {row['name']}",
+        "session": row["session_label"],
+        "class": component_label(row["class_name"]),
+    }

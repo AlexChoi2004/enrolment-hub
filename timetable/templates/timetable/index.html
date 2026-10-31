@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Timetable · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>Timetable</h1>
+<p>
+  Lectures are added automatically for every subject you are enrolled in. Then choose a class for each tutorial
+  and workshop. Each subject has its own colour, and classes that overlap turn <strong class="unmet">red</strong>.
+  <strong>All class times and rooms are invented for this prototype.</strong>
+</p>
+
+<nav class="tt-tabs" aria-label="Session">
+  {% for label in sessions %}
+    <a href="{{ url_for('timetable.page', session=label) }}"{% if label == current %} aria-current="page"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</nav>
+
+{% if timetable.clashes %}
+  <div class="flash flash-error">
+    <p>Classes that clash this session:</p>
+    <ul class="plain">{% for c in timetable.clashes %}<li>{{ c }}</li>{% endfor %}</ul>
+    <p>Change one of the classes below, or move or withdraw from the subject on the Subjects page.</p>
+  </div>
+{% endif %}
+
+{% if not timetable.subjects %}
+  <p class="demo-note">You are not enrolled in anything for {{ current }} yet, so there is nothing to schedule.
+    <a href="{{ url_for('catalogue.list_page') }}">Browse subjects</a>.</p>
+{% else %}
+  {% if timetable.needs_choice %}
+    <p class="muted">Still to choose: {{ timetable.needs_choice|join(', ') }}.</p>
+  {% endif %}
+
+  <h2>Week</h2>
+  <div class="tt-scroll">
+    <div class="tt-week">
+      <div class="tt-hours">
+        <div class="tt-day-head"></div>
+        {% for h in timetable.hours %}<div class="tt-hour">{{ h }}</div>{% endfor %}
+      </div>
+      {% for col in timetable.columns %}
+        <div class="tt-day">
+          <div class="tt-day-head">{{ col.day }}</div>
+          <div class="tt-day-body">
+            {% for it in col['items'] %}
+              <div class="tt-block tt-c{{ it.colour }} tt-s{{ it.start_hour }} tt-d{{ it.duration }} tt-lane-{{ it.lane }}-{{ it.lanes }}{{ ' tt-clash' if it.clash }}"
+                   title="{{ it.subject_code }} {{ it.subject_name }}: {{ it.name }}, {{ it.room }}{{ ' (CLASH)' if it.clash }}">
+                <strong>{{ it.subject_code }}</strong> {{ it.name }}<br>{{ it.room }}{% if it.clash %}<br><span class="tt-clash-label">Clash</span>{% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <h2>Your classes</h2>
+  {% for s in timetable.subjects %}
+    <section class="card tt-subject tt-c{{ s.colour }}">
+      <h3><span class="tt-swatch" aria-hidden="true"></span><span class="code">{{ s.code }}</span> {{ s.name }}</h3>
+      {% if s.lecture %}<p>Lecture: {{ s.lecture.when }} · {{ s.lecture.room }} <span class="muted">(added automatically)</span></p>{% endif %}
+
+      {% for c in s.components %}
+        <div class="tt-component">
+          {% if c.chosen %}
+            <p>{{ c.label }}: <strong>{{ c.chosen.name }}</strong>, {{ c.chosen.when }} · {{ c.chosen.room }}
+              {% if c.chosen.clash %}<span class="unmet">({{ c.chosen.clash }})</span>{% endif %}</p>
+          {% else %}
+            <p class="unmet">{{ c.label }}: not chosen yet.</p>
+          {% endif %}
+          <form class="enrol-form" method="post" action="{{ url_for('timetable.choose') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="subject_code" value="{{ s.code }}">
+            <input type="hidden" name="session_label" value="{{ current }}">
+            <select name="class_id" aria-label="{{ c.label }} for {{ s.code }}">
+              {% for o in c.options %}
+                <option value="{{ o.id }}"{% if o.chosen %} selected{% endif %}>
+                  {{ o.name }}: {{ o.when }} · {{ o.room }}{% if o.clash and not o.chosen %} ({{ o.clash }}){% endif %}
+                </option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn">{{ 'Change' if c.chosen else 'Choose' }} {{ c.label|lower }}</button>
+          </form>
+          {% if c.chosen %}
+            <form class="enrol-form" method="post" action="{{ url_for('timetable.drop', code=s.code, component=c.component) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="session_label" value="{{ current }}">
+              <button type="submit" class="btn btn-danger">Drop</button>
+            </form>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </section>
+  {% endfor %}
+{% endif %}
+{% endblock %}
