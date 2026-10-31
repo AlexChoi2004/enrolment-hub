@@ -10,6 +10,7 @@ from flask import Flask, g, jsonify, redirect, render_template, url_for
 from accounts.routes import bp as accounts_bp
 from accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
 from degree_planner.routes import bp as planner_bp
+from timetable.routes import bp as timetable_bp
 from enrolment.routes import bp as enrolment_bp
 from shared import db, security
 from shared.web import shared_bp
@@ -47,6 +48,7 @@ def create_app(test_config=None):
     app.register_blueprint(accounts_bp)
     app.register_blueprint(catalogue_bp)
     app.register_blueprint(planner_bp)
+    app.register_blueprint(timetable_bp)
     app.register_blueprint(enrolment_bp)
 
     @app.get("/")

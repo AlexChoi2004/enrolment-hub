@@ -41,10 +41,10 @@ def test_the_script_does_not_run_inline(demo):
 
 # --- every action form is covered ------------------------------------------------------------------------------
 
-@pytest.mark.parametrize("url", ["/subjects", "/planner", "/students/me"])
+@pytest.mark.parametrize("url", ["/subjects", "/planner", "/students/me", "/timetable"])
 def test_every_enrolment_and_plan_form_uses_the_action_class(demo, url):
     forms = ACTION_FORM.findall(page(demo, url))
-    actions = [(cls, action) for cls, action in forms if action.startswith(("/students/me/", "/planner/"))]
+    actions = [(cls, action) for cls, action in forms if action.startswith(("/students/me/", "/planner/", "/timetable/"))]
     assert actions, "the page should have action forms"
     for cls, action in actions:
         assert "enrol-form" in cls.split(), action

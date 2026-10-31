@@ -169,3 +169,62 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
          box-shadow: 0 4px 14px rgba(0, 0, 0, .12); animation: toast-out .4s ease 10s forwards; }
 @keyframes toast-out { to { opacity: 0; visibility: hidden; } }
 @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
+
+
+
+/* Timetable */
+.tt-tabs { display: flex; gap: 1rem; margin: 0 0 1rem; }
+.tt-tabs a { color: var(--accent); text-decoration: none; padding-bottom: .15rem; }
+.tt-tabs a[aria-current="page"] { font-weight: 700; border-bottom: 2px solid var(--accent); }
+.tt-scroll { overflow-x: auto; }
+.tt-week { --tt-row: 3.2rem; --tt-head: 2rem; display: grid; grid-template-columns: 3.5rem repeat(5, minmax(7rem, 1fr)); min-width: 44rem; background: var(--card); border: 1px solid var(--border); }
+.tt-day-head { height: var(--tt-head); display: flex; align-items: center; justify-content: center; font-weight: 600; background: #f1f3f7; border-bottom: 1px solid var(--border); }
+.tt-hour { height: var(--tt-row); font-size: .75rem; color: var(--muted); text-align: right; padding: .1rem .4rem 0 0; box-sizing: border-box; }
+.tt-day { border-left: 1px solid var(--border); }
+.tt-day-body { position: relative; height: calc(11 * var(--tt-row)); background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--tt-row) - 1px), var(--border) calc(var(--tt-row) - 1px), var(--border) var(--tt-row)); }
+.tt-block { position: absolute; box-sizing: border-box; overflow: hidden; padding: .15rem .3rem; font-size: .72rem; line-height: 1.25; border: 1px solid var(--tt-border); border-left-width: 4px; border-radius: 4px; background: var(--tt-bg); color: var(--text); }
+.tt-block.tt-clash { background: #fde2e0; border-color: #c0392b; color: #7a1c14; }
+.tt-clash-label { font-weight: 700; text-transform: uppercase; font-size: .65rem; }
+.tt-c0 { --tt-bg: #e6edff; --tt-border: #2457d6; }
+.tt-c1 { --tt-bg: #dff5f2; --tt-border: #0f8b8d; }
+.tt-c2 { --tt-bg: #efe6fa; --tt-border: #7a3fc2; }
+.tt-c3 { --tt-bg: #fdebd9; --tt-border: #d9822b; }
+.tt-c4 { --tt-bg: #e3f4e1; --tt-border: #2e8b3d; }
+.tt-c5 { --tt-bg: #e4e6fb; --tt-border: #4f46e5; }
+.tt-c6 { --tt-bg: #fff6d6; --tt-border: #b08a00; }
+.tt-c7 { --tt-bg: #e6e9ee; --tt-border: #4b5563; }
+.tt-s8 { top: calc(0 * var(--tt-row)); }
+.tt-s9 { top: calc(1 * var(--tt-row)); }
+.tt-s10 { top: calc(2 * var(--tt-row)); }
+.tt-s11 { top: calc(3 * var(--tt-row)); }
+.tt-s12 { top: calc(4 * var(--tt-row)); }
+.tt-s13 { top: calc(5 * var(--tt-row)); }
+.tt-s14 { top: calc(6 * var(--tt-row)); }
+.tt-s15 { top: calc(7 * var(--tt-row)); }
+.tt-s16 { top: calc(8 * var(--tt-row)); }
+.tt-s17 { top: calc(9 * var(--tt-row)); }
+.tt-s18 { top: calc(10 * var(--tt-row)); }
+.tt-d1 { height: calc(1 * var(--tt-row) - 2px); }
+.tt-d2 { height: calc(2 * var(--tt-row) - 2px); }
+.tt-d3 { height: calc(3 * var(--tt-row) - 2px); }
+.tt-lane-0-1 { left: calc(0 * 100% / 1 + 1px); width: calc(100% / 1 - 3px); }
+.tt-lane-0-2 { left: calc(0 * 100% / 2 + 1px); width: calc(100% / 2 - 3px); }
+.tt-lane-1-2 { left: calc(1 * 100% / 2 + 1px); width: calc(100% / 2 - 3px); }
+.tt-lane-0-3 { left: calc(0 * 100% / 3 + 1px); width: calc(100% / 3 - 3px); }
+.tt-lane-1-3 { left: calc(1 * 100% / 3 + 1px); width: calc(100% / 3 - 3px); }
+.tt-lane-2-3 { left: calc(2 * 100% / 3 + 1px); width: calc(100% / 3 - 3px); }
+.tt-lane-0-4 { left: calc(0 * 100% / 4 + 1px); width: calc(100% / 4 - 3px); }
+.tt-lane-1-4 { left: calc(1 * 100% / 4 + 1px); width: calc(100% / 4 - 3px); }
+.tt-lane-2-4 { left: calc(2 * 100% / 4 + 1px); width: calc(100% / 4 - 3px); }
+.tt-lane-3-4 { left: calc(3 * 100% / 4 + 1px); width: calc(100% / 4 - 3px); }
+.tt-lane-0-5 { left: calc(0 * 100% / 5 + 1px); width: calc(100% / 5 - 3px); }
+.tt-lane-1-5 { left: calc(1 * 100% / 5 + 1px); width: calc(100% / 5 - 3px); }
+.tt-lane-2-5 { left: calc(2 * 100% / 5 + 1px); width: calc(100% / 5 - 3px); }
+.tt-lane-3-5 { left: calc(3 * 100% / 5 + 1px); width: calc(100% / 5 - 3px); }
+.tt-lane-4-5 { left: calc(4 * 100% / 5 + 1px); width: calc(100% / 5 - 3px); }
+.tt-subject { border-left: 6px solid var(--tt-border); }
+.tt-subject h3 { margin: 0 0 .4rem; color: var(--text); display: flex; align-items: center; gap: .5rem; }
+.tt-swatch { width: .9rem; height: .9rem; border-radius: 3px; background: var(--tt-border); display: inline-block; }
+.tt-subject p { margin: .2rem 0; }
+.tt-component { margin: .6rem 0 .8rem; }
+.flash-warning { background: #fff6d6; border-color: #e0c36a; color: #6b5300; }

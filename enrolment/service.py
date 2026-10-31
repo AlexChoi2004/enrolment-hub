@@ -270,6 +270,7 @@ def withdraw(conn, user_id, subject_code):
         "DELETE FROM enrolments WHERE user_id = ? AND subject_code = ? AND status = 'enrolled'",
         (user_id, subject_code),
     )
+    conn.execute("DELETE FROM class_choices WHERE user_id = ? AND subject_code = ?", (user_id, subject_code))
     conn.commit()
     return label
 
@@ -295,5 +296,7 @@ def move_session(conn, user_id, subject_code, new_session):
         "UPDATE enrolments SET session_label = ? WHERE user_id = ? AND subject_code = ? AND status = 'enrolled'",
         (new_session, user_id, subject_code),
     )
+    # The tutorial was picked for the old session's timetable, so it no longer applies.
+    conn.execute("DELETE FROM class_choices WHERE user_id = ? AND subject_code = ?", (user_id, subject_code))
     conn.commit()
     return label
