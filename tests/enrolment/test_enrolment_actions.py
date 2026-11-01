@@ -104,7 +104,7 @@ def test_only_the_open_sessions_are_accepted(conn, student, session_label):
 
 def test_subject_must_be_offered_in_the_chosen_session(conn, student):
     with pytest.raises(EnrolmentError, match="is not offered in Spring 2027"):
-        enrol(conn, student, "31777", SPRING)  # Advanced Interaction Design is Autumn only
+        enrol(conn, student, "41078", SPRING)  # Computing Science Studio 1 is Autumn only
 
 
 # --- the load limit ----------------------------------------------------------------------------------------

@@ -118,7 +118,8 @@ def test_lecture_clashes_between_subjects_are_rare(conn):
     from timetable.service import overlaps
 
     for season in ("Autumn", "Spring"):
-        lectures = [c for c in rows(conn) if c["component"] == "lecture" and c["season"] == season]
+        original = {r["code"] for r in conn.execute("SELECT code FROM subjects WHERE category <> 'major_other'")}
+        lectures = [c for c in rows(conn) if c["component"] == "lecture" and c["season"] == season and c["subject_code"] in original]
         pairs = [(a, b) for i, a in enumerate(lectures) for b in lectures[i + 1:] if overlaps(a, b)]
         assert len(pairs) <= 6, (season, len(pairs))
 

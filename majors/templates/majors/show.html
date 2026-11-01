@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}{{ major.name }} · Enrolment Hub{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('majors.index') }}">&larr; All majors</a></p>
+<h1>{{ major.name }}</h1>
+<p class="muted">{{ major.code }} · 48 credit points: {{ major.core_cp }} core{% if major.options_cp %} + {{ major.options_cp }} options{% endif %}</p>
+
+<h2>Core subjects <span class="muted">(all {{ major.core|length }} required)</span></h2>
+<table class="table">
+  <tbody>
+    {% for s in major.core %}
+      <tr><td class="code">{{ s.code }}</td><td>{{ s.name }}</td><td>{{ s.credit_points }} cp</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if major.options %}
+  <h2>Options <span class="muted">(choose {{ major.choose }} of {{ major.options|length }})</span></h2>
+  <table class="table">
+    <tbody>
+      {% for s in major.options %}
+        <tr><td class="code">{{ s.code }}</td><td>{{ s.name }}</td><td>{{ s.credit_points }} cp</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="muted">This major has no options: every subject is core.</p>
+{% endif %}
+
+{% if major.is_current %}
+  <p class="demo-note">This is your major.</p>
+{% elif major.blockers %}
+  <div class="flash flash-error">
+    <p>You can't swap to this major yet. These only count in your current major:</p>
+    <ul class="plain">
+      {% for b in major.blockers %}<li>{{ b.code }} {{ b.name }} ({{ b.status }})</li>{% endfor %}
+    </ul>
+    <p>Withdraw from the ones in progress first. Completed subjects can't be undone.</p>
+  </div>
+{% else %}
+  {% if major.has_current %}
+    <p>Swapping keeps the subjects they share. Anything planned that is not in this major is removed from your plan.</p>
+  {% endif %}
+  <form method="post" action="{{ url_for('majors.choose', code=major.code) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn">{{ 'Swap to this major' if major.has_current else 'Confirm this major' }}</button>
+  </form>
+{% endif %}
+{% endblock %}

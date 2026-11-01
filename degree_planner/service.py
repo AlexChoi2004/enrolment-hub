@@ -18,7 +18,18 @@ from enrolment.service import (
     offered_in,
     session_sort_key,
 )
-from subject_catalogue.service import ELECTIVE_CATEGORIES, ELECTIVE_CREDIT_POINTS
+from subject_catalogue.service import (
+    DEGREE_CREDIT_POINTS,
+    ELECTIVE_CATEGORIES,
+    ELECTIVE_CREDIT_POINTS,
+    MAJOR_CREDIT_POINTS,
+    degree_categories,
+    degree_subjects,
+    group_text,
+    load_credit_requirements,
+    load_prerequisites,
+    user_major,
+)
 
 PLAN_SESSIONS = 10  # five years of Autumn and Spring sessions from the current one
 
@@ -40,17 +51,31 @@ def plan_sessions(current_session=CURRENT_SESSION, count=PLAN_SESSIONS):
 # --- loading what the rules need ------------------------------------------------------------
 
 def _state(conn, user_id):
-    subjects = {
-        r["code"]: dict(r)
-        for r in conn.execute(
-            "SELECT s.code, s.name, s.credit_points, s.category, s.sessions_offered,"
-            " c.label AS category_label, c.required_credit_points AS required_cp, c.sort_order"
-            " FROM subjects s JOIN requirement_categories c ON c.category = s.category"
-        )
-    }
-    prereqs = defaultdict(list)
-    for r in conn.execute("SELECT subject_code, prereq_code FROM prerequisites ORDER BY prereq_code"):
-        prereqs[r["subject_code"]].append(r["prereq_code"])
+    """What the rules need, for THIS student's degree.
+
+    `subjects` holds every subject; those outside the student's degree (a major they did not choose)
+    have in_degree False and no category, so they can't be planned and count towards nothing.
+    """
+    sections = {c["category"]: c for c in degree_categories(conn, user_id)}
+    subjects = {}
+    for s in degree_subjects(conn, user_id):
+        section = sections.get(s["category"])
+        subjects[s["code"]] = {
+            "code": s["code"], "name": s["name"], "credit_points": s["credit_points"],
+            "category": s["category"], "sessions_offered": s["sessions_offered"],
+            "in_degree": s["in_degree"],
+            "category_label": section["label"] if section else None,
+            "required_cp": section["required_credit_points"] if section else 0,
+            "sort_order": section["sort_order"] if section else 99,
+        }
+    major = user_major(conn, user_id)
+    rules = defaultdict(list, load_prerequisites(conn))  # {subject: [group, ...]}
+    prereqs = defaultdict(list)  # every prerequisite code of a subject, flat (for "who depends on this")
+    for subject, groups in rules.items():
+        prereqs[subject] = [c for g in groups for c in g["codes"]]
+    major_members = defaultdict(set)
+    for r in conn.execute("SELECT major_code, subject_code FROM major_subjects"):
+        major_members[r["major_code"]].add(r["subject_code"])
     records = {
         r["subject_code"]: (r["status"], r["session_label"])
         for r in conn.execute(
@@ -62,8 +87,12 @@ def _state(conn, user_id):
         for r in conn.execute(
             "SELECT subject_code, session_label FROM planned_subjects WHERE user_id = ?", (user_id,)
         )
+        if subjects.get(r["subject_code"], {}).get("in_degree")  # ignore anything left over from another major
     }
-    return {"subjects": subjects, "prereqs": prereqs, "records": records, "plan": plan}
+    return {
+        "subjects": subjects, "prereqs": prereqs, "rules": rules, "records": records, "plan": plan, "major": major,
+        "credit_rules": load_credit_requirements(conn), "major_members": major_members,
+    }
 
 
 def _label(state, code):
@@ -97,6 +126,10 @@ def _check_placement(state, code, session, ignore_self=False):
     if subject is None:
         return "That subject does not exist."
     label = _label(state, code)
+    if not subject["in_degree"]:
+        if state["major"] is None:
+            return f"{label} is part of a major. Choose a major first."
+        return f"{label} is not part of your {state['major']['name']} major."
     record = state["records"].get(code)
     if record and record[0] == "completed":
         return f"You have already completed {label}."
@@ -118,20 +151,27 @@ def _check_placement(state, code, session, ignore_self=False):
             f"({already} already enrolled or planned)."
         )
 
-    missing = []
-    for p in state["prereqs"][code]:
-        if state["records"].get(p, (None, None))[0] == "completed":
-            continue
-        when = None
-        if state["records"].get(p, (None, None))[0] == "enrolled":
-            when = state["records"][p][1]
-        elif p in state["plan"] and p != code:
-            when = state["plan"][p]
-        if when is None or session_sort_key(when) >= session_sort_key(session):
-            missing.append(p)
+    def satisfied_by(p, concurrent):
+        rec = state["records"].get(p)
+        if rec and rec[0] == "completed":
+            return True
+        when = rec[1] if rec and rec[0] == "enrolled" else (state["plan"].get(p) if p != code else None)
+        if when is None:
+            return False
+        earlier, here = session_sort_key(when), session_sort_key(session)
+        return earlier <= here if concurrent else earlier < here  # a corequisite may be in the same session
+
+    names = {c: s_["name"] for c, s_ in state["subjects"].items()}
+    missing = [g for g in state["rules"].get(code, []) if not any(satisfied_by(p, g["concurrent"]) for p in g["codes"])]
     if missing:
-        names = ", ".join(_label(state, p) for p in missing)
-        return f"Needs {names} completed or planned in an earlier session."
+        return f"Needs {', '.join(group_text(names, g) for g in missing)} completed or planned in an earlier session."
+    for req in state["credit_rules"].get(code, []):
+        have = _major_credit(state, req["major_code"], session)
+        if have < req["min_cp"]:
+            return (
+                f"Needs {req['min_cp']} credit points completed in {req['major_name']} "
+                f"({have} completed, or planned in earlier sessions)."
+            )
 
     if subject["category"] in ELECTIVE_CATEGORIES:
         counted = _category_counted(state, subject["category"], ignore=code if ignore_self else None)
@@ -143,12 +183,34 @@ def _check_placement(state, code, session, ignore_self=False):
     return None
 
 
+def _major_credit(state, major_code, session):
+    """Credit points in a major that are completed, or enrolled/planned in a strictly earlier session."""
+    total = 0
+    for code in state["major_members"].get(major_code, ()):
+        cp = state["subjects"][code]["credit_points"]
+        rec = state["records"].get(code)
+        if rec and rec[0] == "completed":
+            total += cp
+            continue
+        when = rec[1] if rec else state["plan"].get(code)
+        if when is not None and session_sort_key(when) < session_sort_key(session):
+            total += cp
+    return total
+
+
 def _dependents_problem(state, code, new_session=None):
-    """A planned subject that needs `code` earlier than it would now be (or at all)."""
+    """A planned subject that would stop being valid if `code` were removed (new_session None) or moved."""
     for other, other_session in sorted(state["plan"].items()):
-        if other != code and code in state["prereqs"][other]:
-            if new_session is None or session_sort_key(new_session) >= session_sort_key(other_session):
-                return f"{_label(state, other)} is planned for {other_session} and needs {_label(state, code)} first."
+        if other == code or code not in state["prereqs"][other]:
+            continue
+        trial = dict(state)
+        trial["plan"] = dict(state["plan"])
+        if new_session is None:
+            trial["plan"].pop(code, None)
+        else:
+            trial["plan"][code] = new_session
+        if _check_placement(trial, other, other_session, ignore_self=True) is not None:
+            return f"{_label(state, other)} is planned for {other_session} and needs {_label(state, code)} first."
     return None
 
 
@@ -171,7 +233,7 @@ def get_plan(conn, user_id):
     for label in plan_sessions():
         enrolled = [
             {"code": c, "name": subjects[c]["name"], "credit_points": subjects[c]["credit_points"],
-             "category_label": subjects[c]["category_label"]}
+             "category_label": subjects[c]["category_label"] or "Outside your major"}
             for c, (status, session) in sorted(state["records"].items())
             if status == "enrolled" and session == label
         ]
@@ -195,7 +257,8 @@ def get_plan(conn, user_id):
     outstanding, elective_needs, elective_sections = [], [], []
     categories = {}
     for subject in subjects.values():
-        categories.setdefault(subject["category"], subject)
+        if subject["in_degree"]:
+            categories.setdefault(subject["category"], subject)
     for category, sample in sorted(categories.items(), key=lambda kv: kv[1]["sort_order"]):
         members = sorted((s for s in subjects.values() if s["category"] == category), key=lambda s: s["code"])
         untaken = [s for s in members if s["code"] not in state["records"] and s["code"] not in state["plan"]]
@@ -233,12 +296,11 @@ def get_plan(conn, user_id):
         return sum(subjects[c]["credit_points"] for c, (st, _) in state["records"].items() if st == status)
 
     planned_cp = sum(subjects[c]["credit_points"] for c in state["plan"])
-    degree_total = sum(
-        s["required_cp"] for s in categories.values()
-    )
     remaining = 0
     for category, sample in categories.items():
         remaining += max(0, sample["required_cp"] - _category_counted(state, category))
+    if state["major"] is None:
+        remaining += MAJOR_CREDIT_POINTS  # the major's 48 cp can't be planned until a major is chosen
     return {
         "sessions": sessions,
         "outstanding": outstanding,
@@ -249,8 +311,10 @@ def get_plan(conn, user_id):
         "enrolled_cp": cp("enrolled"),
         "planned_cp": planned_cp,
         "remaining_cp": remaining,
-        "degree_total_cp": degree_total,
+        "degree_total_cp": DEGREE_CREDIT_POINTS,
         "has_plan": bool(state["plan"]),
+        "major": state["major"],
+        "needs_major": state["major"] is None,
         "complete": remaining == 0 and not problems,
     }
 
@@ -350,7 +414,7 @@ def suggest_plan(conn, user_id):
     def pick_required(session):
         options = [
             s for s in subjects.values()
-            if s["category"] not in ELECTIVE_CATEGORIES and untaken(s["code"])
+            if s["in_degree"] and s["category"] not in ELECTIVE_CATEGORIES and untaken(s["code"])
             and _check_placement(state, s["code"], session) is None
         ]
         if not options:
@@ -359,7 +423,8 @@ def suggest_plan(conn, user_id):
         return options[0]["code"]
 
     def pick_elective(session):
-        for category in sorted(ELECTIVE_CATEGORIES, key=lambda c: next(
+        present = {s["category"] for s in subjects.values() if s["in_degree"] and s["category"] in ELECTIVE_CATEGORIES}
+        for category in sorted(present, key=lambda c: next(
                 s["sort_order"] for s in subjects.values() if s["category"] == c)):
             sample = next(s for s in subjects.values() if s["category"] == category)
             if _category_counted(state, category) >= sample["required_cp"]:
@@ -392,6 +457,6 @@ def suggest_plan(conn, user_id):
 
     unplaced = [
         _label(state, s["code"]) for s in subjects.values()
-        if s["category"] not in ELECTIVE_CATEGORIES and untaken(s["code"])
+        if s["in_degree"] and s["category"] not in ELECTIVE_CATEGORIES and untaken(s["code"])
     ]
     return len(added), sorted(unplaced)

@@ -47,6 +47,8 @@ def new_student(tmp_path):
     token = TOKEN.search(client.get("/register").get_data(as_text=True)).group(1)
     client.post("/register", data={"email": "new.student@student.uni.edu.au", "password": "Str0ng#Pass",
                                    "confirm_password": "Str0ng#Pass", "csrf_token": token})
+    token = TOKEN.search(client.get("/planner").get_data(as_text=True)).group(1)
+    client.post("/major/MAJ03519/choose", data={"csrf_token": token})  # new accounts choose a major first
     return client
 
 

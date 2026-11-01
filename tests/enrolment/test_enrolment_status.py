@@ -130,7 +130,7 @@ def test_statuses_only_use_the_requested_students_records(conn):
     )
     assert status(evaluate_subjects(conn, other["id"]), "48024") == "available"
     assert status(evaluate_subjects(conn, other["id"]), "33130") == "available"  # demo's history is not theirs
-    assert status(evaluate_subjects(conn, other["id"]), "41025") == "available"
+    assert status(evaluate_subjects(conn, other["id"]), "31265") == "available"
 
 
 @pytest.mark.parametrize("code", ["41039", "41026", "41052", "32931"])

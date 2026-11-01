@@ -2,7 +2,11 @@
 {% block title %}Subjects · Enrolment Hub{% endblock %}
 {% block content %}
 <h1>Subjects</h1>
-<p>Bachelor of Computing Science (Honours), Enterprise Software Development major.</p>
+<p>
+  Bachelor of Computing Science (Honours){% if major %}, {{ major.name }} major ·
+    <a href="{{ url_for('majors.index') }}">Swap major</a>
+  {% else %} · You haven't chosen a major yet · <a href="{{ url_for('majors.index') }}">Choose major</a>{% endif %}
+</p>
 
 <form class="filters" method="get" action="{{ url_for('catalogue.list_page') }}"
       hx-get="{{ url_for('catalogue.list_page') }}" hx-target="#results"

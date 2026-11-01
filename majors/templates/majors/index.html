@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Choose a major · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>{{ 'Swap major' if current else 'Choose your major' }}</h1>
+<p>
+  Every major is worth 48 credit points. Pick one to see its compulsory (core) subjects and its options,
+  then confirm it. The rest of your degree stays the same.
+</p>
+{% if current %}
+  <p class="demo-note">Your major is <strong>{{ current.name }}</strong> ({{ current.code }}).</p>
+{% endif %}
+
+<ul class="plain major-list">
+  {% for m in majors %}
+    <li class="card{{ ' plan-complete' if current and current.code == m.code }}">
+      <a href="{{ url_for('majors.show', code=m.code) }}"><strong>{{ m.name }}</strong></a>
+      <span class="muted">{{ m.code }}</span><br>
+      {% if m.options_cp %}
+        {{ m.core_count }} core subjects, plus choose {{ m.choose }} of {{ m.option_count }} options
+      {% else %}
+        All {{ m.core_count }} subjects are core
+      {% endif %}
+      · 48 cp
+      {% if current and current.code == m.code %}<span class="badge st-completed">Your major</span>{% endif %}
+    </li>
+  {% endfor %}
+</ul>
+{% endblock %}

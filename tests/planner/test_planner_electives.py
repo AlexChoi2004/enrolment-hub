@@ -5,13 +5,16 @@ import pytest
 from accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
 from accounts.service import create_user
 from degree_planner.service import add_to_plan, get_plan
+from majors.service import choose_major
 
 TOKEN = re.compile(r'name="csrf_token" value="([^"]+)"')
 
 
 @pytest.fixture()
 def student(conn):
-    return create_user(conn, "new.student@student.uni.edu.au", "Str0ng#Pass", "Autumn 2027")["id"]
+    user = create_user(conn, "new.student@student.uni.edu.au", "Str0ng#Pass", "Autumn 2027")["id"]
+    choose_major(conn, user, "MAJ03519")  # new accounts choose a major; these tests use Enterprise Software Development
+    return user
 
 
 def sections(conn, user_id):
@@ -101,6 +104,8 @@ def test_a_new_student_sees_both_lists_and_no_completion_messages(tmp_path):
     token = TOKEN.search(client.get("/register").get_data(as_text=True)).group(1)
     client.post("/register", data={"email": "new.student@student.uni.edu.au", "password": "Str0ng#Pass",
                                    "confirm_password": "Str0ng#Pass", "csrf_token": token})
+    token = TOKEN.search(client.get("/planner").get_data(as_text=True)).group(1)
+    client.post("/major/MAJ03519/choose", data={"csrf_token": token})  # new accounts choose a major first
     html = client.get("/planner").get_data(as_text=True)
     assert "Major electives: choose 3 more (0 of 3 chosen)" in html
     assert "General electives: choose 4 more (0 of 4 chosen)" in html

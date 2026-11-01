@@ -2,7 +2,7 @@
   <p>
     <strong>{{ subject.credit_points }} credit points</strong> ·
     {{ subject.category_label }} ·
-    Offered: {{ subject.sessions_offered }} <span class="badge" title="Session offerings are invented for this prototype and are not from the official handbook">example data</span>
+    Offered: {{ subject.sessions_offered }} <span class="badge">illustrative</span>
   </p>
   {% if subject.description %}<p>{{ subject.description }}</p>
   {% else %}<p class="muted">No description in the supplied data.</p>{% endif %}
@@ -10,12 +10,25 @@
   <h3>Prerequisites</h3>
   {% if subject.prereq_status == 'required' %}
     <ul class="plain">
-      {% for p in subject.prerequisites %}
+      {% for r in subject.requirements %}
         <li>
-          <a href="{{ url_for('catalogue.detail_page', code=p.code) }}">{{ p.code }} {{ p.name }}</a>
-          {% if p.state == 'completed' %}<span class="met">&#10003; completed</span>
-          {% elif p.state == 'enrolled' %}<span class="unmet">in progress (not yet met)</span>
-          {% else %}<span class="unmet">&#10007; not completed</span>{% endif %}
+          {% if r.alternatives|length > 1 %}One of: {% endif %}
+          {% for p in r.alternatives %}
+            <a href="{{ url_for('catalogue.detail_page', code=p.code) }}">{{ p.code }} {{ p.name }}</a>
+            {% if p.state == 'completed' %}<span class="met">&#10003; completed</span>
+            {% elif p.state == 'enrolled' and r.concurrent %}<span class="met">&#10003; in progress (can be taken together)</span>
+            {% elif p.state == 'enrolled' %}<span class="unmet">in progress (not yet met)</span>
+            {% else %}<span class="unmet">&#10007; not completed</span>{% endif %}
+            {% if not loop.last %}<span class="muted"> or </span>{% endif %}
+          {% endfor %}
+          {% if r.concurrent %}<span class="muted">(can also be taken at the same time)</span>{% endif %}
+        </li>
+      {% endfor %}
+      {% for c in subject.credit_requirements %}
+        <li>
+          At least {{ c.min_cp }} credit points completed in {{ c.major_name }}
+          {% if c.met %}<span class="met">&#10003; {{ c.have }} completed</span>
+          {% else %}<span class="unmet">&#10007; {{ c.have }} completed so far</span>{% endif %}
         </li>
       {% endfor %}
     </ul>
@@ -23,6 +36,16 @@
     <p>No prerequisites listed in the supplied data.</p>
   {% else %}
     <p class="notice">Prerequisites for this subject are not in the supplied data. This does not mean there are none.</p>
+  {% endif %}
+  {% if subject.prerequisite_note %}
+    <p class="notice"><strong>Not enforced:</strong> {{ subject.prerequisite_note }}</p>
+  {% endif %}
+
+  {% if subject.majors %}
+    <h3>Majors</h3>
+    <ul class="plain">
+      {% for m in subject.majors %}<li>{{ m.name }}: {{ 'core' if m.role == 'core' else 'option' }}</li>{% endfor %}
+    </ul>
   {% endif %}
 
   {% if subject.status == 'available' %}
@@ -59,6 +82,7 @@
       {% endfor %}
     </div>
   {% endif %}
+
   {% if subject.unlocks %}
     <h3>Leads to</h3>
     <ul class="plain">

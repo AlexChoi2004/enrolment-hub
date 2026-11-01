@@ -4,6 +4,7 @@ from accounts.service import create_user
 from degree_planner import service
 from degree_planner.service import PlanError, add_to_plan, clear_plan, get_plan, move_in_plan, remove_from_plan
 from enrolment.service import enrol, evaluate_subjects, withdraw
+from majors.service import choose_major
 
 AUTUMN_27, SPRING_27 = "Autumn 2027", "Spring 2027"
 
@@ -11,7 +12,9 @@ AUTUMN_27, SPRING_27 = "Autumn 2027", "Spring 2027"
 @pytest.fixture()
 def student(conn):
     """A brand new student with nothing completed, enrolled or planned."""
-    return create_user(conn, "new.student@student.uni.edu.au", "Str0ng#Pass", AUTUMN_27)["id"]
+    user = create_user(conn, "new.student@student.uni.edu.au", "Str0ng#Pass", AUTUMN_27)["id"]
+    choose_major(conn, user, "MAJ03519")  # new accounts choose a major; these tests use Enterprise Software Development
+    return user
 
 
 def planned(conn, user_id=1):

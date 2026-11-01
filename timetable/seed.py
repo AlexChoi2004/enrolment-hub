@@ -58,7 +58,10 @@ def _overlap(a, b):
 def seed_timetable(conn):
     if conn.execute("SELECT COUNT(*) AS n FROM classes").fetchone()["n"]:
         return  # already generated
-    subjects = conn.execute("SELECT code, sessions_offered FROM subjects ORDER BY code").fetchall()
+    # Original subjects first, so their times never change when more subjects are added.
+    subjects = conn.execute(
+        "SELECT code, sessions_offered FROM subjects ORDER BY (category = 'major_other'), code"
+    ).fetchall()
     rows = []
     room_number = 0
 
@@ -77,10 +80,8 @@ def seed_timetable(conn):
             duration = rng.choice(DURATIONS["lecture"])
             slots = _slots(duration)
             rng.shuffle(slots)
-            day, start = next(
-                (s for s in slots if not any(_overlap((*s, duration), p) for p in placed_lectures)),
-                slots[0],
-            )
+            # The first slot that overlaps no other lecture; if every slot is taken, the least crowded one.
+            day, start = min(slots, key=lambda s: sum(_overlap((*s, duration), p) for p in placed_lectures))
             placed_lectures.append((day, start, duration))
             rows.append((code, season, "lecture", "lecture", "Lecture", day, start, duration, room()))
 

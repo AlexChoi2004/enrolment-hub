@@ -19,6 +19,13 @@
   <p class="flash flash-success">Your plan covers every requirement of the degree.</p>
 {% endif %}
 
+{% if plan.needs_major %}
+  <div class="demo-note">
+    <p>You haven't chosen a major, so its 48 credit points aren't in this plan yet.</p>
+    <a class="btn" href="{{ url_for('majors.index') }}">Choose major</a>
+  </div>
+{% endif %}
+
 <div class="plan-actions">
   <form class="enrol-form" method="post" action="{{ url_for('planner.suggest') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
