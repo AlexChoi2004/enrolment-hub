@@ -6,6 +6,8 @@ enrolment, planner and (later) AI features. All SQL uses bound parameters.
 import re
 from dataclasses import dataclass
 
+from subject_catalogue.assessments import load_assessment_info
+
 SESSIONS = ("Autumn", "Spring")
 PREREQ_FILTERS = ("required", "none")
 STATUS_FILTERS = ("completed", "enrolled", "available", "blocked")
@@ -318,6 +320,7 @@ def _attach_relations(conn, rows):
     prereqs, requirements, unlocks = _relations(conn)
     credit = load_credit_requirements(conn)
     notes = {r["subject_code"]: r["note"] for r in conn.execute("SELECT subject_code, note FROM prerequisite_notes")}
+    assessments = load_assessment_info(conn)
     majors = {}
     for r in conn.execute(
         "SELECT ms.subject_code, m.code, m.name, ms.role FROM major_subjects ms JOIN majors m ON m.code = ms.major_code"
@@ -337,6 +340,10 @@ def _attach_relations(conn, rows):
         subject["credit_requirements"] = [dict(c) for c in credit.get(code, [])]
         subject["unlocks"] = unlocks.get(code, [])
         subject["prerequisite_note"] = notes.get(code)  # a lead the app cannot enforce
+        info = assessments.get(code)
+        subject["summary"] = info["summary"] if info else ""
+        subject["style_tags"] = info["tags"] if info else []
+        subject["assessment"] = info
         out.append(subject)
     return out
 

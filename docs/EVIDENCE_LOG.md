@@ -18,17 +18,20 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 | 2026-10-30 | 3 (dev tools) | Moved navigation (Subjects, Record on the left; Profile on the right), added a profile page with details, progress,      | 15 MIN | PR #9  |
              |               | what the app stores, and the log out button, 15 new tests                                                                |        |        |
 | 2026-10-30 | 3 (dev tools) | Built the degree planner: plan subjects into future sessions (add, move, remove, clear), placement rules (offering,      | 1 HOUR | PR #10 |
-                               24 cp, prerequisites in an earlier session, elective limits), suggested plan, outstanding requirements, stale-plan       |        |        |
-                               warnings and the nav link; kept finished elective sections visible with a completion note; kept scroll position and      |        |        |
-                               open cards after actions; floating messages; 465 tests                                                                   |        |        |
+                             | 24 cp, prerequisites in an earlier session, elective limits), suggested plan, outstanding requirements, stale-plan       |        |        |
+                             | warnings and the nav link; kept finished elective sections visible with a completion note; kept scroll position and      |        |        |
+                             | open cards after actions; floating messages; 465 tests                                                                   |        |        |
 | 2026-10-31 | 3 (dev tools) | Built the timetable: invented weekly classes (varied lecture, tutorial and workshop patterns with 5 to 10 time options   | 2 HOUR | PR #11 |
-                               each), weekly view for each session with a colour per subject, choose, change and drop classes, clashes allowed with     |        |        |
-                               a warning and shown in red, and the nav link; 83 new tests                                                               |        |        |
+                             | each), weekly view for each session with a colour per subject, choose, change and drop classes, clashes allowed with     |        |        |
+                             | a warning and shown in red, and the nav link; 83 new tests                                                               |        |        |
 | 2026-11-01 | 3 (dev tools) | Added the seven other majors from my supplied data (60 more subjects) with their core and option structure, a major      | 2 HOUR | PR #12 |
-                              chooser (list, preview, confirm, swap), and a per-student degree that the Subjects page, enrolment, record, profile,      |        |        |
-                              planner and timetable all follow; the added subjects' prerequisites (alternatives, a corequisite and a credit-point       |        |        |
-                              condition) enforced like the originals; 695 tests                                                                         |        |        |
-
+                             | chooser (list, preview, confirm, swap), and a per-student degree that the Subjects page, enrolment, record, profile,     |        |        |
+                             | planner and timetable all follow; the added subjects' prerequisites (alternatives, a corequisite and a credit-point      |        |        |
+                             | condition) enforced like the originals; 695 tests                                                                        |        |        |
+| 2026-11-02 | 3 (dev tools) | Added short descriptions and assessment information for every subject, read from the UTS Handbook (85 subjects) with     | 1 HOUR | PR #13 |
+                             | 2 historical, 6 unconfirmed and 12 sample electives; each assessment structure carries a source, year and verification   |        |        |
+                             | label; unconfirmed subjects say there is no breakdown yet; a single function decides what the AI features may use, and   |        |        |
+                             | says "not enough context" otherwise; 56 new tests                                                                        |        |        |
 
 
 ## Things that went wrong or changed
@@ -120,6 +123,19 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed two planner test files that used a session constant that only exists in a third file
 - Fixed the majors templates folder being named `major` instead of `majors`, so Flask could not find the pages
 
+
+### PR #13: Subject descriptions and assessments
+- Changed the catalogue so descriptions and assessment records are stored separately, and a subject can have several assessment structures over time, so a real outline 
+  can replace older information without deleting it
+- Decided that handbook information is labelled "indicative", because the handbook says so itself, and that information from an older year is labelled historical with 
+  a warning
+- Decided not to invent anything for real subjects without a confirmed breakdown: they store no tasks and tell the student they will find out when they enrol, and the 
+  older student-reported tasks for one subject are kept as an internal note only
+- Changed the AI helper so it only receives confirmed or clearly labelled information and says "not enough context" otherwise, so the planner AI cannot talk 
+  about assessments I have not verified
+- Fixed my plan to read every subject from the handbook after finding that six of the pages block automated access; I did not work around that and used the descriptions 
+  and historical information I was given instead
+- Decided to keep the explanations of each task general to its type instead of copying handbook text
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.

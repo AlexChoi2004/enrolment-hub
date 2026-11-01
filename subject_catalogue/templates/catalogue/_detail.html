@@ -4,8 +4,35 @@
     {{ subject.category_label }} ·
     Offered: {{ subject.sessions_offered }} <span class="badge">illustrative</span>
   </p>
-  {% if subject.description %}<p>{{ subject.description }}</p>
+  {% if subject.summary %}<p>{{ subject.summary }}</p>
   {% else %}<p class="muted">No description in the supplied data.</p>{% endif %}
+  {% if subject.style_tags %}
+    <p>{% for t in subject.style_tags %}<span class="badge">{{ t }}</span> {% endfor %}</p>
+  {% endif %}
+
+  <h3>Assessment</h3>
+  {% set a = subject.assessment %}
+  {% if not a or a.status == 'none' %}
+    <p>{{ a.banner if a else 'No assessment breakdown has been published yet. You will find out when you enrol.' }}</p>
+  {% else %}
+    <p class="notice">{{ a.banner }}</p>
+    <div class="table-wrap">
+      <table class="table assessments">
+        <thead><tr><th>Task</th><th>Type</th><th>Weight</th><th>Individual or group</th></tr></thead>
+        <tbody>
+          {% for t in a.tasks %}
+            <tr>
+              <td>{{ t.name }}<br><span class="muted">{{ t.description }}</span></td>
+              <td>{{ t.type_label }}</td>
+              <td>{{ t.weight_text }}</td>
+              <td>{{ t.group_label }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">Group work counts for {{ a.group_weight }}% of the marks and exams for {{ a.exam_weight }}%.</p>
+  {% endif %}
 
   <h3>Prerequisites</h3>
   {% if subject.prereq_status == 'required' %}

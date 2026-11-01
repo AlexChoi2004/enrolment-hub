@@ -75,3 +75,49 @@ CREATE TABLE IF NOT EXISTS prerequisite_notes (
     subject_code TEXT PRIMARY KEY REFERENCES subjects(code) ON DELETE CASCADE,
     note         TEXT NOT NULL
 );
+
+-- Short subject descriptions, stored apart from any assessment record.
+CREATE TABLE IF NOT EXISTS subject_descriptions (
+    subject_code TEXT PRIMARY KEY REFERENCES subjects(code) ON DELETE CASCADE,
+    description  TEXT NOT NULL,
+    -- Comma-separated style tags (code, theory, group...). My summary of the subject, not a UTS statement.
+    style_tags   TEXT NOT NULL DEFAULT '',
+    source       TEXT NOT NULL
+);
+
+-- One assessment structure = how a subject was assessed according to one source, in one academic year
+-- (and session, where known). A subject can have several over time; the one marked current is shown.
+-- verification: indicative = read from the UTS Handbook (which itself says "indicative");
+--               verified_current = checked against the official subject outline;
+--               historical = an older year's information; unverified = nothing confirmed (no tasks);
+--               synthetic = invented sample data for the made-up electives.
+CREATE TABLE IF NOT EXISTS assessment_structures (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    subject_code  TEXT NOT NULL REFERENCES subjects(code) ON DELETE CASCADE,
+    academic_year INTEGER,
+    session       TEXT CHECK (session IN ('Autumn', 'Spring')),
+    source        TEXT NOT NULL,
+    retrieved_on  TEXT,
+    verification  TEXT NOT NULL
+                  CHECK (verification IN ('verified_current', 'indicative', 'historical', 'unverified', 'synthetic')),
+    note          TEXT NOT NULL DEFAULT '',
+    is_current    INTEGER NOT NULL DEFAULT 1 CHECK (is_current IN (0, 1))
+);
+
+CREATE TABLE IF NOT EXISTS assessments (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    structure_id    INTEGER NOT NULL REFERENCES assessment_structures(id) ON DELETE CASCADE,
+    position        INTEGER NOT NULL,
+    name            TEXT NOT NULL,
+    description     TEXT NOT NULL,
+    type            TEXT NOT NULL CHECK (type IN (
+                        'quiz', 'exam', 'exercises', 'project', 'report', 'presentation', 'practical',
+                        'journal', 'reflection', 'portfolio', 'design', 'essay', 'case_study', 'demonstration')),
+    -- NULL = a mandatory task that carries no marks.
+    weight          INTEGER CHECK (weight IS NULL OR (weight > 0 AND weight <= 100)),
+    groupwork       TEXT NOT NULL CHECK (groupwork IN ('individual', 'group', 'group_individual')),
+    -- Weeks are only ever filled in as 'illustrative' until an official outline provides real ones.
+    due_week        INTEGER CHECK (due_week IS NULL OR (due_week BETWEEN 1 AND 14)),
+    due_week_source TEXT CHECK (due_week_source IS NULL OR due_week_source IN ('illustrative', 'outline')),
+    UNIQUE (structure_id, position)
+);
