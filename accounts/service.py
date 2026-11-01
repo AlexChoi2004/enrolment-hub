@@ -127,7 +127,7 @@ def account_count(conn):
 
 def get_user(conn, user_id):
     row = conn.execute(
-        "SELECT id, student_number, display_name, course_code, commencement_session"
+        "SELECT id, student_number, display_name, course_code, commencement_session, major_code"
         " FROM users WHERE id = ?",
         (user_id,),
     ).fetchone()
@@ -137,7 +137,7 @@ def get_user(conn, user_id):
 def get_profile(conn, user_id):
     """The details shown on the student's own profile page (never includes the password hash)."""
     row = conn.execute(
-        "SELECT email, student_number, display_name, course_code, commencement_session"
+        "SELECT email, student_number, display_name, course_code, commencement_session, major_code"
         " FROM users WHERE id = ?",
         (user_id,),
     ).fetchone()

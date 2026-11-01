@@ -1,0 +1,180 @@
+import pytest
+
+from subject_catalogue.seed_data import MAJOR_PREREQUISITES, PREREQUISITES
+from subject_catalogue.service import load_credit_requirements, load_prerequisites
+
+# (code, name, core subjects, options in the pool, how many options to choose)
+MAJORS = [
+    ("MAJ03519", "Enterprise Software Development", 5, 9, 3),
+    ("MAJ10053", "Artificial Intelligence and Data Analytics", 3, 9, 5),
+    ("MAJ02080", "Business Information Systems Management", 8, 0, 0),
+    ("MAJ02900", "Cybersecurity and Privacy", 7, 2, 1),
+    ("MAJ02092", "Interaction Design", 7, 7, 1),
+    ("MAJ01156", "Mathematical Analysis", 7, 2, 1),
+    ("MAJ03445", "Networking and Cybersecurity", 6, 9, 2),
+    ("MAJ02901", "Quantum Computing", 5, 9, 3),
+]
+
+
+def membership(conn, major):
+    return conn.execute(
+        "SELECT subject_code, role FROM major_subjects WHERE major_code = ? ORDER BY subject_code", (major,)
+    ).fetchall()
+
+
+def test_there_are_eight_majors(conn):
+    assert conn.execute("SELECT COUNT(*) FROM majors").fetchone()[0] == 8
+
+
+@pytest.mark.parametrize("code,name,core,pool,choose", MAJORS)
+def test_each_major_has_the_supplied_structure(conn, code, name, core, pool, choose):
+    major = conn.execute("SELECT * FROM majors WHERE code = ?", (code,)).fetchone()
+    assert major["name"] == name
+    rows = membership(conn, code)
+    assert sum(r["role"] == "core" for r in rows) == core
+    assert sum(r["role"] == "option" for r in rows) == pool
+    assert major["core_cp"] == core * 6
+    assert major["options_cp"] == choose * 6
+
+
+@pytest.mark.parametrize("code,name,core,pool,choose", MAJORS)
+def test_every_major_totals_exactly_48_credit_points(conn, code, name, core, pool, choose):
+    major = conn.execute("SELECT core_cp, options_cp FROM majors WHERE code = ?", (code,)).fetchone()
+    assert major["core_cp"] + major["options_cp"] == 48
+    assert core * 6 + choose * 6 == 48
+
+
+@pytest.mark.parametrize("code,name,core,pool,choose", MAJORS)
+def test_the_option_pool_is_big_enough_for_the_choice(conn, code, name, core, pool, choose):
+    assert pool >= choose
+
+
+def test_the_database_refuses_a_major_that_is_not_48_credit_points(conn):
+    with pytest.raises(Exception, match="CHECK"):
+        conn.execute("INSERT INTO majors (code, name, core_cp, options_cp) VALUES ('MAJ99999', 'Bad', 30, 6)")
+
+
+def test_business_information_systems_has_no_options(conn):
+    assert conn.execute("SELECT options_cp FROM majors WHERE code = 'MAJ02080'").fetchone()[0] == 0
+    assert all(r["role"] == "core" for r in membership(conn, "MAJ02080"))
+
+
+def test_every_membership_points_at_a_real_subject_and_major(conn):
+    orphans = conn.execute(
+        "SELECT ms.* FROM major_subjects ms LEFT JOIN subjects s ON s.code = ms.subject_code"
+        " LEFT JOIN majors m ON m.code = ms.major_code WHERE s.code IS NULL OR m.code IS NULL"
+    ).fetchall()
+    assert orphans == []
+
+
+def test_roles_are_only_core_or_option(conn):
+    assert {r[0] for r in conn.execute("SELECT DISTINCT role FROM major_subjects")} == {"core", "option"}
+
+
+def test_a_shared_subject_is_stored_once_with_a_membership_per_major(conn):
+    capstone = conn.execute("SELECT COUNT(*) FROM subjects WHERE code = '41759'").fetchone()[0]
+    majors = {r[0] for r in conn.execute("SELECT major_code FROM major_subjects WHERE subject_code = '41759'")}
+    assert capstone == 1
+    assert majors == {"MAJ03519", "MAJ10053", "MAJ02080", "MAJ02092", "MAJ03445", "MAJ02901"}
+
+
+def test_a_subject_can_be_core_in_one_major_and_an_option_in_another(conn):
+    roles = dict(conn.execute("SELECT major_code, role FROM major_subjects WHERE subject_code = '31250'").fetchall())
+    assert roles == {"MAJ10053": "core", "MAJ02901": "option"}  # Introduction to Data Analytics
+    roles = dict(conn.execute("SELECT major_code, role FROM major_subjects WHERE subject_code = '41889'").fetchall())
+    assert roles == {"MAJ03519": "option", "MAJ02092": "option"}
+
+
+def test_no_subject_code_is_duplicated(conn):
+    total = conn.execute("SELECT COUNT(*) FROM subjects").fetchone()[0]
+    assert total == conn.execute("SELECT COUNT(DISTINCT code) FROM subjects").fetchone()[0] == 105
+
+
+def test_the_original_enterprise_software_data_is_unchanged(conn):
+    stored = {r[0]: r[1] for r in conn.execute("SELECT category, COUNT(*) FROM subjects GROUP BY category")}
+    assert stored["core"] == 16 and stored["honours_core"] == 3
+    assert stored["major_core"] == 5 and stored["major_elective"] == 9 and stored["general_elective"] == 12
+    assert stored["major_other"] == 60
+
+
+def test_added_subjects_are_six_credit_points_with_valid_offerings(conn):
+    rows = conn.execute("SELECT credit_points, sessions_offered FROM subjects WHERE category = 'major_other'").fetchall()
+    assert rows and all(r["credit_points"] == 6 and r["sessions_offered"] in ("Autumn", "Spring", "Both") for r in rows)
+
+
+# --- prerequisites: the added subjects follow the same model as the original ones -------------------------------
+
+def test_every_subject_is_either_required_or_none_never_unknown(conn):
+    states = {r[0] for r in conn.execute("SELECT DISTINCT prereq_status FROM subjects")}
+    assert states == {"required", "none"}
+
+
+def test_a_subject_is_required_exactly_when_it_has_a_rule(conn):
+    with_rules = {r[0] for r in conn.execute(
+        "SELECT subject_code FROM prerequisites UNION SELECT subject_code FROM credit_requirements")}
+    required = {r[0] for r in conn.execute("SELECT code FROM subjects WHERE prereq_status = 'required'")}
+    assert required == with_rules
+
+
+def test_the_original_subjects_keep_their_twelve_rules_and_the_added_ones_have_their_own(conn):
+    original = conn.execute(
+        "SELECT COUNT(*) FROM prerequisites p JOIN subjects s ON s.code = p.subject_code WHERE s.category <> 'major_other'"
+    ).fetchone()[0]
+    added = conn.execute(
+        "SELECT COUNT(*) FROM prerequisites p JOIN subjects s ON s.code = p.subject_code WHERE s.category = 'major_other'"
+    ).fetchone()[0]
+    assert original == 12 == len(PREREQUISITES)
+    assert added == len(MAJOR_PREREQUISITES)
+
+
+def test_alternatives_are_stored_as_one_group_and_ands_as_separate_groups(conn):
+    rules = load_prerequisites(conn)
+    # 32146 <- (31250 OR 31266) AND (41040 OR 48024)
+    assert [g["codes"] for g in rules["32146"]] == [["31250", "31266"], ["41040", "48024"]]
+    # 31005 <- 31250 AND 48024
+    assert [g["codes"] for g in rules["31005"]] == [["31250"], ["48024"]]
+    # 31264 <- 31080 OR 31263
+    assert [g["codes"] for g in rules["31264"]] == [["31080", "31263"]]
+
+
+def test_a_corequisite_is_flagged_as_concurrent(conn):
+    rules = load_prerequisites(conn)
+    assert rules["37161"] == [{"codes": ["33130"], "concurrent": True}]
+    assert all(not g["concurrent"] for s, groups in rules.items() if s != "37161" for g in groups)
+
+
+def test_credit_point_conditions_are_separate_from_subject_prerequisites(conn):
+    credit = load_credit_requirements(conn)
+    assert credit["32009"] == [{"major_code": "MAJ03445", "major_name": "Networking and Cybersecurity", "min_cp": 30}]
+    assert credit["32011"][0]["min_cp"] == 30
+    rules = load_prerequisites(conn)
+    assert [g["codes"] for g in rules["32009"]] == [["31277"]]  # only the subject is a prerequisite
+    assert "MAJ03445" not in {c for groups in rules.values() for g in groups for c in g["codes"]}
+
+
+def test_every_prerequisite_refers_to_real_subjects(conn):
+    orphans = conn.execute(
+        "SELECT p.subject_code FROM prerequisites p LEFT JOIN subjects a ON a.code = p.subject_code"
+        " LEFT JOIN subjects b ON b.code = p.prereq_code WHERE a.code IS NULL OR b.code IS NULL"
+    ).fetchall()
+    assert orphans == []
+
+
+def test_an_external_prerequisite_is_a_note_not_a_rule(conn):
+    note = conn.execute("SELECT note FROM prerequisite_notes WHERE subject_code = '31243'").fetchone()[0]
+    assert "41004" in note and "external" in note
+    assert conn.execute("SELECT COUNT(*) FROM prerequisites WHERE subject_code = '31243'").fetchone()[0] == 0
+    assert conn.execute("SELECT prereq_status FROM subjects WHERE code = '31243'").fetchone()[0] == "none"
+
+
+def test_the_original_subjects_with_leads_stay_unchanged_and_carry_a_note(conn):
+    for code in ("41040", "31260", "31777"):
+        assert conn.execute("SELECT COUNT(*) FROM prerequisites WHERE subject_code = ?", (code,)).fetchone()[0] == 0
+        assert conn.execute("SELECT prereq_status FROM subjects WHERE code = ?", (code,)).fetchone()[0] == "none"
+        note = conn.execute("SELECT note FROM prerequisite_notes WHERE subject_code = ?", (code,)).fetchone()[0]
+        assert "not enforced" in note
+
+
+def test_the_database_refuses_a_bad_concurrent_flag(conn):
+    with pytest.raises(Exception, match="CHECK"):
+        conn.execute("INSERT INTO prerequisites (subject_code, prereq_code, concurrent) VALUES ('31005', '33130', 5)")

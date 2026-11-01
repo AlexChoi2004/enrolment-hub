@@ -4,7 +4,7 @@
 <h1>My record</h1>
 <p>
   {{ student.display_name }} · {{ student.student_number }}<br>
-  {{ course.name }}, {{ course.major_name }} major<br>
+  {{ course.name }}{% if major %}, {{ major.name }} major{% else %}, major not chosen yet{% endif %}<br>
   <strong>Year {{ year }}</strong> · {{ current_session }}
   {% if student.commencement_session == current_session %}(your first session){% endif %}
 </p>

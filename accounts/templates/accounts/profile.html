@@ -12,7 +12,11 @@
   <dt>Student ID</dt><dd>{{ person.student_number }}</dd>
   <dt>Email</dt><dd>{{ person.email }}</dd>
   <dt>Degree</dt><dd>{{ course.name }} ({{ course.code }})</dd>
-  <dt>Major</dt><dd>{{ course.major_name }} ({{ course.major_code }})</dd>
+  <dt>Major</dt>
+  <dd>
+    {% if major %}{{ major.name }} ({{ major.code }}) · <a href="{{ url_for('majors.index') }}">Swap major</a>
+    {% else %}Not chosen yet · <a href="{{ url_for('majors.index') }}">Choose your major</a>{% endif %}
+  </dd>
   <dt>Started</dt><dd>{{ person.commencement_session }}</dd>
   <dt>Now</dt><dd>Year {{ year }} · {{ current_session }}</dd>
   <dt>Progress</dt>

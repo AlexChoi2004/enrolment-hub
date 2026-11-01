@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
     course_code          TEXT NOT NULL REFERENCES courses(code),
     -- The session the student started in, for example 'Autumn 2027' (their first session).
     commencement_session TEXT NOT NULL,
+    -- The major the student has confirmed. NULL until they choose one.
+    major_code           TEXT REFERENCES majors(code),
     failed_logins        INTEGER NOT NULL DEFAULT 0,
     -- Unix time until which logins are refused after too many failures (0 = not locked).
     locked_until         INTEGER NOT NULL DEFAULT 0

@@ -70,9 +70,12 @@ def test_handbook_subjects_are_not_marked_synthetic(conn):
 
 
 def test_exactly_12_supplied_prerequisite_rules(conn):
-    n = conn.execute("SELECT COUNT(*) AS n FROM prerequisites").fetchone()["n"]
+    # The original subjects keep exactly the 12 supplied rules (the added subjects have their own, tested elsewhere).
+    n = conn.execute(
+        "SELECT COUNT(*) AS n FROM prerequisites p JOIN subjects s ON s.code = p.subject_code"
+        " WHERE s.category <> 'major_other'"
+    ).fetchone()["n"]
     assert n == 12
-
 
 def test_specific_prerequisite_rule(conn):
     row = conn.execute(
@@ -122,12 +125,12 @@ def test_prerequisite_graph_has_no_cycles(conn):
 
 def test_database_rejects_prerequisite_for_missing_subject(conn):
     with pytest.raises(sqlite3.IntegrityError):
-        conn.execute("INSERT INTO prerequisites VALUES ('41026', 'NOPE')")
+        conn.execute("INSERT INTO prerequisites (subject_code, prereq_code) VALUES ('41026', 'NOPE')")
 
 
 def test_database_rejects_self_prerequisite(conn):
     with pytest.raises(sqlite3.IntegrityError):
-        conn.execute("INSERT INTO prerequisites VALUES ('41026', '41026')")
+        conn.execute("INSERT INTO prerequisites (subject_code, prereq_code) VALUES ('41026', '41026')")
 
 
 def test_seeding_twice_does_not_duplicate_rows(conn):

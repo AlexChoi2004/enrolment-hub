@@ -3,11 +3,14 @@ import pytest
 from accounts.service import create_user
 from degree_planner import service
 from degree_planner.service import add_to_plan, clear_plan, get_plan, suggest_plan
+from majors.service import choose_major
 
 
 @pytest.fixture()
 def student(conn):
-    return create_user(conn, "new.student@student.uni.edu.au", "Str0ng#Pass", "Autumn 2027")["id"]
+    user = create_user(conn, "new.student@student.uni.edu.au", "Str0ng#Pass", "Autumn 2027")["id"]
+    choose_major(conn, user, "MAJ03519")  # new accounts choose a major; these tests use Enterprise Software Development
+    return user
 
 
 def planned(conn, user_id):
@@ -73,6 +76,7 @@ def test_the_supplied_honours_rule_is_followed_and_the_12_cp_project_is_in_autum
 
 def test_suggestions_are_repeatable(conn, student):
     other = create_user(conn, "other.student@student.uni.edu.au", "Str0ng#Pass", "Autumn 2027")["id"]
+    choose_major(conn, other, "MAJ03519")
     suggest_plan(conn, student)
     suggest_plan(conn, other)
     assert planned(conn, student) == planned(conn, other)

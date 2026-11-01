@@ -24,7 +24,8 @@ def _respond(template, status=200, **context):
 @security.login_required
 def list_page():
     conn = get_db()
-    categories = service.list_categories(conn)
+    categories = service.list_categories(conn, g.user["id"])  # only the sections of this student's degree
+    major = service.user_major(conn, g.user["id"])
     valid = {c["category"] for c in categories}
     try:
         filters = service.parse_filters(request.args, valid)
@@ -33,12 +34,20 @@ def list_page():
 
     template = "catalogue/_results.html" if _is_htmx() else "catalogue/index.html"
     progress = enrolment_service.evaluate_subjects(conn, g.user["id"])
-    subjects = service.list_subjects(conn, filters)
+    subjects = service.list_subjects(conn, filters, user_id=g.user["id"])
     subjects = service.filter_by_status(service.attach_status(subjects, progress), filters.status)
+    groups = service.group_by_category(subjects, categories, progress)
+    unfiltered = not (filters.q or filters.category or filters.session or filters.prereqs or filters.status)
+    if major is None and unfiltered:
+        # No major yet: where the major sections would be, offer to choose one instead of listing them.
+        position = next((i + 1 for i, g_ in enumerate(groups) if g_["category"] == "honours_core"), len(groups))
+        groups.insert(position, {"category": "major_prompt", "label": "Major", "prompt": True,
+                                 "rule": "", "complete": False, "note": "", "subjects": []})
     return _respond(
         template,
         subjects=subjects,
-        groups=service.group_by_category(subjects, categories, progress),
+        groups=groups,
+        major=major,
         categories=categories,
         filters=filters,
         sessions=service.SESSIONS,
@@ -54,7 +63,7 @@ def detail_page(code):
     if not service.is_valid_code(code):
         abort(400)
     conn = get_db()
-    subject = service.get_subject(conn, code)
+    subject = service.get_subject(conn, code, user_id=g.user["id"])
     if subject is None:
         abort(404)
     service.attach_status([subject], enrolment_service.evaluate_subjects(conn, g.user["id"]))

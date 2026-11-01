@@ -22,8 +22,12 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
                                warnings and the nav link; kept finished elective sections visible with a completion note; kept scroll position and      |        |        |
                                open cards after actions; floating messages; 465 tests                                                                   |        |        |
 | 2026-10-31 | 3 (dev tools) | Built the timetable: invented weekly classes (varied lecture, tutorial and workshop patterns with 5 to 10 time options   | 2 HOUR | PR #11 |
-                               each), weekly view for each session with a colour per subject, choose, change and drop classes, clashes allowed with
-                               a warning and shown in red, and the nav link; 83 new tests
+                               each), weekly view for each session with a colour per subject, choose, change and drop classes, clashes allowed with     |        |        |
+                               a warning and shown in red, and the nav link; 83 new tests                                                               |        |        |
+| 2026-11-01 | 3 (dev tools) | Added the seven other majors from my supplied data (60 more subjects) with their core and option structure, a major      | 2 HOUR | PR #12 |
+                              chooser (list, preview, confirm, swap), and a per-student degree that the Subjects page, enrolment, record, profile,      |        |        |
+                              planner and timetable all follow; the added subjects' prerequisites (alternatives, a corequisite and a credit-point       |        |        |
+                              condition) enforced like the originals; 695 tests                                                                         |        |        |
 
 
 
@@ -89,6 +93,32 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
   used for security
 - Changed withdrawing and moving a subject to remove its class choices, so the timetable never shows a class for something I am no longer enrolled in
 - Used CSS classes for positions and colours instead of inline styles, because my security policy blocks inline styles
+
+### PR #12: Majors
+- Changed the degree data so each student has their own view of the degree: a subject now counts as major core, a major elective or not part of their degree depending 
+  on the major they chose, instead of having one fixed category
+- Added the seven other majors from my supplied data (eight with Enterprise Software Development), checked that each totals exactly 48 credit points, and stored shared 
+  subjects such as Capstone once with a membership row per major
+- Changed new accounts to start with no major, and to choose one from a short list, then a preview of one major's core and options, then a confirm button, so the Subjects 
+  page does not get cluttered with every major
+- Changed the prerequisites from my research notes into real rules, so the added subjects behave like the original ones: "has prerequisites" with met and not-met marks,
+  or "no prerequisites", and enforced on enrolment and in the planner
+- Changed the prerequisite model so a subject can have alternatives (A or B) and a corequisite that can be taken at the same time, and added a separate credit-point condition 
+  so reaching a threshold can never stand in for a required subject
+- Fixed Business Information Systems, whose core subject Data Visualisation needed a subject that is not in that major, by adding the alternative Introduction to Information 
+  Systems that my notes suggested; without it a student could never finish that major
+- Decided the external prerequisite 41004 (not a subject in my data) and the leads for three original subjects stay as "not enforced" notes, because enforcing them would make 
+  a subject impossible to take or change the supplied rules
+- Decided that the demo student cannot swap major because their completed subjects only count in their current major, while a new account can swap until it has enrolled in
+  subjects only the old major has
+- Changed the planner so it plans the student's own major, removes planned subjects that are not in a new major when swapping, and treats a student without a major as having
+  48 credit points still to plan
+- Changed the timetable generator to place the original subjects first, so their class times do not move when new subjects are added
+- Changed the Unlocks list to show only subjects the student could actually take
+- Fixed about twenty-five existing tests that assumed every new account has the Enterprise Software Development major, or that the added prerequisites were not enforced
+- Fixed the users table missing the new `major_code` column, which made hundreds of tests error until I added it to the schema file
+- Fixed two planner test files that used a session constant that only exists in a third file
+- Fixed the majors templates folder being named `major` instead of `majors`, so Flask could not find the pages
 
 
 ## AI assistance used (disclose in the report as the subject requires)

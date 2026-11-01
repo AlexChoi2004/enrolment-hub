@@ -5,7 +5,17 @@ page and (next) the enrol endpoint can never disagree about what a student may d
 """
 from collections import defaultdict
 
-from subject_catalogue.service import ELECTIVE_CATEGORIES, ELECTIVE_CREDIT_POINTS
+from subject_catalogue.service import (
+    DEGREE_CREDIT_POINTS,
+    ELECTIVE_CATEGORIES,
+    ELECTIVE_CREDIT_POINTS,
+    degree_categories,
+    degree_subjects,
+    group_text,
+    load_credit_requirements,
+    load_prerequisites,
+    user_major,
+)
 
 CURRENT_SESSION = "Autumn 2027"  # the session the prototype treats as "now"
 MAX_CP_PER_SESSION = 24  # a full load: four 6 cp subjects
@@ -46,18 +56,21 @@ def get_course(conn, course_code):
 def get_record(conn, user_id):
     """One student's academic record. Only ever queries the given user's rows."""
     rows = conn.execute(
-        "SELECT e.status, e.session_label, s.code, s.name, s.credit_points,"
-        " c.label AS category_label"
+        "SELECT e.status, e.session_label, s.code, s.name, s.credit_points"
         " FROM enrolments e"
         " JOIN subjects s ON s.code = e.subject_code"
-        " JOIN requirement_categories c ON c.category = s.category"
         " WHERE e.user_id = ?",
         (user_id,),
     ).fetchall()
+    labels = {c["category"]: c["label"] for c in degree_categories(conn, user_id)}
+    effective = {s["code"]: s["category"] for s in degree_subjects(conn, user_id)}
     items = sorted(
         (dict(r) for r in rows),
         key=lambda r: (session_sort_key(r["session_label"]), r["code"]),
     )
+    for item in items:
+        category = effective.get(item["code"])
+        item["category_label"] = labels[category] if category else "Outside your major"
     completed = [i for i in items if i["status"] == "completed"]
     enrolled = [i for i in items if i["status"] == "enrolled"]
 
@@ -67,16 +80,13 @@ def get_record(conn, user_id):
 
     completed_cp = sum(i["credit_points"] for i in completed)
     enrolled_cp = sum(i["credit_points"] for i in enrolled)
-    degree_total = conn.execute(
-        "SELECT SUM(required_credit_points) AS total FROM requirement_categories"
-    ).fetchone()["total"]
     return {
         "completed_by_session": list(by_session.items()),
         "enrolled": enrolled,
         "completed_cp": completed_cp,
         "enrolled_cp": enrolled_cp,
         "counted_cp": completed_cp + enrolled_cp,  # one row per subject, so never double counted
-        "degree_total_cp": degree_total,
+        "degree_total_cp": DEGREE_CREDIT_POINTS,
     }
 
 
@@ -84,12 +94,10 @@ def evaluate_subjects(conn, user_id):
     """Work out, for one student, the status of every subject.
 
     Statuses: completed, enrolled, available (can enrol now) or blocked (with reasons).
-    A subject is blocked if a prerequisite is not COMPLETED (in progress does not count),
-    if its elective requirement is already full, or if every open session it is offered in
-    is full. Only this student's rows are read.
+    A subject is blocked if a prerequisite is not COMPLETED (in progress does not count)
+    or if its elective requirement is already full. Only this student's rows are read.
 
-    Returns {"subjects": {code: info}, "categories": {category: progress},
-             "records": {code: status}, "session_loads": {session: credit points}}.
+    Returns {"subjects": {code: info}, "categories": {category: progress}, "records": {code: status}}.
     """
     records = {}
     sessions = {}
@@ -99,18 +107,23 @@ def evaluate_subjects(conn, user_id):
         records[row["subject_code"]] = row["status"]
         sessions[row["subject_code"]] = row["session_label"]
 
-    subjects = conn.execute(
-        "SELECT code, name, category, credit_points, sessions_offered FROM subjects"
-    ).fetchall()
+    subjects = degree_subjects(conn, user_id)  # category is None for subjects outside this student's degree
+    major = user_major(conn, user_id)
     names = {s["code"]: s["name"] for s in subjects}
-    prerequisites = defaultdict(list)
-    for row in conn.execute("SELECT subject_code, prereq_code FROM prerequisites ORDER BY prereq_code"):
-        prerequisites[row["subject_code"]].append(row["prereq_code"])
+    rules = load_prerequisites(conn)  # {subject: [group, ...]}: every group needed, any one code in a group
+    credit_rules = load_credit_requirements(conn)
+    # Completed credit points per major, for conditions such as "30 cp completed in MAJ03445".
+    members = defaultdict(set)
+    for row in conn.execute("SELECT major_code, subject_code FROM major_subjects"):
+        members[row["major_code"]].add(row["subject_code"])
+    cp_of = {s["code"]: s["credit_points"] for s in subjects}
+    major_credit = {
+        major: sum(cp_of[code] for code in codes if records.get(code) == "completed")
+        for major, codes in members.items()
+    }
 
     categories = {}
-    for row in conn.execute(
-        "SELECT category, label, required_credit_points FROM requirement_categories"
-    ):
+    for row in degree_categories(conn, user_id):
         categories[row["category"]] = {
             "label": row["label"],
             "required_cp": row["required_credit_points"],
@@ -120,6 +133,8 @@ def evaluate_subjects(conn, user_id):
             "counted_cp": 0,
         }
     for s in subjects:
+        if s["category"] is None:
+            continue  # not part of this student's degree, so it counts towards nothing
         progress = categories[s["category"]]
         progress["pool"] += 1
         state = records.get(s["code"])
@@ -152,10 +167,28 @@ def evaluate_subjects(conn, user_id):
         elif state == "enrolled":
             status, note = "enrolled", f"In progress in {sessions[code]}"
             moves = with_room(s, [label for label in open_labels if label != sessions[code]])
+        elif s["category"] is None:
+            status = "blocked"
+            reasons = [
+                f"Not part of your {major['name']} major" if major else "Choose a major to take this subject"
+            ]
+            note = reasons[0]
         else:
-            missing = [p for p in prerequisites[code] if records.get(p) != "completed"]
+            missing = [
+                g for g in rules.get(code, [])
+                if not any(
+                    records.get(p) == "completed" or (g["concurrent"] and records.get(p) == "enrolled")
+                    for p in g["codes"]
+                )
+            ]
             if missing:
-                reasons.append("Needs " + ", ".join(f"{p} {names[p]}" for p in missing))
+                reasons.append("Needs " + ", ".join(group_text(names, g) for g in missing))
+            for req in credit_rules.get(code, []):
+                have = major_credit.get(req["major_code"], 0)
+                if have < req["min_cp"]:
+                    reasons.append(
+                        f"Needs {req['min_cp']} credit points completed in {req['major_name']} (you have {have})"
+                    )
             progress = categories[s["category"]]
             if s["category"] in ELECTIVE_CATEGORIES and progress["counted_cp"] >= progress["required_cp"]:
                 reasons.append(f"{progress['label']} requirement already complete")
@@ -185,6 +218,7 @@ def evaluate_subjects(conn, user_id):
         "categories": categories,
         "records": records,
         "session_loads": loads,
+        "major_credit": major_credit,
     }
 
 

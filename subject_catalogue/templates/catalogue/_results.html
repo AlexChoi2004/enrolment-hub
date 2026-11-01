@@ -1,5 +1,14 @@
 <p class="count" id="count">{{ subjects|length }} subject{{ '' if subjects|length == 1 else 's' }}</p>
 {% for g in groups %}
+  {% if g.prompt %}
+    <section class="group cat-major_prompt">
+      <h2 class="group-title">Major</h2>
+      <div class="card major-prompt">
+        <p><strong>You haven't chosen a major yet.</strong> Choose one to see its core subjects and options here.</p>
+        <a class="btn" href="{{ url_for('majors.index') }}">Choose major</a>
+      </div>
+    </section>
+  {% else %}
   <section class="group cat-{{ g.category }}{{ ' group-complete' if g.complete }}">
     <h2 class="group-title">{{ g.label }}{% if g.complete %} <span class="tick" aria-label="complete">&#10003;</span>{% endif %}</h2>
     <p class="group-rule">{{ g.rule }}</p>
@@ -22,7 +31,7 @@
             {% if s.is_synthetic %}<span class="badge warn">synthetic</span>{% endif %}
             {% if s.prereq_status == 'required' %}<span class="badge req">has prerequisites</span>
             {% elif s.prereq_status == 'none' %}<span class="badge none">no prerequisites</span>
-            {% else %}<span class="badge warn">prerequisites not supplied</span>{% endif %}
+            {% else %}<span class="badge warn">prerequisites not verified</span>{% endif %}
           </span>
           {% if s.note %}<span class="card-note">{{ s.note }}</span>{% endif %}
         </summary>
@@ -30,6 +39,7 @@
       </details>
     {% endfor %}
   </section>
+  {% endif %}
 {% else %}
   <p>No subjects match these filters.</p>
 {% endfor %}
