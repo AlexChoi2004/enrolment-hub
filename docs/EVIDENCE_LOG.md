@@ -32,9 +32,17 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
                              | 2 historical, 6 unconfirmed and 12 sample electives; each assessment structure carries a source, year and verification   |        |        |
                              | label; unconfirmed subjects say there is no breakdown yet; a single function decides what the AI features may use, and   |        |        |
                              | says "not enough context" otherwise; 56 new tests                                                                        |        |        |
-| 1016-11-02 | 3 (dev tools) | Compared my prerequisites with the UTS Handbook for every subject I could read, then matched them: 34 rules added and    | 1 HOUR | PR #14 |
+| 2026-11-02 | 3 (dev tools) | Compared my prerequisites with the UTS Handbook for every subject I could read, then matched them: 34 rules added and    | 1 HOUR | PR #14 |
                              |7 corrected, degree-wide credit-point conditions, corequisites, the handbook's wording kept as notes where the app cannot |        |        |
                              |enforce it, five subject names corrected, and the demo student's history fixed; 24 new tests                              |        |        |
+| 2026-11-02 | 3 (dev tools) | Fixed the prerequisite filter dropdown, which sent values the server no longer accepted, and hid the Apply button unless | 10 MIN | PR #15 |
+                             | JavaScript is off                                                                                                        |        |        |
+| 2026-11-02 | 3 (dev tools) | Added eight 24 cp sub-majors with core and option groups, a language sub-major with one chosen program of 8 cp subjects, | 2 HOUR | PR #16 |
+                             | and a stream; 76 new subjects stored once; the 24 cp block is now a choice between a sub-major and general electives; a  |        |        |
+                             | chooser with an impact preview; major, sub-major and electives swaps are never blocked and can withdraw in-progress      |        |        |
+                             | subjects that stop counting; the planner and enrolment handle choose-groups in credit points and flag overlaps with the  |        |        |
+                             | major; filters apply only on Apply with a Reset button; about 150 new tests c                                            |        |        |
+
 
 ## Things that went wrong or changed
 
@@ -151,6 +159,37 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed five subject names that did not match the handbook, including Real Analysis, which I had called Mathematics 3
 - Fixed about 40 existing tests that assumed the old rules, and added a test that every major still produces a full plan
 - Decided to leave six subjects on their old rules because their handbook pages block automated access
+
+### PR #15: Filter dropdown fix
+- Fixed the prerequisite filter dropdown, which still sent the old values (`supplied` and `not_supplied`) after I changed the filter to `required` and `none`, 
+  so both options showed "Unknown prerequisite filter"
+- Fixed it by editing the page, because my tests asked for the filter URLs directly and so never clicked the dropdown, which is how the stale options got past them
+- Changed the Apply button to show only when JavaScript is off, because the list already updated as soon as any filter changed and the button did nothing useful
+
+
+### PR #16: Sub-majors, electives choice and swaps
+- Changed the degree so the 24 cp block is core 96 + honours 24 + major 48 + either a sub-major or general electives, and made each choice switch the other off
+- Changed the planner and enrolment so they count requirements in credit points instead of assuming 6 cp electives, which was needed for the 8 cp language subjects 
+  and for groups like "select 18 cp from six subjects"
+- Added the eight sub-majors from my supplied handbook text as groups of core subjects and options, with a language sub-major where I pick exactly one language, 
+  and a stream stored as its own record with its subjects left empty because they were not supplied
+- Decided that a subject in both the major and the sub-major counts once, in the major, and is flagged, because the course rules for overlaps need verifying and I 
+  did not want to double-count
+- Decided swapping a major, sub-major or the electives choice is never blocked; the app shows what carries over and what stops counting first, keeps everything on 
+  the record, and counts only what counts towards the degree in the totals
+- Changed the swap so in-progress subjects that stop counting can be withdrawn as part of it (ticked by default), because leaving them enrolled kept them in my session 
+  load even though they no longer counted; completed subjects are never touched
+- Decided to leave language prerequisites, sequencing and the placement assessment unverified and not enforced, and to say so on the page
+- Found that some sub-major and major pairs cannot be completed under the handbook prerequisites because the prerequisites sit outside the degree, and made the planner 
+  flag them instead of faking a complete plan
+- Changed the filters so they apply only when I click Apply, and added a Reset filters button
+- Fixed my first version, which removed the general electives because I read "the sub-major replaces the previous general electives" literally; the handbook shows the 
+  24 cp block is a choice, so I restored the electives and made it either-or
+- Fixed the major swap, which I had only described and not changed, so it still blocked students who had completed subjects that only counted in their old major
+- Fixed the Apply button coming back, because a package of my files overwrote a one-line fix I had made locally; I now check which files a package changes before 
+  unpacking it
+- Fixed the Reset filters button, which looked wrong because it was a link stretched to the height of the row and underlined
+- Fixed about 60 existing tests that assumed the old subject counts and the old swap rule
 
 
 ## AI assistance used (disclose in the report as the subject requires)
