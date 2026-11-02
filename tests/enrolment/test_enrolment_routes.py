@@ -125,7 +125,7 @@ def test_a_refused_enrolment_explains_why_and_changes_nothing(app, demo):
     before = enrolled_rows(app)
     post(demo, "/students/me/enrol", subject_code="32931", session_label=SPRING)
     assert enrolled_rows(app) == before
-    assert "Needs 32144 Technology Research Preparation" in flashed(demo)
+    assert "Needs (32144 Technology Research Preparation or 41079 Computing Science Studio 2)" in flashed(demo)
 
 
 def test_a_full_session_shows_an_error_message(app, demo):

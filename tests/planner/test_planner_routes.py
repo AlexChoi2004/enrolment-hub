@@ -179,7 +179,7 @@ def test_a_plan_that_has_gone_stale_is_highlighted(demo):
     demo.post("/students/me/withdraw/32144", data={"csrf_token": token, "next": "/planner"})
     html = page(demo)
     assert "plan-problem" in html and "Problems with your plan" in html
-    assert "Needs 32144" in html
+    assert "Needs (32144" in html
 
 
 def test_a_new_student_starts_with_an_empty_plan_and_a_suggest_button(tmp_path):

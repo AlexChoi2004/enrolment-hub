@@ -46,7 +46,9 @@ def test_a_subject_is_blocked_when_every_session_it_is_offered_in_is_full(conn):
 def test_a_prerequisite_that_is_only_in_progress_does_not_unlock_a_subject(conn):
     result = demo(conn)
     assert status(result, "32931") == "blocked"  # Honours Project A needs 32144, which is enrolled
-    assert result["subjects"]["32931"]["reasons"] == ["Needs 32144 Technology Research Preparation"]
+    assert result["subjects"]["32931"]["reasons"] == [
+        "Needs (32144 Technology Research Preparation or 41079 Computing Science Studio 2)"
+    ]
 
 
 def test_every_missing_prerequisite_is_named(conn):

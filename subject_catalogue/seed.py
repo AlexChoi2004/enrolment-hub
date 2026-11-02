@@ -6,7 +6,7 @@ from subject_catalogue.seed_data import (
     COURSE,
     CREDIT_REQUIREMENTS,
     MAJOR_ONLY_SUBJECTS,
-    MAJOR_PREREQUISITES,
+    HANDBOOK_PREREQUISITES,
     MAJOR_SUBJECTS,
     MAJORS,
     PREREQUISITE_NOTES,
@@ -34,7 +34,7 @@ def seed_catalogue(conn):
     )
     conn.executemany(
         "INSERT OR IGNORE INTO prerequisites (subject_code, prereq_code, alt_group, concurrent) VALUES (?, ?, ?, ?)",
-        [(subject, prereq, 0, 0) for subject, prereq in PREREQUISITES] + MAJOR_PREREQUISITES,
+        [(subject, prereq, 0, 0) for subject, prereq in PREREQUISITES] + HANDBOOK_PREREQUISITES,
     )
 
     conn.executemany("INSERT OR IGNORE INTO majors (code, name, core_cp, options_cp) VALUES (?, ?, ?, ?)", MAJORS)
@@ -42,10 +42,12 @@ def seed_catalogue(conn):
         "INSERT OR IGNORE INTO major_subjects (major_code, subject_code, role) VALUES (?, ?, ?)",
         MAJOR_SUBJECTS,
     )
-    conn.executemany(
-        "INSERT OR IGNORE INTO credit_requirements (subject_code, major_code, min_cp) VALUES (?, ?, ?)",
-        CREDIT_REQUIREMENTS,
-    )
+    for subject, major, minimum in CREDIT_REQUIREMENTS:
+        conn.execute(
+            "INSERT INTO credit_requirements (subject_code, major_code, min_cp) SELECT ?, ?, ?"
+            " WHERE NOT EXISTS (SELECT 1 FROM credit_requirements WHERE subject_code = ? AND major_code IS ?)",
+            (subject, major, minimum, subject, major),
+        )
     conn.executemany(
         "INSERT OR IGNORE INTO prerequisite_notes (subject_code, note) VALUES (?, ?)",
         list(PREREQUISITE_NOTES.items()),

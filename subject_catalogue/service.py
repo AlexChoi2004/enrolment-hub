@@ -172,14 +172,15 @@ def load_prerequisites(conn):
 
 
 def load_credit_requirements(conn):
-    """{subject: [{"major_code", "major_name", "min_cp"}]}: completed credit points needed within a major."""
+    """{subject: [{"major_code", "major_name", "min_cp"}]}: completed credit points needed within a major,
+    or within the whole degree (major_code None, shown as "your degree")."""
     requirements = {}
     for r in conn.execute(
         "SELECT c.subject_code, c.major_code, m.name AS major_name, c.min_cp FROM credit_requirements c"
-        " JOIN majors m ON m.code = c.major_code ORDER BY c.subject_code, c.major_code"
+        " LEFT JOIN majors m ON m.code = c.major_code ORDER BY c.subject_code, c.major_code, c.id"
     ):
         requirements.setdefault(r["subject_code"], []).append(
-            {"major_code": r["major_code"], "major_name": r["major_name"], "min_cp": r["min_cp"]}
+            {"major_code": r["major_code"], "major_name": r["major_name"] or "your degree", "min_cp": r["min_cp"]}
         )
     return requirements
 

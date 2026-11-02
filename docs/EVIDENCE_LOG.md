@@ -123,7 +123,6 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed two planner test files that used a session constant that only exists in a third file
 - Fixed the majors templates folder being named `major` instead of `majors`, so Flask could not find the pages
 
-
 ### PR #13: Subject descriptions and assessments
 - Changed the catalogue so descriptions and assessment records are stored separately, and a subject can have several assessment structures over time, so a real outline 
   can replace older information without deleting it

@@ -45,10 +45,11 @@ CREATE TABLE IF NOT EXISTS prerequisites (
 -- A minimum number of completed credit points within a major. Separate from subject prerequisites,
 -- so reaching the threshold can never stand in for a required subject.
 CREATE TABLE IF NOT EXISTS credit_requirements (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
     subject_code TEXT NOT NULL REFERENCES subjects(code) ON DELETE CASCADE,
-    major_code   TEXT NOT NULL REFERENCES majors(code) ON DELETE CASCADE,
-    min_cp       INTEGER NOT NULL CHECK (min_cp > 0),
-    PRIMARY KEY (subject_code, major_code)
+    -- NULL = credit points completed anywhere in the student's degree.
+    major_code   TEXT REFERENCES majors(code) ON DELETE CASCADE,
+    min_cp       INTEGER NOT NULL CHECK (min_cp > 0)
 );
 
 -- The majors a student can choose from. Every major is worth 48 cp: core + options.

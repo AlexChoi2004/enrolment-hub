@@ -104,7 +104,7 @@ def test_only_the_open_sessions_are_accepted(conn, student, session_label):
 
 def test_subject_must_be_offered_in_the_chosen_session(conn, student):
     with pytest.raises(EnrolmentError, match="is not offered in Spring 2027"):
-        enrol(conn, student, "41078", SPRING)  # Computing Science Studio 1 is Autumn only
+        enrol(conn, student, "SYN102", SPRING)  # Financial Accounting Basics is Autumn only
 
 
 # --- the load limit ----------------------------------------------------------------------------------------
@@ -141,7 +141,7 @@ def test_the_limit_counts_credit_points_not_subjects(conn):
 
 def test_a_student_can_plan_a_whole_year_of_eight_subjects(conn, student):
     autumn = ["33130", "41039", "31265", "37181"]
-    spring = ["31271", "31268", "31269", "41092"]
+    spring = ["31268", "41092", "SYN104", "SYN107"]
     for code in autumn:
         enrol(conn, student, code, AUTUMN)
     for code in spring:
@@ -155,7 +155,7 @@ def test_a_student_can_plan_a_whole_year_of_eight_subjects(conn, student):
 def test_a_ninth_subject_is_refused_because_both_sessions_are_full(conn, student):
     for code in ["33130", "41039", "31265", "37181"]:
         enrol(conn, student, code, AUTUMN)
-    for code in ["31271", "31268", "31269", "41092"]:
+    for code in ["31268", "41092", "SYN104", "SYN107"]:
         enrol(conn, student, code, SPRING)
     with pytest.raises(EnrolmentError, match="Autumn 2027 is full .* and Spring 2027 is full"):
         enrol(conn, student, "43030", SPRING)
@@ -230,7 +230,7 @@ def test_cannot_move_to_a_session_the_subject_is_not_offered_in(conn):
 
 
 def test_cannot_move_into_a_full_session(conn, student):
-    for code in ["31271", "31268", "31269", "41092"]:
+    for code in ["31268", "41092", "SYN104", "SYN107"]:
         enrol(conn, student, code, SPRING)
     enrol(conn, student, "43030", AUTUMN)
     with pytest.raises(EnrolmentError, match="Spring 2027 is full"):

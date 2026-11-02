@@ -50,8 +50,8 @@ SUBJECTS = [
     ("31272", "Project Management and the Professional", 6, "core", "Autumn", "", 0),
     # Honours core: 6 + 6 + 12 = 24 cp
     ("32144", "Technology Research Preparation", 6, "honours_core", "Autumn", "", 0),
-    ("32931", "Honours Project A", 6, "honours_core", "Spring", "", 0),
-    ("31482", "Honours Project B", 12, "honours_core", "Autumn", "", 0),
+    ("32931", "Technology Research Methods", 6, "honours_core", "Spring", "", 0),
+    ("31482", "Honours Project", 12, "honours_core", "Autumn", "", 0),
     # Major core: 5 x 6 = 30 cp
     ("41025", "Introduction to Software Development", 6, "major_core", "Both", "", 0),
     ("31282", "Systems Testing and Quality Management", 6, "major_core", "Spring", "", 0),
@@ -93,20 +93,18 @@ PREREQUISITES = [
     ("31282", "31269"),  # Systems Testing and Quality Management <- Business Requirements Modelling
     ("48433", "48024"),  # Software Architecture <- Programming 2
     ("41079", "41078"),  # Computing Science Studio 2 <- Computing Science Studio 1
-    ("32931", "32144"),  # Honours Project A <- Technology Research Preparation
+    ("32931", "32144"),  # Technology Research Methods <- Technology Research Preparation
     ("41052", "31251"),  # Advanced Algorithms <- Data Structures and Algorithms
     ("32113", "31271"),  # Advanced Database <- Database Fundamentals
     ("41001", "48024"),  # Cloud Computing and SaaS <- Programming 2
 ]
 
 
-
 # --- Other majors -------------------------------------------------------------------------
 # SUPPLIED STRUCTURE: the majors below (codes, names, core and option lists, and the credit points each
 # needs) come from the data supplied for this project. Every major totals exactly 48 cp.
 # ILLUSTRATIVE: sessions_offered for the added subjects is invented, like the rest.
-# PREREQUISITES: the rules for these subjects are treated as correct, like the original 12, and are not
-# independently verified against the official handbook.
+# PREREQUISITES: matched to the UTS Handbook (indicative); see HANDBOOK_PREREQUISITES at the bottom.
 
 # Subjects that appear only in other majors. (They are stored once, however many majors use them.)
 MAJOR_ONLY_SUBJECTS = [
@@ -130,10 +128,10 @@ MAJOR_ONLY_SUBJECTS = [
     ("32011", "Multilayer Switched Networks", 6, "major_other", "Both", "", 0),
     ("32146", "Data Visualisation and Visual Analytics", 6, "major_other", "Spring", "", 0),
     ("35005", "Lebesgue Integration and Fourier Analysis", 6, "major_other", "Both", "", 0),
-    ("35007", "Mathematics 3", 6, "major_other", "Spring", "", 0),
+    ("35007", "Real Analysis", 6, "major_other", "Spring", "", 0),
     ("37161", "Probability and Random Variables", 6, "major_other", "Spring", "", 0),
     ("37233", "Linear Algebra", 6, "major_other", "Spring", "", 0),
-    ("37234", "Mathematical Analysis", 6, "major_other", "Autumn", "", 0),
+    ("37234", "Complex Analysis", 6, "major_other", "Autumn", "", 0),
     ("37252", "Regression and Linear Models", 6, "major_other", "Spring", "", 0),
     ("37262", "Mathematical Statistics", 6, "major_other", "Autumn", "", 0),
     ("37373", "Programming for Data Analysis", 6, "major_other", "Autumn", "", 0),
@@ -168,7 +166,7 @@ MAJOR_ONLY_SUBJECTS = [
     ("48436", "Digital Forensics", 6, "major_other", "Both", "", 0),
     ("48730", "Cybersecurity", 6, "major_other", "Autumn", "", 0),
     ("57304", "The Ethics of Data and AI", 6, "major_other", "Spring", "", 0),
-    ("68416", "Computational Methods", 6, "major_other", "Spring", "", 0),
+    ("68416", "Computational Physics", 6, "major_other", "Spring", "", 0),
     ("68746", "Advanced Quantum Science", 6, "major_other", "Both", "", 0),
 ]
 
@@ -291,58 +289,182 @@ MAJOR_SUBJECTS = [
     ("MAJ02901", "68746", "option"),
 ]
 
-# Prerequisites for the subjects added with the other majors, treated like the original supplied rules.
+# Prerequisites matched to the UTS Handbook (read 2 Nov 2026; the handbook calls its pages indicative).
+# Only subjects that are in this app can be enforced; the handbook's other alternatives are kept as notes.
 # (subject code, prerequisite code, alt_group, concurrent). Rows of one subject are ANDed by alt_group; rows that
 # share an alt_group are alternatives (OR). concurrent = 1 means the prerequisite may be taken at the same time.
-MAJOR_PREREQUISITES = [
-    ("42028", "31250", 0, 0),  # Deep Learning <- Introduction to Data Analytics
-    ("31005", "31250", 0, 0),  # Machine Learning <- Introduction to Data Analytics AND Programming 2
+# These come on top of the 12 originally supplied rules in PREREQUISITES, which the handbook confirmed.
+HANDBOOK_PREREQUISITES = [
+    ("31005", "31250", 0, 0),  # Machine Learning
     ("31005", "48024", 1, 0),
-    ("43025", "33230", 0, 0),  # Introduction to Quantum Computing <- Mathematics 2
-    ("42050", "31250", 0, 0),  # SAS Predictive Business Analytics <- Introduction to Data Analytics
-    # Data Visualisation <- (Intro to Data Analytics OR Intro to Information Systems) AND (Programming 2 OR Intro to AI).
-    # Intro to Information Systems is the alternative entry route suggested in the supplied notes; without it this
-    # core subject of Business Information Systems could never be taken, because that major does not include 31250.
-    ("32146", "31250", 0, 0),
-    ("32146", "31266", 0, 0),
-    ("32146", "48024", 1, 0),
-    ("32146", "41040", 1, 0),
-    ("31257", "31269", 0, 0),  # Information System Development Methodologies <- Business Requirements Modelling
-    ("31247", "31266", 0, 0),  # Collaborative Business Processes <- Introduction to Information Systems
-    ("31258", "31269", 0, 0),  # Innovations for Global Relationship Management <- Business Requirements Modelling
-    ("48730", "41092", 0, 0),  # Cybersecurity <- Network Fundamentals AND Web Systems
-    ("48730", "31268", 1, 0),
-    ("41180", "48730", 0, 0),  # Data Analytics in Cybersecurity <- Cybersecurity
-    ("41900", "48730", 0, 0),  # Cryptography <- Cybersecurity
-    ("41184", "31251", 0, 0),  # Secure Programming and Penetration Testing <- Data Structures and Algorithms
-    ("48436", "48730", 0, 0),  # Digital Forensics <- Cybersecurity
-    ("41019", "31260", 0, 0),  # Prototyping Physical Interaction <- Fundamentals of Interaction Design
-    ("31264", "31080", 0, 0),  # Computer Graphics <- Interactive Media OR Intro to Computer Game Development
+    ("31080", "41039", 0, 0),  # Interactive Media
+    ("31241", "31264", 0, 0),  # Interactive 3D Animation
+    ("31245", "31257", 0, 0),  # Business Process and IT Strategy
+    ("31247", "31266", 0, 0),  # Collaborative Business Processes
+    ("31257", "31269", 0, 0),  # Information System Development Methodologies
+    ("31258", "31269", 0, 0),  # Innovations for Global Relationship Management
+    ("31262", "31263", 0, 0),  # Game Design Methodologies
+    ("31263", "48024", 0, 1),  # Introduction to Computer Game Development
+    ("31263", "31080", 0, 1),
+    ("31264", "31080", 0, 0),  # Computer Graphics
     ("31264", "31263", 0, 0),
-    ("31262", "31263", 0, 0),  # Game Design Methodologies <- Intro to Computer Game Development
-    ("37233", "33130", 0, 0),  # Linear Algebra <- Mathematics 1
-    ("37161", "33130", 0, 1),  # Probability and Random Variables <- Mathematics 1 (may be taken at the same time)
-    ("35007", "33230", 0, 0),  # Mathematics 3 <- Mathematics 2
-    ("32009", "31277", 0, 0),  # Advanced Routing Principles <- Routing and Switching Essentials (+ 30 cp in the major)
-    ("32011", "31277", 0, 0),  # Multilayer Switched Networks <- Routing and Switching Essentials (+ 30 cp in the major)
-    ("41905", "31277", 0, 0),  # Software Defined Networks <- Routing and Switching Essentials AND Programming 1
-    ("41905", "41039", 1, 0),
-    ("41173", "43025", 0, 0),  # Quantum Software and Programming <- Intro to Quantum Computing AND Programming 1
+    ("31271", "41039", 0, 0),  # Database Fundamentals
+    ("31272", "31269", 0, 0),  # Project Management and the Professional
+    ("31272", "31265", 1, 0),
+    ("31272", "41078", 1, 0),
+    ("31275", "41092", 0, 0),  # Mobile Networking
+    ("31277", "41092", 0, 0),  # Routing and Switching Essentials
+    ("31482", "32931", 0, 0),  # Honours Project B
+    ("31748", "31268", 0, 0),  # Programming on the Internet
+    ("31748", "41039", 1, 0),
+    ("31777", "31260", 0, 0),  # Advanced Interaction Design
+    ("31927", "48024", 0, 0),  # Application Development with .NET
+    ("32009", "31277", 0, 0),  # Advanced Routing Principles
+    ("32011", "31277", 0, 0),  # Multilayer Switched Networks
+    ("35005", "35007", 0, 0),  # Lebesgue Integration and Fourier Analysis
+    ("35005", "33230", 1, 0),
+    ("35007", "33130", 0, 0),  # Mathematics 3
+    ("35007", "37181", 1, 0),
+    ("37161", "33130", 0, 1),  # Probability and Random Variables
+    ("37233", "33130", 0, 0),  # Linear Algebra
+    ("37234", "33230", 0, 0),  # Mathematical Analysis
+    ("37234", "35007", 1, 0),
+    ("37252", "33230", 0, 0),  # Regression and Linear Models
+    ("37262", "37161", 0, 0),  # Mathematical Statistics
+    ("37373", "41039", 0, 0),  # Programming for Data Analysis
+    ("37373", "33230", 1, 0),
+    ("37373", "33130", 1, 0),
+    ("41019", "31260", 0, 0),  # Prototyping Physical Interaction
+    ("41040", "41039", 0, 0),  # Introduction to Artificial Intelligence
+    ("41076", "43025", 0, 0),  # Methods in Quantum Computing
+    ("41076", "37233", 1, 0),
+    ("41080", "37181", 0, 0),  # Theory of Computing Science
+    ("41080", "48024", 1, 0),
+    ("41113", "31257", 0, 0),  # Software Development Studio
+    ("41113", "41025", 0, 0),
+    ("41171", "41076", 0, 0),  # Quantum Computer Architectures
+    ("41173", "43025", 0, 0),  # Quantum Software and Programming
     ("41173", "41039", 1, 0),
-    ("41174", "41076", 0, 0),  # Quantum Algorithms <- Methods in Quantum Computing
+    ("41173", "68416", 1, 0),
+    ("41174", "41076", 0, 0),  # Quantum Algorithms
+    ("41180", "48730", 0, 0),  # Data Analytics in Cybersecurity
+    ("41180", "41181", 0, 0),
+    ("41180", "41182", 0, 0),
+    ("41181", "31268", 0, 0),  # Information Security and Management
+    ("41181", "31257", 0, 0),
+    ("41181", "41092", 0, 0),
+    ("41181", "31266", 0, 0),
+    ("41181", "41039", 1, 0),
+    ("41182", "31268", 0, 0),  # System Security
+    ("41182", "31257", 0, 0),
+    ("41182", "41092", 0, 0),
+    ("41182", "31266", 0, 0),
+    ("41182", "41039", 0, 0),
+    ("41183", "48730", 0, 0),  # Privacy Preserving
+    ("41183", "41181", 0, 0),
+    ("41183", "41182", 0, 0),
+    ("41183", "41184", 0, 0),
+    ("41184", "31251", 0, 0),  # Secure Programming and Penetration Testing
+    ("41185", "41181", 0, 0),  # Emerging Topics in Cybersecurity and Privacy
+    ("41185", "48730", 0, 0),
+    ("41185", "41182", 0, 0),
+    ("41185", "41184", 0, 0),
+    ("41191", "31266", 0, 0),  # Business Intelligence
+    ("41801", "31264", 0, 0),  # Technical Direction for 3D Animation and Graphics Projects
+    ("41889", "41039", 0, 0),  # Application Development in the iOS Environment
+    ("41890", "48730", 0, 0),  # Applying Network Security
+    ("41890", "31277", 1, 0),
+    ("41900", "48730", 0, 0),  # Cryptography
+    ("41905", "31277", 0, 0),  # Software Defined Networks
+    ("41905", "41039", 1, 0),
+    ("42028", "31250", 0, 0),  # Deep Learning and Convolutional Neural Network
+    ("42036", "48730", 0, 0),  # Cybersecurity for Mobile Platforms
+    ("42037", "48730", 0, 0),  # IoT Security
+    ("42050", "31250", 0, 0),  # SAS Predictive Business Analytics
+    ("43025", "33230", 0, 0),  # Introduction to Quantum Computing
+    ("48033", "41039", 0, 0),  # Internet of Things
+    ("48033", "41092", 1, 0),
+    ("48436", "48730", 0, 0),  # Digital Forensics
+    ("48730", "31268", 0, 0),  # Cybersecurity
+    ("48730", "48033", 0, 0),
+    ("48730", "41092", 1, 0),
+    ("68416", "33230", 0, 1),  # Computational Methods
+    ("41001", "31271", 0, 0),  # Cloud Computing and Software as a Service: another route the handbook allows
+    ("32931", "41079", 0, 0),  # Honours Project A: another route the handbook allows
 ]
 
-# (subject code, major code, minimum completed credit points within that major)
+# (subject code, major code or None, minimum completed credit points). A major code counts only that major's
+# subjects; None counts every completed subject in the student's degree (the handbook's "credit points of
+# completed study" conditions).
 CREDIT_REQUIREMENTS = [
     ("32009", "MAJ03445", 30),
     ("32011", "MAJ03445", 30),
+    ("42036", "MAJ03445", 30),
+    ("42037", "MAJ03445", 30),
+    ("31269", None, 18),
+    ("31272", None, 72),
+    ("41078", None, 36),
 ]
 
-# Leads the app cannot enforce. Shown on the subject, never blocking. The first is a subject that is not in this
-# data; the other three belong to the original subjects, whose supplied rules are treated as complete.
+# What the handbook says that this app cannot enforce (alternatives that are not in this app, or other courses).
+HANDBOOK_REQUISITE_NOTES = {
+    "31005": 'UTS Handbook requisite: (31250 AND (48024 OR 41091)). Only the subjects in this app are enforced here.',
+    "31080": 'UTS Handbook requisite: (48023 OR 41039). Only the subjects in this app are enforced here.',
+    "31241": 'UTS Handbook requisite: (31264 OR 31140). Only the subjects in this app are enforced here.',
+    "31245": 'UTS Handbook requisite: (31276 OR 31257). Only the subjects in this app are enforced here.',
+    "31258": 'UTS Handbook requisite: (31269 OR 31475). Only the subjects in this app are enforced here.',
+    "31271": 'UTS Handbook requisite: (48023 OR 37171 OR 48430 OR 41039). Only the subjects in this app are enforced here.',
+    "31272": "UTS Handbook requisite: (31269 AND (31265 OR 48230 OR 41078) AND 72 cp completed in a FEIT bachelor's). Only the subjects in this app are enforced here.",
+    "31275": 'UTS Handbook requisite: (31270 OR 48720 OR 41092). Only the subjects in this app are enforced here.',
+    "31277": 'UTS Handbook requisite: (31270 OR 41092). Only the subjects in this app are enforced here.',
+    "31748": 'UTS Handbook requisite: (31268 AND (48023 OR 41039 OR other programming)). Only the subjects in this app are enforced here.',
+    "32011": 'UTS Handbook requisite: (32524 OR (31277 AND 30 cp completed in MAJ03445)). Only the subjects in this app are enforced here.',
+    "32113": 'UTS Handbook requisite: (31271 OR 31061 OR 32606 OR 94692). Only the subjects in this app are enforced here.',
+    "32931": 'UTS Handbook requisite: (32144 OR 42670 co OR 41079). Only the subjects in this app are enforced here.',
+    "33230": 'UTS Handbook requisite: (33130 OR 33190 OR 37131). Only the subjects in this app are enforced here.',
+    "35005": 'UTS Handbook requisite: (35007 AND (33230 OR 33290 OR 37132)). Only the subjects in this app are enforced here.',
+    "35007": 'UTS Handbook requisite: ((33130 OR 33190 OR 37131) AND 37181). Only the subjects in this app are enforced here.',
+    "37161": 'UTS Handbook requisite: (((35101 OR 37131) AND (35151 OR 26134 OR 37151)) OR (33130 co OR 68103 OR 33190)). Only the subjects in this app are enforced here.',
+    "37233": 'UTS Handbook requisite: (35101 OR 37131 OR 33130 OR 33290). Only the subjects in this app are enforced here.',
+    "37234": 'UTS Handbook requisite: ((35102 OR 37132) OR ((33230 OR 33290) AND 35007)). Only the subjects in this app are enforced here.',
+    "37252": 'UTS Handbook requisite: (35151 co OR 33116 OR 33230 OR 33290 OR 26134 OR 37151 co OR 68103). Only the subjects in this app are enforced here.',
+    "37262": 'UTS Handbook requisite: ((37161 AND (33230 OR 33290 OR 37132)) OR (37161 AND 26134)). Only the subjects in this app are enforced here.',
+    "37373": 'UTS Handbook requisite: ((37171 OR 41039) AND ((33230 OR 33290 OR 37132) OR (33130 AND 33116))). Only the subjects in this app are enforced here.',
+    "41001": 'UTS Handbook requisite: (48440 OR 31244 OR 31281 OR 31061 OR 48024 OR 31271). Only the subjects in this app are enforced here.',
+    "41025": 'UTS Handbook requisite: (48023 OR 48430 OR 41039). Only the subjects in this app are enforced here.',
+    "41040": 'UTS Handbook requisite: (48023 OR 41039). Only the subjects in this app are enforced here.',
+    "41076": 'UTS Handbook requisite: ((41170 OR 43025 OR 68413) AND 37233). Only the subjects in this app are enforced here.',
+    "41113": 'UTS Handbook requisite: (31257 OR 41025 OR 41192). Only the subjects in this app are enforced here.',
+    "41173": 'UTS Handbook requisite: ((41170 OR 43025) AND (48023 OR 41039 OR 68416)). Only the subjects in this app are enforced here.',
+    "41180": 'UTS Handbook requisite: (48730 OR 41181 OR 41182 OR 41084). Only the subjects in this app are enforced here.',
+    "41181": 'UTS Handbook requisite: ((31268 OR 48410 OR 41082 OR 65325 OR 31257 OR 41092 OR 31266) AND (48023 OR 41039 OR 48430)). Only the subjects in this app are enforced here.',
+    "41182": 'UTS Handbook requisite: (31268 OR 48410 OR 41082 OR 65325 OR 31257 OR 41092 OR 31266 OR 48023 OR 41039 OR 48430). Only the subjects in this app are enforced here.',
+    "41184": 'UTS Handbook requisite: (31251 OR 41012). Only the subjects in this app are enforced here.',
+    "41191": 'UTS Handbook requisite: (31266 AND 41193 ). Only the subjects in this app are enforced here.',
+    "41889": 'UTS Handbook requisite: (48023 OR 31267 OR 41039). Only the subjects in this app are enforced here.',
+    "41900": 'UTS Handbook requisite: (48730 OR 65325). Only the subjects in this app are enforced here.',
+    "41905": 'UTS Handbook requisite: ((31277 OR 48740) AND 41039). Only the subjects in this app are enforced here.',
+    "42028": 'UTS Handbook requisite: (31250 OR 32130 OR 36106). Only the subjects in this app are enforced here.',
+    "42036": 'UTS Handbook requisite: (32548 OR (48730 AND 30 cp completed in MAJ03445)). Only the subjects in this app are enforced here.',
+    "42037": 'UTS Handbook requisite: (32548 OR (48730 AND 30 cp completed in MAJ03445)). Only the subjects in this app are enforced here.',
+    "42050": 'UTS Handbook requisite: (31250 OR 32130 OR 48 cp in C04379 ). Only the subjects in this app are enforced here.',
+    "42891": 'UTS Handbook requisite: (32524 OR 49202). Only the subjects in this app are enforced here.',
+    "43023": 'UTS Handbook requisite: 42172. Only the subjects in this app are enforced here.',
+    "43025": 'UTS Handbook requisite: (37151 OR 33230 OR 33290). Only the subjects in this app are enforced here.',
+    "48024": 'UTS Handbook requisite: (48023 OR 31267 OR 31465 OR 48430 OR 41039). Only the subjects in this app are enforced here.',
+    "48033": 'UTS Handbook requisite: ((48023 OR 48430 OR 41039) AND (31270 OR 48720 OR 48740 OR 41092 OR 41090 OR 48540)). Only the subjects in this app are enforced here.',
+    "48433": 'UTS Handbook requisite: (48440 OR 31469 OR 31279 OR 31244 OR 48024). Only the subjects in this app are enforced here.',
+    "48730": 'UTS Handbook requisite: ((31268 OR 48410 OR 41082 OR 65325 OR 48450 OR 48033) AND (31270 OR 41092 OR 48720)). Only the subjects in this app are enforced here.',
+    "68416": 'UTS Handbook requisite: ((68201 OR 68037) AND (33230 co OR 68038 OR 33290)). Only the subjects in this app are enforced here.',
+    "68746": 'UTS Handbook requisite: (68413 AND 68316). Only the subjects in this app are enforced here.',
+}
+
+# Notes written by hand for the two subjects whose requisites need explaining.
 PREREQUISITE_NOTES = {
-    "31243": "41004, an external subject that is not in this data (so it is not enforced)",
-    "41040": "41039 Programming 1 (preliminary; the original supplied data lists no prerequisite, so it is not enforced)",
-    "31260": "41039 Programming 1 (preliminary; the original supplied data lists no prerequisite, so it is not enforced)",
-    "31777": "31260 Fundamentals of Interaction Design (preliminary; the original supplied data lists no prerequisite, so it is not enforced)",
+    **HANDBOOK_REQUISITE_NOTES,
+    "31243": "41004, an external subject that is not in this data, so it is not enforced.",
+    "32146": (
+        "UTS Handbook requisite: (31250 AND 48024) OR one of 32130, 26776, 42046, 42047, 26777. "
+        "Not enforced here: Business Information Systems makes this subject core, but 31250 is not in that major."
+    ),
 }

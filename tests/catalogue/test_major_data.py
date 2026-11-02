@@ -1,6 +1,6 @@
 import pytest
 
-from subject_catalogue.seed_data import MAJOR_PREREQUISITES, PREREQUISITES
+from subject_catalogue.seed_data import HANDBOOK_PREREQUISITES, PREREQUISITES
 from subject_catalogue.service import load_credit_requirements, load_prerequisites
 
 # (code, name, core subjects, options in the pool, how many options to choose)
@@ -116,31 +116,30 @@ def test_a_subject_is_required_exactly_when_it_has_a_rule(conn):
     assert required == with_rules
 
 
-def test_the_original_subjects_keep_their_twelve_rules_and_the_added_ones_have_their_own(conn):
-    original = conn.execute(
-        "SELECT COUNT(*) FROM prerequisites p JOIN subjects s ON s.code = p.subject_code WHERE s.category <> 'major_other'"
-    ).fetchone()[0]
-    added = conn.execute(
-        "SELECT COUNT(*) FROM prerequisites p JOIN subjects s ON s.code = p.subject_code WHERE s.category = 'major_other'"
-    ).fetchone()[0]
-    assert original == 12 == len(PREREQUISITES)
-    assert added == len(MAJOR_PREREQUISITES)
+def test_the_twelve_original_rules_are_kept_and_the_handbook_rules_are_added_on_top(conn):
+    total = conn.execute("SELECT COUNT(*) FROM prerequisites").fetchone()[0]
+    assert len(PREREQUISITES) == 12
+    assert total == len(PREREQUISITES) + len(HANDBOOK_PREREQUISITES)
 
 
 def test_alternatives_are_stored_as_one_group_and_ands_as_separate_groups(conn):
     rules = load_prerequisites(conn)
-    # 32146 <- (31250 OR 31266) AND (41040 OR 48024)
-    assert [g["codes"] for g in rules["32146"]] == [["31250", "31266"], ["41040", "48024"]]
+    # 41181 <- (31257 OR 31266 OR 31268 OR 41092) AND 41039
+    assert [g["codes"] for g in rules["41181"]] == [["31257", "31266", "31268", "41092"], ["41039"]]
     # 31005 <- 31250 AND 48024
     assert [g["codes"] for g in rules["31005"]] == [["31250"], ["48024"]]
     # 31264 <- 31080 OR 31263
     assert [g["codes"] for g in rules["31264"]] == [["31080", "31263"]]
+    # 32931 <- 32144 OR 41079 (the second route comes from the handbook)
+    assert [g["codes"] for g in rules["32931"]] == [["32144", "41079"]]
 
 
-def test_a_corequisite_is_flagged_as_concurrent(conn):
+def test_corequisites_are_flagged_as_concurrent(conn):
     rules = load_prerequisites(conn)
+    concurrent = {s for s, groups in rules.items() if any(g["concurrent"] for g in groups)}
+    assert concurrent == {"37161", "31263", "68416"}
     assert rules["37161"] == [{"codes": ["33130"], "concurrent": True}]
-    assert all(not g["concurrent"] for s, groups in rules.items() if s != "37161" for g in groups)
+    assert rules["31263"] == [{"codes": ["31080", "48024"], "concurrent": True}]
 
 
 def test_credit_point_conditions_are_separate_from_subject_prerequisites(conn):
@@ -167,12 +166,30 @@ def test_an_external_prerequisite_is_a_note_not_a_rule(conn):
     assert conn.execute("SELECT prereq_status FROM subjects WHERE code = '31243'").fetchone()[0] == "none"
 
 
-def test_the_original_subjects_with_leads_stay_unchanged_and_carry_a_note(conn):
-    for code in ("41040", "31260", "31777"):
-        assert conn.execute("SELECT COUNT(*) FROM prerequisites WHERE subject_code = ?", (code,)).fetchone()[0] == 0
-        assert conn.execute("SELECT prereq_status FROM subjects WHERE code = ?", (code,)).fetchone()[0] == "none"
-        note = conn.execute("SELECT note FROM prerequisite_notes WHERE subject_code = ?", (code,)).fetchone()[0]
-        assert "not enforced" in note
+def test_the_handbook_rules_replace_the_old_leads_on_original_subjects(conn):
+    rules = load_prerequisites(conn)
+    assert [g["codes"] for g in rules["41040"]] == [["41039"]]  # was only a lead before
+    assert [g["codes"] for g in rules["31777"]] == [["31260"]]
+    assert "31260" not in rules  # the handbook lists no prerequisite for Fundamentals of Interaction Design
+
+
+def test_32146_is_a_note_not_a_rule_because_its_prerequisite_is_not_in_every_major_that_needs_it(conn):
+    assert "32146" not in load_prerequisites(conn)
+    note = conn.execute("SELECT note FROM prerequisite_notes WHERE subject_code = '32146'").fetchone()[0]
+    assert "(31250 AND 48024)" in note and "Not enforced here" in note
+
+
+def test_the_handbook_wording_is_kept_where_the_app_cannot_enforce_all_of_it(conn):
+    note = conn.execute("SELECT note FROM prerequisite_notes WHERE subject_code = '41040'").fetchone()[0]
+    assert note.startswith("UTS Handbook requisite: (48023 OR 41039)") and "Only the subjects in this app are enforced" in note
+    assert conn.execute("SELECT COUNT(*) FROM prerequisite_notes WHERE subject_code = '31005'").fetchone()[0] == 1  # 41091 is not in the app
+
+
+def test_degree_wide_credit_conditions_are_stored_without_a_major(conn):
+    credit = load_credit_requirements(conn)
+    assert credit["31272"] == [{"major_code": None, "major_name": "your degree", "min_cp": 72}]
+    assert credit["31269"][0]["min_cp"] == 18 and credit["41078"][0]["min_cp"] == 36
+    assert credit["42036"] == credit["42037"] == credit["32011"]  # the same 30 cp in the Networking major
 
 
 def test_the_database_refuses_a_bad_concurrent_flag(conn):

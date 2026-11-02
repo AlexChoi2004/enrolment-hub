@@ -126,7 +126,6 @@ def test_the_same_subject_counts_differently_in_different_majors(conn):
     b = create_user(conn, "b.student@student.uni.edu.au", "Str0ng#Pass", AUTUMN)["id"]
     choose_major(conn, a, AI)
     choose_major(conn, b, QUANTUM)
-
     def category_of(uid):
         return {s["code"]: s["category"] for s in catalogue.degree_subjects(conn, uid)}["31250"]
 
@@ -167,35 +166,36 @@ def test_swapping_changes_what_counts(conn, student):
 
 def test_swapping_removes_planned_subjects_that_are_not_in_the_new_major(conn, student):
     choose_major(conn, student, ESD)
-    add_to_plan(conn, student, "31927", "Spring 2028")  # Enterprise Software Development only
-    add_to_plan(conn, student, "41040", "Autumn 2028")  # also a core subject in AI and Data Analytics
+    add_to_plan(conn, student, "31260", "Spring 2028")  # Enterprise Software Development option only
+    add_to_plan(conn, student, "41039", "Autumn 2027")  # core for everyone
+    add_to_plan(conn, student, "41040", "Autumn 2028")  # an option here, core in AI and Data Analytics (Autumn only)
     result = choose_major(conn, student, AI)
     assert result["plan_removed"] == 1
     planned = {r["subject_code"] for r in conn.execute("SELECT subject_code FROM planned_subjects WHERE user_id = ?", (student,))}
-    assert planned == {"41040"}
+    assert planned == {"41039", "41040"}
 
 
 def test_a_swap_is_refused_while_enrolled_in_a_subject_only_the_old_major_has(conn, student):
     choose_major(conn, student, ESD)
-    enrol(conn, student, "31777", AUTUMN)  # Enterprise Software Development option, not in Quantum Computing
-    with pytest.raises(MajorError, match="31777 Advanced Interaction Design \\(enrolled\\)"):
+    enrol(conn, student, "31260", AUTUMN)  # Enterprise Software Development option, not in Quantum Computing
+    with pytest.raises(MajorError, match="31260 Fundamentals of Interaction Design \\(enrolled\\)"):
         choose_major(conn, student, QUANTUM)
     assert major_of(conn, student) == ESD
 
 
 def test_withdrawing_clears_the_way_to_swap(conn, student):
     choose_major(conn, student, ESD)
-    enrol(conn, student, "31777", AUTUMN)
-    withdraw(conn, student, "31777")
+    enrol(conn, student, "31260", AUTUMN)
+    withdraw(conn, student, "31260")
     choose_major(conn, student, QUANTUM)
     assert major_of(conn, student) == QUANTUM
 
 
 def test_a_subject_shared_with_the_new_major_does_not_block_a_swap(conn, student):
     choose_major(conn, student, ESD)
-    enrol(conn, student, "41040", AUTUMN)  # an option here, core in AI and Data Analytics
+    enrol(conn, student, "41759", AUTUMN)  # Capstone: core in Enterprise Software Development and in AI and Data Analytics
     choose_major(conn, student, AI)
-    assert evaluate_subjects(conn, student)["subjects"]["41040"]["status"] == "enrolled"
+    assert evaluate_subjects(conn, student)["subjects"]["41759"]["status"] == "enrolled"
 
 
 def test_core_subjects_never_block_a_swap(conn, student):
@@ -313,15 +313,14 @@ def test_or_accepts_either_alternative(conn, student):
 
 
 def test_and_with_or_inside_names_each_missing_group(conn, student):
-    choose_major(conn, student, BISM)  # 32146 <- (31250 OR 31266) AND (41040 OR 48024)
-    assert note(conn, student, "32146") == (
-        "Needs (31250 Introduction to Data Analytics or 31266 Introduction to Information Systems), "
-        "(41040 Introduction to Artificial Intelligence or 48024 Programming 2)"
+    choose_major(conn, student, QUANTUM)  # 41173 <- 43025 AND (41039 OR 68416)
+    assert note(conn, student, "41173") == (
+        "Needs 43025 Introduction to Quantum Computing, (41039 Programming 1 or 68416 Computational Physics)"
     )
-    complete(conn, student, "31266")
-    assert note(conn, student, "32146") == "Needs (41040 Introduction to Artificial Intelligence or 48024 Programming 2)"
-    complete(conn, student, "48024")
-    assert status(conn, student, "32146") == "available"
+    complete(conn, student, "43025")
+    assert note(conn, student, "41173") == "Needs (41039 Programming 1 or 68416 Computational Physics)"
+    complete(conn, student, "41039")
+    assert status(conn, student, "41173") == "available"
 
 
 def test_an_enrolled_prerequisite_does_not_count(conn, student):
@@ -414,14 +413,17 @@ def test_a_plan_follows_the_same_prerequisites(conn, student):
 
 def test_planning_accepts_either_alternative(conn, student):
     choose_major(conn, student, "MAJ02092")
-    add_to_plan(conn, student, "31263", "Autumn 2028")
+    add_to_plan(conn, student, "41039", "Autumn 2027")
+    add_to_plan(conn, student, "31080", "Spring 2027")
     add_to_plan(conn, student, "31264", "Spring 2028")  # Computer Graphics <- 31080 OR 31263
 
 
 def test_removing_one_alternative_is_fine_while_another_still_satisfies_the_rule(conn, student):
     choose_major(conn, student, "MAJ02092")
+    add_to_plan(conn, student, "41039", "Autumn 2027")
+    add_to_plan(conn, student, "48024", "Spring 2027")
     add_to_plan(conn, student, "31080", "Autumn 2028")
-    add_to_plan(conn, student, "31263", "Autumn 2028")
+    add_to_plan(conn, student, "31263", "Autumn 2028")  # Game Development: Programming 2 or Interactive Media
     add_to_plan(conn, student, "31264", "Spring 2028")
     remove_from_plan(conn, student, "31080")  # 31263 still satisfies Computer Graphics
     with pytest.raises(PlanError, match="31264 Computer Graphics is planned for Spring 2028 and needs 31263"):
@@ -458,7 +460,7 @@ def test_a_business_information_systems_student_can_still_plan_data_visualisatio
 def test_subjects_from_other_majors_have_classes_too(conn, student):
     from timetable.service import get_timetable
 
-    choose_major(conn, student, "MAJ03445")
-    enrol(conn, student, "31277", AUTUMN)
+    choose_major(conn, student, AI)
+    enrol(conn, student, "31250", AUTUMN)  # Introduction to Data Analytics: a subject that exists only through a major
     card = get_timetable(conn, student, AUTUMN)["subjects"][0]
-    assert card["code"] == "31277" and card["lecture"] and card["components"]
+    assert card["code"] == "31250" and card["lecture"] and card["components"]
