@@ -12,7 +12,7 @@ def codes(subjects):
 
 
 def test_lists_all_45_subjects(conn):
-    assert len(service.list_subjects(conn)) == 45
+    assert len(service.list_subjects(conn)) == 45  # without a student, the original subjects only
 
 
 def test_search_by_name_is_case_insensitive(conn):
@@ -130,6 +130,7 @@ def test_category_rules_are_plain_english(conn):
     assert rule("honours_core") == "All 3 required \u00b7 24 cp"
     assert rule("major_elective") == "Choose 3 of 9 \u00b7 18 cp required"
     assert rule("general_elective") == "Choose 4 of 12 \u00b7 24 cp required"
+    assert service.category_rule("sub_choose_7", 6, 18) == "Choose 18 cp from 6 subjects"
 
 
 def test_grouping_keeps_degree_order_and_skips_empty_groups(conn):
@@ -146,7 +147,7 @@ def test_grouping_keeps_degree_order_and_skips_empty_groups(conn):
 
 def demo_subjects(conn, filters=None):
     progress = evaluate_subjects(conn, 1)
-    subjects = service.attach_status(service.list_subjects(conn, filters), progress)
+    subjects = service.attach_status(service.list_subjects(conn, filters, user_id=1), progress)
     return subjects, progress
 
 
@@ -184,13 +185,12 @@ def test_status_values_are_validated():
         service.parse_filters({"status": "maybe"}, CATEGORIES)
 
 
-def test_general_electives_heading_reports_four_of_four_and_is_complete(conn):
+def test_sub_major_core_heading_reports_four_of_four_and_is_complete(conn):
     subjects, progress = demo_subjects(conn)
-    groups = {g["category"]: g for g in service.group_by_category(subjects, service.list_categories(conn), progress)}
-    general = groups["general_elective"]
-    assert general["rule"] == "Choose 4 of 12 \u00b7 4 of 4 chosen"
-    assert general["complete"] is True
-    assert "can't enrol in any more general electives" in general["note"]
+    groups = {g["category"]: g for g in service.group_by_category(subjects, service.list_categories(conn, 1), progress)}
+    core = groups["sub_core"]
+    assert core["rule"] == "All 4 required \u00b7 4 completed, 0 in progress"
+    assert core["complete"] is True and core["note"] == "Everything in this section is completed."
 
 
 def test_major_electives_heading_is_not_complete_yet(conn):

@@ -68,6 +68,13 @@
     <p class="notice"><strong>Note:</strong> {{ subject.prerequisite_note }}</p>
   {% endif %}
 
+  {% if subject.submajors %}
+    <h3>Sub-majors</h3>
+    <ul class="plain">
+      {% for m in subject.submajors %}<li>{{ m.name }}{% if m.language %} ({{ m.language }}){% endif %}: {{ m.role }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+
   {% if subject.majors %}
     <h3>Majors</h3>
     <ul class="plain">

@@ -19,6 +19,17 @@
   <p class="flash flash-success">Your plan covers every requirement of the degree.</p>
 {% endif %}
 
+{% if plan.extra_cp %}
+  <p class="notice">{{ plan.extra_cp }} cp you have done doesn't count towards this degree (for example after changing major). It stays on your record.</p>
+{% endif %}
+{% if plan.needs_submajor %}
+  <div class="demo-note">
+    <p>You haven't chosen a sub-major or general electives, so those 24 credit points aren't in this plan yet.</p>
+    <a class="btn" href="{{ url_for('submajors.index') }}">Choose sub-major or electives</a>
+  </div>
+{% endif %}
+{% for note in plan.notes %}<p class="notice">{{ note }}</p>{% endfor %}
+
 {% if plan.needs_major %}
   <div class="demo-note">
     <p>You haven't chosen a major, so its 48 credit points aren't in this plan yet.</p>

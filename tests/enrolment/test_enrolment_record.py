@@ -47,7 +47,8 @@ def test_record_only_contains_the_requested_students_rows(conn):
         " VALUES (2, '41052', 'completed', 'Autumn 2026')"
     )
     other = get_record(conn, 2)
-    assert other["counted_cp"] == 6
+    assert other["completed_cp"] == 6  # on the record, but with no major chosen it does not count towards the degree yet
+    assert other["counted_cp"] == 0 and other["not_counted_cp"] == 6
     demo_codes = {s["code"] for _, items in get_record(conn, 1)["completed_by_session"] for s in items}
     assert "41052" not in demo_codes
 

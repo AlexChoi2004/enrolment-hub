@@ -16,8 +16,10 @@ h1 { margin-top: 0; }
 .filters label { display: flex; flex-direction: column; font-size: .8rem; color: var(--muted); gap: .2rem; }
 .filters input, .filters select { padding: .45rem .6rem; border: 1px solid var(--border);
                                    border-radius: 6px; font-size: .95rem; min-width: 12rem; }
-.filters button { align-self: flex-end; padding: .5rem .9rem; border: 0; border-radius: 6px;
-                  background: var(--accent); color: #fff; cursor: pointer; }
+.filters button, .filters .btn-secondary { align-self: flex-end; padding: .5rem .9rem; border: 1px solid var(--accent);
+                  border-radius: 6px; font-size: .95rem; line-height: 1.2; cursor: pointer; text-decoration: none; }
+.filters button { background: var(--accent); color: #fff; }
+.filters .btn-secondary { background: var(--card); color: var(--accent); }
 .count { color: var(--muted); margin: .25rem 0 .75rem; }
 .card { background: var(--card); border: 1px solid var(--border); border-left: 5px solid var(--c, var(--border));
         border-radius: 8px; padding: .75rem 1rem; margin-bottom: .6rem; }
@@ -39,30 +41,28 @@ details[open] .chev { transform: rotate(180deg); }
 ul.plain { margin: .2rem 0; padding-left: 1.1rem; }
 a { color: var(--accent); }
 
-
 /* Category colours: one custom property (--c) drives the card edge and the badge. */
 .cat-core { --c: #2457d6; }
 .cat-honours_core { --c: #7a3fc2; }
 .cat-major_core { --c: #0f8b8d; }
-.cat-major_elective { --c: #e0a800; }
+.cat-major_elective { --c: #c2570c; }
 .cat-general_elective { --c: #6b7280; }
+.cat-sub_core { --c: #7c3aed; }
+[class*="cat-sub_choose"] { --c: #a855f7; }
+.cat-submajor_prompt { --c: #7c3aed; }
 .badge.category { color: var(--c); border-color: var(--c);
                   background: color-mix(in srgb, var(--c) 12%, white); }
-.badge.category.cat-major_elective { color: #7a5b00; }
 .legend { margin: 0 0 .75rem; display: flex; flex-wrap: wrap; gap: .4rem; }
 
-
-/* Prerequisite facts: neutral slate = has prerequisites, soft green = none.
-   Solid red/green fills are kept for the student's own status (blocked / eligible). */
-.badge.req { color: #334155; border-color: #94a3b8; background: #e8edf4; }
+/* Prerequisite colours: amber = has prerequisites, green = none.
+   Red is kept for "blocked" once the student's progress is known. */
+.badge.req { color: #8a5a00; border-color: #ecd9a8; background: #fff7e0; }
 .badge.none { color: var(--ok); border-color: #b7e0c8; background: #e9f7ef; }
-
 
 /* Category headings */
 .group { margin-top: 1.4rem; }
 .group-title { margin: 0; font-size: 1.15rem; padding-bottom: .25rem; border-bottom: 3px solid var(--c, var(--border)); }
 .group-rule { margin: .3rem 0 .7rem; color: var(--muted); font-size: .9rem; }
-
 
 /* Login and account controls */
 .inline { display: inline; margin: 0; }
@@ -73,18 +73,15 @@ a { color: var(--accent); }
 .login-form button { padding: .55rem 1rem; border: 0; border-radius: 6px; background: var(--accent); color: #fff; cursor: pointer; }
 .demo-note { background: #eef3fd; border: 1px solid #c9d6f5; padding: .6rem .8rem; border-radius: 8px; font-size: .9rem; }
 
-
 /* Record tables */
 .table { width: 100%; border-collapse: collapse; background: var(--card); margin-bottom: 1rem; }
 .table th, .table td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--border); }
 .table th { font-size: .8rem; color: var(--muted); text-transform: uppercase; }
 h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 
-
 /* Registration errors */
 .error-list { margin: .2rem 0 1rem; }
 .muted { color: var(--muted); font-size: .85rem; margin: 0; }
-
 
 /* Welcome screen */
 .welcome { text-align: center; max-width: 36rem; margin: 3rem auto; }
@@ -94,7 +91,6 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 .button { display: inline-block; padding: .65rem 1.3rem; border-radius: 6px; background: var(--accent);
           color: #fff; text-decoration: none; border: 1px solid var(--accent); }
 .button.secondary { background: var(--card); color: var(--accent); }
-
 
 /* Student status: completed and can't-enrol are greyed, enrolled is tinted green */
 .card.status-completed, .card.status-blocked { background: #eceff3; }
@@ -114,7 +110,6 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 .group-note { margin: 0 0 .7rem; font-weight: 600; color: var(--muted); }
 .tick { color: var(--ok); }
 
-
 /* Enrol, withdraw and move */
 .flash { padding: .6rem .9rem; border-radius: 8px; margin: 0 0 1rem; border: 1px solid var(--border); }
 .flash-success { background: #e9f7ef; border-color: #b7e0c8; color: #14532d; }
@@ -132,7 +127,6 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 .load { padding: .15rem .6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--card); }
 .load-full { border-color: var(--bad); color: var(--bad); }
 
-
 /* Navigation: main links on the left, account on the right */
 .nav-main { display: flex; gap: 1.2rem; }
 .nav-account { margin-left: auto; display: flex; gap: 1.2rem; }
@@ -145,7 +139,6 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 .profile-list dt { color: var(--muted); }
 .profile-list dd { margin: 0; }
 
-
 /* Degree planner */
 .plan-actions { display: flex; flex-wrap: wrap; margin: 0 0 1rem; }
 .plan-session { margin-bottom: 1rem; }
@@ -155,13 +148,6 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 .plan-problem td { background: #fdecea; }
 .badge.st-planned { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-
-/* A finished elective requirement stays visible, greyed, with a note */
-.card.plan-complete { background: #eceff3; }
-.card.plan-complete .name { color: var(--muted); }
-.card.plan-complete .group-note { margin: .3rem 0 0; }
-
-
 /* Messages stay in view wherever you are on the page, then fade out */
 .toasts { position: fixed; top: 4.2rem; right: 1rem; z-index: 50; display: flex; flex-direction: column;
           gap: .5rem; max-width: min(26rem, calc(100vw - 2rem)); }
@@ -170,7 +156,10 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 @keyframes toast-out { to { opacity: 0; visibility: hidden; } }
 @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
 
-
+/* A finished elective requirement stays visible, greyed, with a note */
+.card.plan-complete { background: #eceff3; }
+.card.plan-complete .name { color: var(--muted); }
+.card.plan-complete .group-note { margin: .3rem 0 0; }
 
 /* Timetable */
 .tt-tabs { display: flex; gap: 1rem; margin: 0 0 1rem; }

@@ -49,6 +49,7 @@ def new_student(tmp_path):
                                    "confirm_password": "Str0ng#Pass", "csrf_token": token})
     token = TOKEN.search(client.get("/planner").get_data(as_text=True)).group(1)
     client.post("/major/MAJ03519/choose", data={"csrf_token": token})  # new accounts choose a major first
+    client.post("/submajor/SMJ10156/choose", data={"csrf_token": token})  # and a sub-major (four core subjects)
     return client
 
 
@@ -106,9 +107,9 @@ def test_adding_a_subject_confirms_it(app, demo):
 
 
 def test_a_refused_add_explains_why(app, demo):
-    post(demo, "/planner/add", subject_code="SYN102", session_label="Autumn 2028")
+    post(demo, "/planner/add", subject_code="41039", session_label="Autumn 2028")  # already completed
     assert planned_rows(app) == {}
-    assert "General electives requirement would be exceeded" in page(demo)
+    assert "You have already completed 41039 Programming 1" in page(demo)
 
 
 def test_moving_and_removing_through_the_pages(app, demo):

@@ -122,8 +122,8 @@ def test_rebuilding_the_database_gives_identical_demo_history(tmp_path):
     assert snapshot("a.db") == snapshot("b.db")
 
 
-def test_all_four_general_electives_are_completed(conn, history):
-    electives = [h for h in history if h["subject_code"].startswith("SYN")]
-    assert len(electives) == 4
-    assert all(h["status"] == "completed" for h in electives)
-    assert sum(h["credit_points"] for h in electives) == 24  # the whole general elective requirement
+def test_all_four_sub_major_core_subjects_are_completed(conn, history):
+    core = [h for h in history if h["subject_code"] in ("48080", "81529", "81546", "81547")]
+    assert len(core) == 4
+    assert all(h["status"] == "completed" for h in core)
+    assert sum(h["credit_points"] for h in core) == 24  # the whole sub-major

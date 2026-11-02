@@ -17,6 +17,12 @@
     {% if major %}{{ major.name }} ({{ major.code }}) · <a href="{{ url_for('majors.index') }}">Swap major</a>
     {% else %}Not chosen yet · <a href="{{ url_for('majors.index') }}">Choose your major</a>{% endif %}
   </dd>
+  <dt>Sub-major</dt>
+  <dd>
+    {% if submajor %}{{ submajor.name }} ({{ submajor.code }}){% if submajor.language_name %}, {{ submajor.language_name }}{% endif %} · <a href="{{ url_for('submajors.index') }}">Swap sub-major</a>
+    {% elif electives %}General electives (24 cp, instead of a sub-major) · <a href="{{ url_for('submajors.index') }}">Change</a>
+    {% else %}Not chosen yet · <a href="{{ url_for('submajors.index') }}">Choose your sub-major</a> or electives{% endif %}
+  </dd>
   <dt>Started</dt><dd>{{ person.commencement_session }}</dd>
   <dt>Now</dt><dd>Year {{ year }} · {{ current_session }}</dd>
   <dt>Progress</dt>

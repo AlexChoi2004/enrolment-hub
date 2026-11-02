@@ -92,11 +92,6 @@ def test_search_text_is_html_escaped(client):
     assert b"&lt;script&gt;" in res.data
 
 
-def test_synthetic_electives_are_labelled(client):
-    res = client.get("/subjects?category=general_elective")
-    assert res.data.count(b"synthetic") >= 12
-
-
 def test_static_theme_is_served(client):
     assert client.get("/static/theme.css").status_code == 200
 
@@ -107,7 +102,7 @@ def test_prerequisite_filter_options_work_through_the_page(client):
     assert required.status_code == 200
     assert none.status_code == 200
     assert b"23 subjects" in required.data
-    assert b"22 subjects" in none.data
+    assert b"10 subjects" in none.data  # the demo student has the Innovation sub-major (its four subjects are "unknown", not "none")
     assert client.get("/subjects?prereqs=supplied").status_code == 400
 
 
@@ -125,10 +120,25 @@ def test_page_has_a_heading_and_rule_for_each_category(client):
     assert res.data.count(b'class="group-title"') == 5
     assert b"All 16 required" in res.data
     assert b"Choose 3 of 9" in res.data
-    assert b"Choose 4 of 12" in res.data
+    assert b"All 4 required" in res.data  # the sub-major core
 
 
 def test_empty_categories_are_hidden_when_filtering(client):
     res = client.get("/subjects?category=honours_core")
     assert res.data.count(b'class="group-title"') == 1
     assert b"Honours core" in res.data
+
+
+def test_filters_apply_only_when_the_apply_button_is_clicked(client):
+    page = client.get("/subjects").get_data(as_text=True)
+    start = page.index('<form class="filters"')
+    form = page[start: page.index("</form>", start)]
+    assert re.search(r'hx-trigger="([^"]*)"', form).group(1) == "submit"  # not on keystrokes or dropdown changes
+    assert '<button type="submit">Apply</button>' in form
+
+
+def test_there_is_a_reset_filters_button_that_clears_everything(client):
+    page = client.get("/subjects?q=web&session=Autumn&status=blocked").get_data(as_text=True)
+    assert 'href="/subjects">Reset filters</a>' in page
+    reset = client.get("/subjects").get_data(as_text=True)
+    assert 'value="web"' not in reset and "Reset filters" in reset

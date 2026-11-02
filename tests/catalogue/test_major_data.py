@@ -87,26 +87,27 @@ def test_a_subject_can_be_core_in_one_major_and_an_option_in_another(conn):
 
 def test_no_subject_code_is_duplicated(conn):
     total = conn.execute("SELECT COUNT(*) FROM subjects").fetchone()[0]
-    assert total == conn.execute("SELECT COUNT(DISTINCT code) FROM subjects").fetchone()[0] == 105
+    assert total == conn.execute("SELECT COUNT(DISTINCT code) FROM subjects").fetchone()[0] == 181
 
 
 def test_the_original_enterprise_software_data_is_unchanged(conn):
     stored = {r[0]: r[1] for r in conn.execute("SELECT category, COUNT(*) FROM subjects GROUP BY category")}
     assert stored["core"] == 16 and stored["honours_core"] == 3
     assert stored["major_core"] == 5 and stored["major_elective"] == 9 and stored["general_elective"] == 12
-    assert stored["major_other"] == 60
+    assert stored["major_other"] == 60 + 76  # the other majors' subjects plus the sub-major-only subjects
 
 
-def test_added_subjects_are_six_credit_points_with_valid_offerings(conn):
+def test_added_subjects_are_six_or_eight_credit_points_with_valid_offerings(conn):
     rows = conn.execute("SELECT credit_points, sessions_offered FROM subjects WHERE category = 'major_other'").fetchall()
-    assert rows and all(r["credit_points"] == 6 and r["sessions_offered"] in ("Autumn", "Spring", "Both") for r in rows)
+    assert rows and all(r["credit_points"] in (6, 8) and r["sessions_offered"] in ("Autumn", "Spring", "Both") for r in rows)
+    assert {r["credit_points"] for r in rows} == {6, 8}  # languages are 8 cp
 
 
 # --- prerequisites: the added subjects follow the same model as the original ones -------------------------------
 
-def test_every_subject_is_either_required_or_none_never_unknown(conn):
+def test_prerequisite_status_is_unknown_only_for_subjects_not_researched_yet(conn):
     states = {r[0] for r in conn.execute("SELECT DISTINCT prereq_status FROM subjects")}
-    assert states == {"required", "none"}
+    assert states == {"required", "none", "unknown"}  # unknown: sub-major-only subjects not researched yet
 
 
 def test_a_subject_is_required_exactly_when_it_has_a_rule(conn):
@@ -114,6 +115,8 @@ def test_a_subject_is_required_exactly_when_it_has_a_rule(conn):
         "SELECT subject_code FROM prerequisites UNION SELECT subject_code FROM credit_requirements")}
     required = {r[0] for r in conn.execute("SELECT code FROM subjects WHERE prereq_status = 'required'")}
     assert required == with_rules
+    unknown = {r[0] for r in conn.execute("SELECT code FROM subjects WHERE prereq_status = 'unknown'")}
+    assert len(unknown) == 76 and unknown.isdisjoint(with_rules)
 
 
 def test_the_twelve_original_rules_are_kept_and_the_handbook_rules_are_added_on_top(conn):

@@ -1,11 +1,11 @@
 <p class="count" id="count">{{ subjects|length }} subject{{ '' if subjects|length == 1 else 's' }}</p>
 {% for g in groups %}
   {% if g.prompt %}
-    <section class="group cat-major_prompt">
-      <h2 class="group-title">Major</h2>
+    <section class="group cat-{{ g.category }}">
+      <h2 class="group-title">{{ g.label }}</h2>
       <div class="card major-prompt">
-        <p><strong>You haven't chosen a major yet.</strong> Choose one to see its core subjects and options here.</p>
-        <a class="btn" href="{{ url_for('majors.index') }}">Choose major</a>
+        <p><strong>{{ g.text }}</strong> Choose one to see its subjects here.</p>
+        <a class="btn" href="{{ g.href }}">{{ g.button }}</a>
       </div>
     </section>
   {% else %}

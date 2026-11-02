@@ -1,5 +1,5 @@
 """Choose or swap a major. A student can only ever change their own major."""
-from flask import Blueprint, abort, flash, g, make_response, redirect, render_template, url_for
+from flask import Blueprint, abort, flash, g, make_response, redirect, render_template, request, url_for
 
 from majors import service
 from shared import security
@@ -42,12 +42,16 @@ def choose(code):
     if not is_valid_major_code(code):
         abort(400)
     try:
-        result = service.choose_major(get_db(), g.user["id"], code)
+        result = service.choose_major(get_db(), g.user["id"], code, withdraw=request.form.get("withdraw_in_progress") == "1")
     except service.MajorError as exc:
         flash(str(exc), "error")
         return redirect(url_for("majors.show", code=code), code=303)
     verb = "Swapped to" if result["swapped"] else "Confirmed"
     flash(f"{verb} {result['major']} as your major.", "success")
+    if result["withdrawn"]:
+        flash(f"Withdrew you from {result['withdrawn']} in-progress subject(s) that are not in this major.", "success")
+    if result["no_longer_counted"]:
+        flash(f"{result['no_longer_counted']} subject(s) you have done no longer count towards your degree.", "warning")
     if result["plan_removed"]:
         flash(f"Removed {result['plan_removed']} planned subject(s) that are not in this major.", "warning")
     return redirect(url_for("catalogue.list_page"), code=303)

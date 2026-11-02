@@ -15,7 +15,7 @@ from accounts import service
 from accounts.seed import DEMO_EMAIL, DEMO_PASSWORD, DEMO_STUDENT_NUMBER
 from enrolment import service as enrolment_service
 from enrolment.service import CURRENT_SESSION
-from subject_catalogue.service import get_major
+from subject_catalogue.service import get_major, uses_general_electives, user_submajor
 from shared import security
 from shared.db import get_db
 
@@ -152,6 +152,8 @@ def profile():
             current_session=CURRENT_SESSION,
             record=enrolment_service.get_record(conn, g.user["id"]),
             major=get_major(conn, person["major_code"]),
+            submajor=user_submajor(conn, g.user["id"]),
+            electives=uses_general_electives(conn, g.user["id"]),
             is_demo=person["student_number"] == DEMO_STUDENT_NUMBER,
         )
     )

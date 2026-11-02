@@ -12,6 +12,12 @@ CREATE TABLE IF NOT EXISTS users (
     commencement_session TEXT NOT NULL,
     -- The major the student has confirmed. NULL until they choose one.
     major_code           TEXT REFERENCES majors(code),
+    -- The 24 cp sub-major the student has confirmed (NULL until they choose one), and, for the language
+    -- sub-major only, the one language program they picked.
+    submajor_code        TEXT REFERENCES submajors(code),
+    submajor_language    TEXT,
+    -- 1 = the student took 24 cp of general electives INSTEAD of a sub-major (the two are alternatives).
+    general_electives    INTEGER NOT NULL DEFAULT 0 CHECK (general_electives IN (0, 1)),
     failed_logins        INTEGER NOT NULL DEFAULT 0,
     -- Unix time until which logins are refused after too many failures (0 = not locked).
     locked_until         INTEGER NOT NULL DEFAULT 0

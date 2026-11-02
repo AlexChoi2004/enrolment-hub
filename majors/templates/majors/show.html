@@ -27,22 +27,36 @@
   <p class="muted">This major has no options: every subject is core.</p>
 {% endif %}
 
+{% if major.impact.carried %}
+  <p class="notice">These subjects you have done count in this major:
+    {% for c in major.impact.carried %}{{ c.subject_code }} {{ c.name }} ({{ c.status }}){{ ', ' if not loop.last }}{% endfor %}.
+  </p>
+{% endif %}
+{% if major.impact.lost or major.impact.plan_removed %}
+  <div class="flash flash-warning">
+    {% if major.impact.lost %}
+      <p>These subjects you have done would stop counting towards your degree. They stay on your record, and still count
+        for credit-point prerequisites.</p>
+      <ul class="plain">
+        {% for l in major.impact.lost %}<li>{{ l.subject_code }} {{ l.name }} ({{ l.status }})</li>{% endfor %}
+      </ul>
+    {% endif %}
+    {% if major.impact.plan_removed %}<p>{{ major.impact.plan_removed }} planned subject(s) would be removed from your plan.</p>{% endif %}
+  </div>
+{% endif %}
+
 {% if major.is_current %}
   <p class="demo-note">This is your major.</p>
-{% elif major.blockers %}
-  <div class="flash flash-error">
-    <p>You can't swap to this major yet. These only count in your current major:</p>
-    <ul class="plain">
-      {% for b in major.blockers %}<li>{{ b.code }} {{ b.name }} ({{ b.status }})</li>{% endfor %}
-    </ul>
-    <p>Withdraw from the ones in progress first. Completed subjects can't be undone.</p>
-  </div>
 {% else %}
-  {% if major.has_current %}
-    <p>Swapping keeps the subjects they share. Anything planned that is not in this major is removed from your plan.</p>
-  {% endif %}
+  {% if major.has_current %}<p>Swapping keeps what you have done. Subjects they share count in the new major; anything else stops counting.</p>{% endif %}
   <form method="post" action="{{ url_for('majors.choose', code=major.code) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if major.impact.withdrawable %}
+      <p><label>
+        <input type="checkbox" name="withdraw_in_progress" value="1" checked>
+        Also withdraw me from the {{ major.impact.withdrawable|length }} in-progress subject(s) listed above (marked "enrolled")
+      </label></p>
+    {% endif %}
     <button type="submit" class="btn">{{ 'Swap to this major' if major.has_current else 'Confirm this major' }}</button>
   </form>
 {% endif %}

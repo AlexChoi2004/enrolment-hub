@@ -146,7 +146,7 @@ def test_the_current_major_is_marked_and_other_majors_offer_a_swap(client, regis
     assert "This is your major." in html(client, "/major/MAJ02901")
     other = html(client, "/major/MAJ10053")
     assert "Swap to this major" in other and "Confirm this major" not in other
-    assert "Swapping keeps the subjects they share" in other
+    assert "Swapping keeps what you have done" in other
     assert "Swap major" in html(client, "/major") and "Your major" in html(client, "/major")
 
 
@@ -185,14 +185,17 @@ def test_the_demo_student_keeps_enterprise_software_development(client, log_in):
     assert "All 5 required" in page and "Choose 3 of 9" in page
 
 
-def test_the_demo_student_cannot_swap_and_is_told_why(app, client, log_in):
+def test_the_demo_student_can_swap_and_is_told_what_stops_counting(app, client, log_in):
     log_in()
     page = html(client, "/major/MAJ10053")
-    assert "You can't swap to this major yet" in page and "41025 Introduction to Software Development (completed)" in page
-    assert "Swap to this major" not in page and "Confirm this major" not in page
+    assert "These subjects you have done would stop counting towards your degree" in page
+    assert "41025 Introduction to Software Development (completed)" in page
+    assert "Swap to this major" in page and "You can't swap" not in page
     choose(client, AI)
-    assert stored_major(app, 1) == ESD
-    assert "41025 Introduction to Software Development (completed)" in html(client, "/major/MAJ10053")
+    assert stored_major(app, 1) == AI
+    after = html(client, "/subjects")
+    assert "Swapped to Artificial Intelligence and Data Analytics as your major." in after
+    assert "subject(s) you have done no longer count towards your degree." in after
 
 
 def test_the_demo_students_own_major_page_says_so(client, log_in):
@@ -207,15 +210,16 @@ def test_with_no_major_the_subjects_page_offers_choose_major_where_the_major_wou
     page = html(client, "/subjects")
     assert "You haven't chosen a major yet" in page and 'href="/major"' in page and "Choose major" in page
     honours = page.index('<h2 class="group-title">Honours core')
-    general = page.index('<h2 class="group-title">General electives')
-    assert honours < page.index('class="card major-prompt"') < general
+    major_prompt = page.index('class="group cat-major_prompt"')
+    sub_prompt = page.index('class="group cat-submajor_prompt"')
+    assert honours < major_prompt < sub_prompt  # the sub-major prompt comes after the major's
     assert "Major core" not in page and "Major electives" not in page
 
 
 def test_with_no_major_no_major_subjects_are_listed(client, register):
     register()
     page = html(client, "/subjects")
-    assert "Programming 1" in page and "Introduction to Statistics" in page  # core and general electives
+    assert "Programming 1" in page and "Technology Research Preparation" in page  # core and honours core
     for hidden in ["Advanced Software Development", "Machine Learning", "Linear Algebra", "Capstone"]:
         assert hidden not in page
 
@@ -223,7 +227,7 @@ def test_with_no_major_no_major_subjects_are_listed(client, register):
 def test_with_no_major_the_category_filter_only_offers_shared_sections(client, register):
     register()
     page = html(client, "/subjects")
-    assert 'value="core"' in page and 'value="general_elective"' in page and 'value="major_core"' not in page
+    assert 'value="core"' in page and 'value="honours_core"' in page and 'value="major_core"' not in page
     assert client.get("/subjects?category=major_core").status_code == 400
 
 
@@ -334,3 +338,34 @@ def test_a_subject_only_lists_what_it_unlocks_inside_your_degree(client, registe
     assert "Linear Algebra" not in page
     choose(client, "MAJ01156")
     assert "Linear Algebra" in card(html(client, "/subjects"), "33130")
+
+
+def test_the_swap_page_offers_to_withdraw_from_in_progress_subjects(client, log_in):
+    log_in()
+    page = html(client, "/major/MAJ10053")
+    assert 'name="withdraw_in_progress"' in page and "41026 Advanced Software Development (enrolled)" in page
+    assert "Also withdraw me from the 1 in-progress subject(s)" in page
+
+
+def enrolment_status(app, code, user_id=1):
+    conn = db.connect(app.config["DATABASE"])
+    try:
+        row = conn.execute("SELECT status FROM enrolments WHERE user_id = ? AND subject_code = ?", (user_id, code)).fetchone()
+        return row["status"] if row else None
+    finally:
+        conn.close()
+
+
+def test_swapping_with_the_box_ticked_withdraws_them(app, client, log_in):
+    log_in()
+    choose(client, AI, withdraw_in_progress="1")
+    assert enrolment_status(app, "41026") is None  # Advanced Software Development is withdrawn
+    assert enrolment_status(app, "41025") == "completed"  # history stays
+    assert "Withdrew you from 1 in-progress subject(s) that are not in this major." in html(client, "/subjects")
+
+
+def test_swapping_without_the_box_leaves_them_enrolled(app, client, log_in):
+    log_in()
+    choose(client, AI)
+    assert enrolment_status(app, "41026") == "enrolled"
+    assert "Withdrew you from" not in html(client, "/subjects")

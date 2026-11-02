@@ -63,14 +63,12 @@ def test_prerequisite_list_shows_met_and_unmet(demo_client):
     assert "in progress (not yet met)" in unmet
 
 
-def test_general_electives_section_is_greyed_out_when_complete(demo_client):
+def test_the_completed_sub_major_core_is_greyed_out(demo_client):
     html = page(demo_client)
-    section = html[html.index('class="group cat-general_elective'):]
+    section = html[html.index('class="group cat-sub_core'):]
     assert "group-complete" in section[:80]
-    assert "4 of 4 chosen" in section
-    assert "can&#39;t enrol in any more general electives" in section or "can't enrol in any more general electives" in section
-    # unchosen electives are blocked, with the reason
-    assert "General electives requirement already complete" in card(html, "SYN102")
+    assert "4 completed, 0 in progress" in section
+    assert "Everything in this section is completed." in section
 
 
 def test_major_electives_section_is_not_greyed_out_yet(demo_client):
@@ -113,7 +111,7 @@ def test_new_student_sees_a_different_page_from_the_demo_student(tmp_path):
     assert "group-complete" not in html
     assert "Can enrol" in card(html, "41039")  # Programming 1
     assert "Can't enrol" in card(html, "48024") or "Can&#39;t enrol" in card(html, "48024")
-    assert "0 of 4 chosen" in html
+    assert "You haven&#39;t chosen a sub-major or general electives yet" in html or "You haven't chosen a sub-major or general electives yet" in html
 
 
 def test_htmx_fragment_also_carries_statuses(demo_client):
