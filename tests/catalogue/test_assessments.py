@@ -98,8 +98,10 @@ def test_a_mandatory_task_with_no_marks_is_stored_without_a_weight(conn):
     assert info["total_weight"] == 100
 
 
-def test_no_due_weeks_are_invented_yet(conn):
-    assert count(conn, "SELECT COUNT(*) FROM assessments WHERE due_week IS NOT NULL") == 0
+def test_due_weeks_are_stored_but_always_labelled_illustrative(conn):
+    assert count(conn, "SELECT COUNT(*) FROM assessments WHERE due_week IS NOT NULL AND due_week_source <> 'illustrative'") == 0
+    assert count(conn, "SELECT COUNT(*) FROM assessments WHERE due_week IS NULL") == 0  # every stored task has an illustrative week
+    assert count(conn, "SELECT COUNT(*) FROM assessments WHERE due_week < 2 OR due_week > 14") == 0
 
 
 def test_the_database_refuses_a_bad_type_group_or_weight(conn):
@@ -192,7 +194,7 @@ def test_the_ai_never_receives_the_unconfirmed_43030_tasks(conn):
 def test_the_ai_gets_the_tasks_and_a_caveat_for_indicative_information(conn):
     context = ai_context(conn, "41039")
     assert context["assessments_known"] is True and context["status"] == "indicative"
-    assert "Exam (20%, individual, exam)" in context["text"] and "subject outline is authoritative" in context["text"]
+    assert "Exam (20%, individual, exam, due week 14 (illustrative))" in context["text"] and "subject outline is authoritative" in context["text"]
 
 
 def test_the_ai_is_told_historical_information_is_unconfirmed(conn):

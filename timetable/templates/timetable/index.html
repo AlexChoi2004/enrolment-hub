@@ -14,6 +14,18 @@
   {% endfor %}
 </nav>
 
+{% if workload.status %}
+  <details class="workload wl-{{ workload.status }}">
+    <summary><span class="badge wl-badge-{{ workload.status }}">Workload: {{ workload.label }}</span>
+      <span class="muted">average assessment load {{ workload.average_load }} of 5 (app estimate)</span></summary>
+    {% if workload.warnings %}<ul class="plain">{% for w in workload.warnings %}<li class="unmet">{{ w }}</li>{% endfor %}</ul>{% endif %}
+    {% if workload.positives %}<ul class="plain">{% for p in workload.positives %}<li class="met">&#10003; {{ p }}</li>{% endfor %}</ul>{% endif %}
+    {% if workload.weeks %}
+      <p class="muted">Deadlines by week (illustrative): {% for wk, v in workload.weeks.items() %}week {{ wk }}: {{ v.count }}{{ ', ' if not loop.last }}{% endfor %}. Exams are in the exam period.</p>
+    {% endif %}
+  </details>
+{% endif %}
+
 {% if timetable.clashes %}
   <div class="flash flash-error">
     <p>Classes that clash this session:</p>
