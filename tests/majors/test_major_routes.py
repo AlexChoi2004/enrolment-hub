@@ -170,10 +170,10 @@ def test_choosing_the_same_major_again_explains(client, register):
 def test_swapping_removes_planned_subjects_and_says_so(client, register):
     register()
     choose(client, ESD)
-    client.post("/planner/add", data={"subject_code": "31927", "session_label": "Spring 2028", "csrf_token": token(client, "/planner")})
+    client.post("/planner/add", data={"subject_code": "31260", "session_label": "Spring 2028", "csrf_token": token(client, "/planner")})
     choose(client, QUANTUM, path="/planner")
     assert "Removed 1 planned subject(s) that are not in this major." in html(client, "/subjects")
-    assert "31927" not in html(client, "/planner")
+    assert "31260" not in html(client, "/planner")
 
 
 # --- the demo student ---------------------------------------------------------------------------------------------------
@@ -271,10 +271,10 @@ def test_the_planner_after_choosing_shows_the_majors_electives(client, register)
 
 def test_the_timetable_works_for_a_new_majors_subjects(client, register):
     register()
-    choose(client, "MAJ03445")
-    client.post("/students/me/enrol", data={"subject_code": "31277", "session_label": "Autumn 2027", "csrf_token": token(client)})
+    choose(client, AI)
+    client.post("/students/me/enrol", data={"subject_code": "31250", "session_label": "Autumn 2027", "csrf_token": token(client)})
     page = html(client, "/timetable")
-    assert '<span class="code">31277</span>' in page and "Routing and Switching Essentials" in page
+    assert '<span class="code">31250</span>' in page and "Introduction to Data Analytics" in page
 
 
 def test_added_subjects_show_prerequisites_like_the_original_ones(client, register):
@@ -287,8 +287,8 @@ def test_added_subjects_show_prerequisites_like_the_original_ones(client, regist
 
 def test_a_subject_with_no_rule_says_no_prerequisites(client, register):
     register()
-    choose(client, "MAJ02900")
-    page = card(html(client, "/subjects"), "41182")  # System Security: nothing listed
+    choose(client, AI)
+    page = card(html(client, "/subjects"), "31250")  # Introduction to Data Analytics: nothing listed
     assert "no prerequisites" in page and "No prerequisites listed in the supplied data." in page
 
 
@@ -317,14 +317,15 @@ def test_an_unenforceable_lead_is_shown_as_not_enforced(client, register):
     register()
     choose(client, AI)
     page = card(html(client, "/subjects"), "31243")
-    assert "Not enforced:" in page and "41004" in page
+    assert "Note:" in page and "41004" in page and "not enforced" in page
     assert 'st-available">Can enrol' in page  # it is not blocked by the lead it cannot enforce
 
 
-def test_original_subjects_with_a_lead_show_it_as_not_enforced(client, log_in):
+def test_the_handbook_wording_is_shown_when_the_app_cannot_enforce_all_of_it(client, log_in):
     log_in()
     page = card(html(client, "/subjects"), "41040")
-    assert "Not enforced:" in page and "41039 Programming 1" in page
+    assert "41039 Programming 1" in page  # the enforced prerequisite
+    assert "UTS Handbook requisite: (48023 OR 41039)" in page and "Only the subjects in this app are enforced" in page
 
 
 def test_a_subject_only_lists_what_it_unlocks_inside_your_degree(client, register):

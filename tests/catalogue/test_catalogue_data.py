@@ -69,13 +69,15 @@ def test_handbook_subjects_are_not_marked_synthetic(conn):
     assert n == 0
 
 
-def test_exactly_12_supplied_prerequisite_rules(conn):
-    # The original subjects keep exactly the 12 supplied rules (the added subjects have their own, tested elsewhere).
-    n = conn.execute(
-        "SELECT COUNT(*) AS n FROM prerequisites p JOIN subjects s ON s.code = p.subject_code"
-        " WHERE s.category <> 'major_other'"
-    ).fetchone()["n"]
-    assert n == 12
+def test_the_12_supplied_prerequisite_rules_are_all_still_present(conn):
+    from subject_catalogue.seed_data import PREREQUISITES
+
+    assert len(PREREQUISITES) == 12
+    for subject, prereq in PREREQUISITES:  # the handbook confirmed all twelve
+        assert conn.execute(
+            "SELECT 1 FROM prerequisites WHERE subject_code = ? AND prereq_code = ?", (subject, prereq)
+        ).fetchone()
+
 
 def test_specific_prerequisite_rule(conn):
     row = conn.execute(

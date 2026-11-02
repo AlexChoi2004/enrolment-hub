@@ -121,6 +121,7 @@ def evaluate_subjects(conn, user_id):
         major: sum(cp_of[code] for code in codes if records.get(code) == "completed")
         for major, codes in members.items()
     }
+    major_credit[None] = sum(cp_of[code] for code, state in records.items() if state == "completed")  # whole degree
 
     categories = {}
     for row in degree_categories(conn, user_id):

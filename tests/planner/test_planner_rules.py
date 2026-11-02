@@ -75,7 +75,7 @@ def test_the_subject_must_be_offered_in_that_session(conn, student):
 
 
 def test_a_session_cannot_go_over_24_credit_points(conn, student):
-    for code in ["41039", "33130", "31271", "31265"]:
+    for code in ["41039", "33130", "31268", "31265"]:
         add_to_plan(conn, student, code, "Autumn 2028")
     with pytest.raises(PlanError, match="Autumn 2028 would go over 24 credit points"):
         add_to_plan(conn, student, "37181", "Autumn 2028")
@@ -186,7 +186,7 @@ def test_cannot_move_a_prerequisite_later_than_what_needs_it(conn, student):
 
 
 def test_cannot_move_into_a_full_session(conn, student):
-    for code in ["41039", "33130", "31271", "31265"]:
+    for code in ["41039", "33130", "31268", "31265"]:
         add_to_plan(conn, student, code, "Autumn 2028")
     add_to_plan(conn, student, "37181", "Spring 2028")
     with pytest.raises(PlanError, match="Autumn 2028 would go over 24 credit points"):
@@ -194,7 +194,7 @@ def test_cannot_move_into_a_full_session(conn, student):
 
 
 def test_moving_frees_room_in_the_old_session(conn, student):
-    for code in ["41039", "33130", "31271", "31265"]:
+    for code in ["41039", "33130", "31268", "31265"]:
         add_to_plan(conn, student, code, "Autumn 2028")
     move_in_plan(conn, student, "31265", "Spring 2028")
     add_to_plan(conn, student, "37181", "Autumn 2028")  # room again
@@ -251,9 +251,9 @@ def test_withdrawing_a_prerequisite_flags_the_plan(conn):
     assert get_plan(conn, 1)["problems"] == []
     withdraw(conn, 1, "32144")
     plan = get_plan(conn, 1)
-    assert any("32931" in p and "Needs 32144" in p for p in plan["problems"])
+    assert any("32931" in p and "Needs (32144" in p for p in plan["problems"])
     item = next(i for s in plan["sessions"] for i in s["planned"] if i["code"] == "32931")
-    assert "Needs 32144" in item["problem"]
+    assert "Needs (32144" in item["problem"]
 
 
 # --- reading the plan (Read) --------------------------------------------------------------------------------------
@@ -290,7 +290,7 @@ def test_each_outstanding_subject_lists_the_sessions_it_could_go_in(conn):
     assert outstanding["32931"]["sessions"][0] == "Spring 2027"  # after the enrolled prerequisite
     assert all(s.startswith("Spring") for s in outstanding["32931"]["sessions"])
     assert "Autumn 2027" not in outstanding["31482"]["sessions"]  # Autumn 2027 is full
-    assert outstanding["31482"]["sessions"][0] == "Autumn 2028"
+    assert outstanding["31482"]["sessions"] == []  # Honours Project needs 32931 completed or planned first
 
 
 def test_elective_needs_for_the_demo_student(conn):

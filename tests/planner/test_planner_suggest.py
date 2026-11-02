@@ -52,11 +52,19 @@ def test_every_suggested_placement_passes_the_same_rules_as_a_manual_change(conn
 
 
 def test_prerequisites_always_come_in_an_earlier_session(conn, student):
+    from subject_catalogue.service import load_prerequisites
+
     suggest_plan(conn, student)
     plan = planned(conn, student)
-    for subject, prereq in conn.execute("SELECT subject_code, prereq_code FROM prerequisites"):
-        if subject in plan:
-            assert order(plan[prereq]) < order(plan[subject]), (prereq, subject)
+    for subject, groups in load_prerequisites(conn).items():
+        if subject not in plan:
+            continue
+        for group in groups:
+            assert any(
+                alt in plan and (order(plan[alt]) < order(plan[subject])
+                                 or (group["concurrent"] and order(plan[alt]) <= order(plan[subject])))
+                for alt in group["codes"]
+            ), (subject, group)
 
 
 def test_elective_counts_are_exact(conn, student):
@@ -71,7 +79,7 @@ def test_the_supplied_honours_rule_is_followed_and_the_12_cp_project_is_in_autum
     suggest_plan(conn, student)
     plan = planned(conn, student)
     assert order(plan["32144"]) < order(plan["32931"])  # Honours Project A needs Technology Research Preparation
-    assert plan["31482"].startswith("Autumn")  # Honours Project B is Autumn only (no rule links it to A in the supplied data)
+    assert plan["31482"].startswith("Autumn")  # Honours Project is Autumn only and now needs Technology Research Methods first
 
 
 def test_suggestions_are_repeatable(conn, student):

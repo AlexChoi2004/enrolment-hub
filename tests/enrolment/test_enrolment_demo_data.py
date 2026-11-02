@@ -55,12 +55,31 @@ def test_credit_points_are_not_double_counted(conn, history):
 
 
 def test_every_prerequisite_was_completed_in_an_earlier_session(conn, history):
-    prereqs = prerequisites(conn)
+    from subject_catalogue.service import load_credit_requirements, load_prerequisites
+
+    rules, credit = load_prerequisites(conn), load_credit_requirements(conn)
     done = {h["subject_code"]: h for h in history if h["status"] == "completed"}
+    members = {}
+    for r in conn.execute("SELECT major_code, subject_code FROM major_subjects"):
+        members.setdefault(r["major_code"], set()).add(r["subject_code"])
     for h in history:
-        for needed in prereqs.get(h["subject_code"], []):
-            assert needed in done, f"{h['subject_code']} needs {needed}, which is not completed"
-            assert session_sort_key(done[needed]["session_label"]) < session_sort_key(h["session_label"])
+        code, when = h["subject_code"], session_sort_key(h["session_label"])
+        for group in rules.get(code, []):
+            ok = any(
+                alt in done and (
+                    session_sort_key(done[alt]["session_label"]) < when
+                    or (group["concurrent"] and session_sort_key(done[alt]["session_label"]) <= when)
+                )
+                for alt in group["codes"]
+            )
+            assert ok, f"{code} needs one of {group['codes']} completed earlier"
+        for req in credit.get(code, []):
+            have = sum(
+                d["credit_points"] for c, d in done.items()
+                if session_sort_key(d["session_label"]) < when
+                and (req["major_code"] is None or c in members.get(req["major_code"], ()))
+            )
+            assert have >= req["min_cp"], f"{code} needs {req['min_cp']} credit points, had {have}"
 
 
 def test_subjects_were_taken_in_sessions_they_are_offered(history):

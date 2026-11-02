@@ -39,8 +39,8 @@ def test_session_filter_includes_subjects_offered_both_sessions(conn):
 def test_prerequisite_filter_required_vs_none(conn):
     required = service.list_subjects(conn, Filters(prereqs="required"))
     none = service.list_subjects(conn, Filters(prereqs="none"))
-    assert len(required) == 12
-    assert len(none) == 33
+    assert len(required) == 23
+    assert len(none) == 22
     assert codes(required).isdisjoint(codes(none))
 
 
@@ -157,13 +157,13 @@ def test_attach_status_adds_status_and_note(conn):
     assert by_code["41026"]["status"] == "enrolled"
     assert by_code["41052"]["status"] == "available"
     assert by_code["32931"]["status"] == "blocked"
-    assert by_code["32931"]["note"].startswith("Needs 32144")
+    assert by_code["32931"]["note"].startswith("Needs (32144 Technology Research Preparation or 41079")
 
 
 def test_prerequisites_are_marked_met_in_progress_or_not_met(conn):
     by_code = {s["code"]: s for s in demo_subjects(conn)[0]}
     assert [p["state"] for p in by_code["41026"]["prerequisites"]] == ["completed"]  # needs 41025
-    assert [p["state"] for p in by_code["32931"]["prerequisites"]] == ["enrolled"]  # needs 32144
+    assert [p["state"] for p in by_code["32931"]["prerequisites"]] == ["enrolled", "none"]  # needs 32144 or 41079
     conn.execute("DELETE FROM enrolments WHERE subject_code = '41039'")
     refreshed = {s["code"]: s for s in demo_subjects(conn)[0]}
     assert [p["state"] for p in refreshed["48024"]["prerequisites"]] == ["none"]

@@ -53,7 +53,7 @@ def test_blocked_subject_says_why_it_cant_be_taken(demo_client):
     html = card(page(demo_client), "32931")
     assert "status-blocked" in html
     assert "Can&#39;t enrol" in html or "Can't enrol" in html
-    assert "Needs 32144 Technology Research Preparation" in html
+    assert "Needs (32144 Technology Research Preparation or 41079 Computing Science Studio 2)" in html
 
 
 def test_prerequisite_list_shows_met_and_unmet(demo_client):

@@ -38,7 +38,7 @@ def test_htmx_request_returns_fragment_only(client):
 
 def test_category_filter_through_the_page(client):
     res = client.get("/subjects?category=honours_core")
-    assert b"Honours Project B" in res.data
+    assert b"Honours Project" in res.data
     assert b"Programming 1" not in res.data
 
 
@@ -106,8 +106,8 @@ def test_prerequisite_filter_options_work_through_the_page(client):
     none = client.get("/subjects?prereqs=none")
     assert required.status_code == 200
     assert none.status_code == 200
-    assert b"12 subjects" in required.data
-    assert b"33 subjects" in none.data
+    assert b"23 subjects" in required.data
+    assert b"22 subjects" in none.data
     assert client.get("/subjects?prereqs=supplied").status_code == 400
 
 

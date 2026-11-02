@@ -186,7 +186,11 @@ def _check_placement(state, code, session, ignore_self=False):
 def _major_credit(state, major_code, session):
     """Credit points in a major that are completed, or enrolled/planned in a strictly earlier session."""
     total = 0
-    for code in state["major_members"].get(major_code, ()):
+    if major_code is None:  # a condition on the whole degree
+        codes = [c for c, s in state["subjects"].items() if s["in_degree"]]
+    else:
+        codes = state["major_members"].get(major_code, ())
+    for code in codes:
         cp = state["subjects"][code]["credit_points"]
         rec = state["records"].get(code)
         if rec and rec[0] == "completed":
