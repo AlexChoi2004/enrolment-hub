@@ -209,6 +209,7 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed my own planner summary test that expected the wrong wording, and an isolation test that forgot the demo student has his own Programming 1
 
 
+
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
 - Code, tests and wording were drafted with Claude. I reviewed, ran and committed each chunk myself, and fixed several issues along the way (a missing template,
