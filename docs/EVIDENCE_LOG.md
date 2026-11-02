@@ -11,42 +11,45 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 | 2026-10-29 | 2 (security)  | Login and logout, sessions, CSRF protection, security headers, record page with ownership check                          | 1 HOUR | PR #4  |
 | 2026-10-29 | 2 (security)  | Email login, account creation with password rules, generated student numbers, welcome screen, login-only catalogue       | 1 HOUR | PR #5  |
 | 2026-10-29 | 3 (dev tools) | Single eligibility function for every subject (completed, enrolled, can enrol, can't enrol with reasons),                | 30 MIN | PR #6  |
-             |               | elective limits, greyed-out requirements on the Subjects page, status filter, 39 new tests                               |        |        |
+|            |               | elective limits, greyed-out requirements on the Subjects page, status filter, 39 new tests                               |        |        |
 | 2026-10-29 | 2 (security) and 3 (dev tools) | Enrol, withdraw and move between sessions, 24 credit point limit per session, whole-year planning,      | 1 HOUR | PR #7  |
-             |                                | CSRF on every change, ownership enforced on the server, atomic room check, 69 new tests                 |        |        |
+|            |                                | CSRF on every change, ownership enforced on the server, atomic room check, 69 new tests                 |        |        |
 | 2026-10-30 | 2 (security) and 3 (dev tools) | Added Ruff security rules and a dependency audit to CI; ran detect-secrets locally                      | 10 MIN | PR #8  |
 | 2026-10-30 | 3 (dev tools) | Moved navigation (Subjects, Record on the left; Profile on the right), added a profile page with details, progress,      | 15 MIN | PR #9  |
-             |               | what the app stores, and the log out button, 15 new tests                                                                |        |        |
+|            |               | what the app stores, and the log out button, 15 new tests                                                                |        |        |
 | 2026-10-30 | 3 (dev tools) | Built the degree planner: plan subjects into future sessions (add, move, remove, clear), placement rules (offering,      | 1 HOUR | PR #10 |
-                             | 24 cp, prerequisites in an earlier session, elective limits), suggested plan, outstanding requirements, stale-plan       |        |        |
-                             | warnings and the nav link; kept finished elective sections visible with a completion note; kept scroll position and      |        |        |
-                             | open cards after actions; floating messages; 465 tests                                                                   |        |        |
+|            |               | 24 cp, prerequisites in an earlier session, elective limits), suggested plan, outstanding requirements, stale-plan       |        |        |
+|            |               | warnings and the nav link; kept finished elective sections visible with a completion note; kept scroll position and      |        |        |
+|            |               | open cards after actions; floating messages; 465 tests                                                                   |        |        |
 | 2026-10-31 | 3 (dev tools) | Built the timetable: invented weekly classes (varied lecture, tutorial and workshop patterns with 5 to 10 time options   | 2 HOUR | PR #11 |
-                             | each), weekly view for each session with a colour per subject, choose, change and drop classes, clashes allowed with     |        |        |
-                             | a warning and shown in red, and the nav link; 83 new tests                                                               |        |        |
+|            |               | each), weekly view for each session with a colour per subject, choose, change and drop classes, clashes allowed with     |        |        |
+|            |               | a warning and shown in red, and the nav link; 83 new tests                                                               |        |        |
 | 2026-11-01 | 3 (dev tools) | Added the seven other majors from my supplied data (60 more subjects) with their core and option structure, a major      | 2 HOUR | PR #12 |
-                             | chooser (list, preview, confirm, swap), and a per-student degree that the Subjects page, enrolment, record, profile,     |        |        |
-                             | planner and timetable all follow; the added subjects' prerequisites (alternatives, a corequisite and a credit-point      |        |        |
-                             | condition) enforced like the originals; 695 tests                                                                        |        |        |
+|            |               | chooser (list, preview, confirm, swap), and a per-student degree that the Subjects page, enrolment, record, profile,     |        |        |
+|            |               | planner and timetable all follow; the added subjects' prerequisites (alternatives, a corequisite and a credit-point      |        |        |
+|            |               | condition) enforced like the originals; 695 tests                                                                        |        |        |
 | 2026-11-02 | 3 (dev tools) | Added short descriptions and assessment information for every subject, read from the UTS Handbook (85 subjects) with     | 1 HOUR | PR #13 |
-                             | 2 historical, 6 unconfirmed and 12 sample electives; each assessment structure carries a source, year and verification   |        |        |
-                             | label; unconfirmed subjects say there is no breakdown yet; a single function decides what the AI features may use, and   |        |        |
-                             | says "not enough context" otherwise; 56 new tests                                                                        |        |        |
+|            |               | 2 historical, 6 unconfirmed and 12 sample electives; each assessment structure carries a source, year and verification   |        |        |
+|            |               | label; unconfirmed subjects say there is no breakdown yet; a single function decides what the AI features may use, and   |        |        |
+|            |               | says "not enough context" otherwise; 56 new tests                                                                        |        |        |
 | 2026-11-02 | 3 (dev tools) | Compared my prerequisites with the UTS Handbook for every subject I could read, then matched them: 34 rules added and    | 1 HOUR | PR #14 |
-                             |7 corrected, degree-wide credit-point conditions, corequisites, the handbook's wording kept as notes where the app cannot |        |        |
-                             |enforce it, five subject names corrected, and the demo student's history fixed; 24 new tests                              |        |        |
+|            |               |7 corrected, degree-wide credit-point conditions, corequisites, the handbook's wording kept as notes where the app cannot |        |        |
+|            |               |enforce it, five subject names corrected, and the demo student's history fixed; 24 new tests                              |        |        |
 | 2026-11-02 | 3 (dev tools) | Fixed the prerequisite filter dropdown, which sent values the server no longer accepted, and hid the Apply button unless | 10 MIN | PR #15 |
-                             | JavaScript is off                                                                                                        |        |        |
+|            |               | JavaScript is off                                                                                                        |        |        |
 | 2026-11-02 | 3 (dev tools) | Added eight 24 cp sub-majors with core and option groups, a language sub-major with one chosen program of 8 cp subjects, | 2 HOUR | PR #16 |
-                             | and a stream; 76 new subjects stored once; the 24 cp block is now a choice between a sub-major and general electives; a  |        |        |
-                             | chooser with an impact preview; major, sub-major and electives swaps are never blocked and can withdraw in-progress      |        |        |
-                             | subjects that stop counting; the planner and enrolment handle choose-groups in credit points and flag overlaps with the  |        |        |
-                             | major; filters apply only on Apply with a Reset button; about 150 new tests                                              |        |        |
+|            |               | and a stream; 76 new subjects stored once; the 24 cp block is now a choice between a sub-major and general electives; a  |        |        |
+|            |               | chooser with an impact preview; major, sub-major and electives swaps are never blocked and can withdraw in-progress      |        |        |
+|            |               | subjects that stop counting; the planner and enrolment handle choose-groups in credit points and flag overlaps with the  |        |        |
+|            |               | major; filters apply only on Apply with a Reset button; about 150 new tests                                              |        |        |
 | 2026-11-03 | 3 (dev tools) | Added an assessment load estimate (1 to 5) worked out from the handbook assessment data, illustrative due weeks for      | 1 HOUR | PR #17 |
-                             | every assessment, workload verdicts for each planner session and the timetable session in view (light, balanced, heavy,  |        |        |
-                             | too heavy) with warnings and positives, and suggested moves that lighten a heavy session; kept the score inside the      |        |        |
-                             | opened subject card only; 52 new tests                                                                                   |        |        |
-
+|            |               | every assessment, workload verdicts for each planner session and the timetable session in view (light, balanced, heavy,  |        |        |
+|            |               | too heavy) with warnings and positives, and suggested moves that lighten a heavy session; kept the score inside the      |        |        |
+|            |               | opened subject card only; 52 new tests                                                                                   |        |        |
+| 2026-11-03 | 3 (dev tools) | Added a subject_attempts table (one row per finished attempt, never overwritten), one transactional function that        | 1 HOUR | PR #18 |
+|            |               | records every result, a Results tab, and failed-subject handling in the catalogue, planner and enrolment (retakes,       |        |        |
+|            |               | blocked dependants with reasons, credit points counted once); made the tests build the seeded database once per run so   |        |        |
+|            |               | the suite takes under 2 minutes; 71 new tests                                                                            |        |        |
 
 ## Things that went wrong or changed
 
@@ -194,6 +197,17 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Changed the name from "difficulty" to "assessment load" after thinking about what the score really measures: how heavy the assessment is, not how hard the content is, so "difficulty" claimed more than I knew; I also kept the score inside the opened subject card only, so it cannot become a ranking of subjects
 - Fixed one old test that said due weeks were never stored, and one that checked the exact AI context wording
 - Fixed unpacking the rename on a branch that did not have the earlier workload files, which produced import errors, by checking for a key line of the earlier package before unpacking and sending one complete package instead
+
+### PR #18: Results, attempts and failed subjects
+- Added a subject_attempts table so a retake adds a new result and the old one is kept, and made one function the only way a result is recorded, so the transcript, planner, catalogue and timetable all read the same records
+- Decided that a pass makes the subject completed and a fail ends the enrolment, which makes the subject an outstanding requirement again, and that a subject can only be passed once, so credit points are counted exactly once
+- Decided to keep the enrolments table as the current state and attempts as the history, written together in one transaction, instead of rewriting every page to read only attempts, because it kept the change small and I added a test that the two never disagree
+- Decided a planned subject that needs a failed prerequisite is flagged with the reason and kept, not deleted, so I can reschedule it after the retake
+- Changed the database so it refuses impossible results (a pass graded FL, a mark over 100, repeated attempt numbers)
+- Changed the tests to build the seeded database once per run and copy it for each test, which cut the suite from about 4 minutes to under 2
+- Fixed a dictionary key I accidentally commented out when adding the failed-subject data to the planner, which broke 7 tests with a KeyError
+- Fixed my own planner summary test that expected the wrong wording, and an isolation test that forgot the demo student has his own Programming 1
+
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
