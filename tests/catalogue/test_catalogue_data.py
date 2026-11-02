@@ -21,9 +21,8 @@ def test_course_and_major_metadata(conn):
 
 
 def test_requirement_totals_add_up_to_degree_total(conn):
-    total = conn.execute(
-        "SELECT SUM(required_credit_points) AS t FROM requirement_categories"
-    ).fetchone()["t"]
+    # core 96 + honours 24 + major 48 + the 24 cp block (general electives here; a sub-major is the alternative)
+    total = conn.execute("SELECT SUM(required_credit_points) AS t FROM requirement_categories").fetchone()["t"]
     assert total == TOTAL_CREDIT_POINTS == 192
 
 

@@ -1,5 +1,5 @@
 """Subject catalogue pages. Business rules live in service.py."""
-from flask import Blueprint, abort, g, make_response, render_template, request
+from flask import Blueprint, abort, g, make_response, render_template, request, url_for
 
 from enrolment import service as enrolment_service
 from shared import security
@@ -26,6 +26,8 @@ def list_page():
     conn = get_db()
     categories = service.list_categories(conn, g.user["id"])  # only the sections of this student's degree
     major = service.user_major(conn, g.user["id"])
+    submajor = service.user_submajor(conn, g.user["id"])
+    electives = service.uses_general_electives(conn, g.user["id"])
     valid = {c["category"] for c in categories}
     try:
         filters = service.parse_filters(request.args, valid)
@@ -42,12 +44,19 @@ def list_page():
         # No major yet: where the major sections would be, offer to choose one instead of listing them.
         position = next((i + 1 for i, g_ in enumerate(groups) if g_["category"] == "honours_core"), len(groups))
         groups.insert(position, {"category": "major_prompt", "label": "Major", "prompt": True,
-                                 "rule": "", "complete": False, "note": "", "subjects": []})
+                                 "text": "You haven't chosen a major yet.", "button": "Choose major",
+                                 "href": url_for("majors.index"), "rule": "", "complete": False, "note": "", "subjects": []})
+    if submajor is None and not electives and unfiltered:
+        groups.append({"category": "submajor_prompt", "label": "Sub-major or electives", "prompt": True,
+                       "text": "You haven't chosen a sub-major or general electives yet.", "button": "Choose sub-major or electives",
+                       "href": url_for("submajors.index"), "rule": "", "complete": False, "note": "", "subjects": []})
     return _respond(
         template,
         subjects=subjects,
         groups=groups,
         major=major,
+        submajor=submajor,
+        electives=electives,
         categories=categories,
         filters=filters,
         sessions=service.SESSIONS,

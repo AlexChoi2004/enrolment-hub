@@ -3,7 +3,8 @@ import pytest
 from accounts.service import create_user
 from degree_planner.service import PlanError, add_to_plan, get_plan, move_in_plan, remove_from_plan, suggest_plan
 from enrolment.service import EnrolmentError, enrol, evaluate_subjects, withdraw
-from majors.service import MajorError, choose_major, preview, swap_blockers
+from majors.service import MajorError, choose_major, impact, preview
+from submajors.service import choose_submajor
 from subject_catalogue import service as catalogue
 
 AUTUMN, SPRING = "Autumn 2027", "Spring 2027"
@@ -59,12 +60,12 @@ def test_the_demo_student_has_enterprise_software_development(conn):
 
 def test_without_a_major_only_the_shared_sections_apply(conn, student):
     cats = [c["category"] for c in catalogue.degree_categories(conn, student)]
-    assert cats == ["core", "honours_core", "general_elective"]
+    assert cats == ["core", "honours_core"]
 
 
 def test_without_a_major_major_subjects_are_not_in_the_degree(conn, student):
     in_degree = {s["code"] for s in catalogue.degree_subjects(conn, student) if s["in_degree"]}
-    assert "41039" in in_degree and "SYN101" in in_degree  # core and general electives
+    assert "41039" in in_degree and "32144" in in_degree  # core and honours core
     assert "41025" not in in_degree and "31250" not in in_degree  # major subjects
 
 
@@ -84,7 +85,8 @@ def test_without_a_major_major_subjects_cannot_be_planned(conn, student):
 
 def test_choosing_a_major_confirms_it(conn, student):
     result = choose_major(conn, student, AI)
-    assert result == {"major": "Artificial Intelligence and Data Analytics", "swapped": False, "plan_removed": 0}
+    assert result == {"major": "Artificial Intelligence and Data Analytics", "swapped": False, "plan_removed": 0,
+                      "no_longer_counted": 0, "withdrawn": 0, "carried": 0}
     assert major_of(conn, student) == AI
 
 
@@ -175,53 +177,77 @@ def test_swapping_removes_planned_subjects_that_are_not_in_the_new_major(conn, s
     assert planned == {"41039", "41040"}
 
 
-def test_a_swap_is_refused_while_enrolled_in_a_subject_only_the_old_major_has(conn, student):
+def test_a_swap_is_allowed_while_enrolled_in_a_subject_only_the_old_major_has(conn, student):
     choose_major(conn, student, ESD)
     enrol(conn, student, "31260", AUTUMN)  # Enterprise Software Development option, not in Quantum Computing
-    with pytest.raises(MajorError, match="31260 Fundamentals of Interaction Design \\(enrolled\\)"):
-        choose_major(conn, student, QUANTUM)
-    assert major_of(conn, student) == ESD
+    result = choose_major(conn, student, QUANTUM)
+    assert result["swapped"] is True and result["no_longer_counted"] == 1
+    assert major_of(conn, student) == QUANTUM
+    assert evaluate_subjects(conn, student)["subjects"]["31260"]["status"] == "enrolled"  # still on the record
 
 
-def test_withdrawing_clears_the_way_to_swap(conn, student):
+def test_withdrawing_first_means_nothing_stops_counting(conn, student):
     choose_major(conn, student, ESD)
     enrol(conn, student, "31260", AUTUMN)
     withdraw(conn, student, "31260")
-    choose_major(conn, student, QUANTUM)
+    assert choose_major(conn, student, QUANTUM)["no_longer_counted"] == 0
     assert major_of(conn, student) == QUANTUM
 
 
-def test_a_subject_shared_with_the_new_major_does_not_block_a_swap(conn, student):
+def test_a_subject_shared_with_the_new_major_carries_over(conn, student):
     choose_major(conn, student, ESD)
     enrol(conn, student, "41759", AUTUMN)  # Capstone: core in Enterprise Software Development and in AI and Data Analytics
+    effect = impact(conn, student, AI)
+    assert [c["subject_code"] for c in effect["carried"]] == ["41759"] and effect["lost"] == []
     choose_major(conn, student, AI)
     assert evaluate_subjects(conn, student)["subjects"]["41759"]["status"] == "enrolled"
 
 
-def test_core_subjects_never_block_a_swap(conn, student):
+def test_core_subjects_never_stop_counting_after_a_swap(conn, student):
     choose_major(conn, student, ESD)
     enrol(conn, student, "41039", AUTUMN)
-    choose_major(conn, student, QUANTUM)
+    assert choose_major(conn, student, QUANTUM)["no_longer_counted"] == 0
 
 
-def test_the_demo_student_cannot_swap_after_completing_major_subjects(conn):
-    blockers = swap_blockers(conn, 1, AI)
-    assert {"41025", "41026", "48433", "31282"} <= {b["code"] for b in blockers}
-    with pytest.raises(MajorError, match="41025 Introduction to Software Development \\(completed\\)"):
-        choose_major(conn, 1, AI)
-    assert major_of(conn, 1) == ESD
+def test_the_demo_student_can_swap_and_sees_what_stops_counting(conn):
+    effect = impact(conn, 1, AI)
+    assert {"41025", "41026", "48433", "31282"} <= {i["subject_code"] for i in effect["lost"]}
+    before = conn.execute("SELECT COUNT(*) FROM enrolments WHERE user_id = 1").fetchone()[0]
+    result = choose_major(conn, 1, AI)
+    assert result["swapped"] is True and result["no_longer_counted"] >= 4
+    assert major_of(conn, 1) == AI
+    assert conn.execute("SELECT COUNT(*) FROM enrolments WHERE user_id = 1").fetchone()[0] == before  # nothing deleted
 
 
 def test_the_preview_says_what_choosing_would_do(conn, student):
     page = preview(conn, student, AI)
-    assert page["is_current"] is False and page["has_current"] is False and page["blockers"] == []
+    assert page["is_current"] is False and page["has_current"] is False
+    assert page["impact"] == {"lost": [], "carried": [], "plan_removed": 0, "withdrawable": []}
     choose_major(conn, student, AI)
     assert preview(conn, student, AI)["is_current"] is True
     assert preview(conn, student, "MAJ00000") is None
 
 
-def test_the_preview_of_another_major_lists_blockers_for_the_demo_student(conn):
-    assert preview(conn, 1, QUANTUM)["blockers"] and preview(conn, 1, ESD)["is_current"] is True
+def test_the_preview_of_another_major_lists_what_would_stop_counting_for_the_demo_student(conn):
+    assert preview(conn, 1, QUANTUM)["impact"]["lost"] and preview(conn, 1, ESD)["is_current"] is True
+
+
+def test_previewing_a_major_never_changes_anything(conn):
+    preview(conn, 1, AI)
+    assert major_of(conn, 1) == ESD
+
+
+def test_after_a_swap_the_totals_count_only_what_counts_towards_the_degree(conn):
+    from enrolment.service import get_record
+
+    before = get_record(conn, 1)
+    choose_major(conn, 1, AI)
+    after = get_record(conn, 1)
+    assert after["completed_cp"] == before["completed_cp"]  # the record is untouched
+    assert after["counted_cp"] < before["counted_cp"] and after["not_counted_cp"] > 0
+    plan = get_plan(conn, 1)
+    assert plan["extra_cp"] == after["not_counted_cp"] > 0
+    assert plan["completed_cp"] + plan["enrolled_cp"] + plan["planned_cp"] + plan["remaining_cp"] == 192
 
 
 # --- the planner follows the major -----------------------------------------------------------------------------------
@@ -230,19 +256,20 @@ def test_the_plan_without_a_major_asks_for_one(conn, student):
     plan = get_plan(conn, student)
     assert plan["needs_major"] is True and plan["major"] is None
     assert plan["remaining_cp"] == 192 and plan["degree_total_cp"] == 192
-    assert [s["label"] for s in plan["elective_sections"]] == ["General electives"]
+    assert plan["elective_sections"] == [] and plan["needs_submajor"] is True
 
 
 def test_a_suggested_plan_without_a_major_leaves_the_major_for_later(conn, student):
     added, unplaced = suggest_plan(conn, student)
     plan = get_plan(conn, student)
-    assert (added, unplaced) == (23, []) and plan["remaining_cp"] == 48 and plan["complete"] is False
+    assert (added, unplaced) == (19, []) and plan["remaining_cp"] == 72 and plan["complete"] is False  # major 48 + sub-major 24
 
 
 @pytest.mark.parametrize("major", [ESD, AI, BISM, "MAJ02900", "MAJ02092", "MAJ01156", "MAJ03445", QUANTUM])
 def test_every_major_can_be_planned_in_full(conn, major):
     uid = create_user(conn, "m.student@student.uni.edu.au", "Str0ng#Pass", AUTUMN)["id"]
     choose_major(conn, uid, major)
+    choose_submajor(conn, uid, "SMJ10156")
     added, unplaced = suggest_plan(conn, uid)
     plan = get_plan(conn, uid)
     assert (added, unplaced) == (31, []) and plan["complete"] is True and plan["remaining_cp"] == 0
@@ -259,7 +286,7 @@ def test_the_planner_lists_the_chosen_majors_electives(conn, student):
 
 def test_a_major_without_options_has_no_major_electives_in_the_planner(conn, student):
     choose_major(conn, student, BISM)
-    assert [s["label"] for s in get_plan(conn, student)["elective_sections"]] == ["General electives"]
+    assert get_plan(conn, student)["elective_sections"] == []
 
 
 def test_a_plan_cannot_include_another_majors_subject(conn, student):
@@ -464,3 +491,47 @@ def test_subjects_from_other_majors_have_classes_too(conn, student):
     enrol(conn, student, "31250", AUTUMN)  # Introduction to Data Analytics: a subject that exists only through a major
     card = get_timetable(conn, student, AUTUMN)["subjects"][0]
     assert card["code"] == "31250" and card["lecture"] and card["components"]
+
+# --- withdrawing in-progress subjects that stop counting ----------------------------------------------------------------
+
+def test_the_preview_lists_only_in_progress_subjects_as_withdrawable(conn):
+    effect = impact(conn, 1, AI)
+    assert [w["subject_code"] for w in effect["withdrawable"]] == ["41026"]  # Advanced Software Development is enrolled
+    assert all(w["status"] == "enrolled" for w in effect["withdrawable"])
+    assert {"41025", "31282", "48433"} <= {l["subject_code"] for l in effect["lost"]}  # completed ones are not withdrawable
+
+
+def test_a_swap_can_withdraw_the_in_progress_subjects_that_stop_counting(conn):
+    result = choose_major(conn, 1, AI, withdraw=True)
+    assert result["withdrawn"] == 1 and major_of(conn, 1) == AI
+    status = {r["subject_code"]: r["status"] for r in conn.execute("SELECT subject_code, status FROM enrolments WHERE user_id = 1")}
+    assert "41026" not in status  # withdrawn
+    assert status["41025"] == "completed"  # history is never touched
+    assert status["41040"] == "enrolled" and status["31272"] == "enrolled"  # still counting, so they stay
+    assert evaluate_subjects(conn, 1)["session_loads"]["Autumn 2027"] == 18  # a place in the session is freed
+
+
+def test_a_swap_keeps_them_enrolled_unless_asked_to_withdraw(conn):
+    result = choose_major(conn, 1, AI)
+    assert result["withdrawn"] == 0
+    assert evaluate_subjects(conn, 1)["subjects"]["41026"]["status"] == "enrolled"
+    assert evaluate_subjects(conn, 1)["session_loads"]["Autumn 2027"] == 24
+
+
+def test_withdrawing_also_removes_the_class_choices(conn):
+    cls = conn.execute(
+        "SELECT id, component FROM classes WHERE subject_code = '41026' AND component <> 'lecture' AND season = 'Autumn' LIMIT 1"
+    ).fetchone()
+    conn.execute("INSERT INTO class_choices (user_id, subject_code, component, class_id) VALUES (1, '41026', ?, ?)", (cls["component"], cls["id"]))
+    conn.commit()
+    choose_major(conn, 1, AI, withdraw=True)
+    assert conn.execute("SELECT COUNT(*) FROM class_choices WHERE user_id = 1 AND subject_code = '41026'").fetchone()[0] == 0
+
+
+def test_withdrawing_never_touches_completed_subjects_or_other_students(conn, student):
+    choose_major(conn, student, ESD)
+    enrol(conn, student, "31260", AUTUMN)
+    before = conn.execute("SELECT COUNT(*) FROM enrolments WHERE user_id = 1").fetchone()[0]
+    choose_major(conn, student, QUANTUM, withdraw=True)
+    assert conn.execute("SELECT COUNT(*) FROM enrolments WHERE user_id = ?", (student,)).fetchone()[0] == 0
+    assert conn.execute("SELECT COUNT(*) FROM enrolments WHERE user_id = 1").fetchone()[0] == before

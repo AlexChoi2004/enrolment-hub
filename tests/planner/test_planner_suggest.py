@@ -4,12 +4,14 @@ from accounts.service import create_user
 from degree_planner import service
 from degree_planner.service import add_to_plan, clear_plan, get_plan, suggest_plan
 from majors.service import choose_major
+from submajors.service import choose_submajor
 
 
 @pytest.fixture()
 def student(conn):
     user = create_user(conn, "new.student@student.uni.edu.au", "Str0ng#Pass", "Autumn 2027")["id"]
     choose_major(conn, user, "MAJ03519")  # new accounts choose a major; these tests use Enterprise Software Development
+    choose_submajor(conn, user, "SMJ10156")  # Innovation and Entrepreneurship: four core subjects
     return user
 
 
@@ -68,11 +70,13 @@ def test_prerequisites_always_come_in_an_earlier_session(conn, student):
 
 
 def test_elective_counts_are_exact(conn, student):
+    from subject_catalogue.service import degree_subjects
+
     suggest_plan(conn, student)
     plan = planned(conn, student)
-    cats = {r["code"]: r["category"] for r in conn.execute("SELECT code, category FROM subjects")}
+    cats = {s["code"]: s["category"] for s in degree_subjects(conn, student)}
     chosen = [cats[c] for c in plan]
-    assert chosen.count("major_elective") == 3 and chosen.count("general_elective") == 4
+    assert chosen.count("major_elective") == 3 and chosen.count("sub_core") == 4
 
 
 def test_the_supplied_honours_rule_is_followed_and_the_12_cp_project_is_in_autumn(conn, student):
@@ -85,6 +89,7 @@ def test_the_supplied_honours_rule_is_followed_and_the_12_cp_project_is_in_autum
 def test_suggestions_are_repeatable(conn, student):
     other = create_user(conn, "other.student@student.uni.edu.au", "Str0ng#Pass", "Autumn 2027")["id"]
     choose_major(conn, other, "MAJ03519")
+    choose_submajor(conn, other, "SMJ10156")
     suggest_plan(conn, student)
     suggest_plan(conn, other)
     assert planned(conn, student) == planned(conn, other)

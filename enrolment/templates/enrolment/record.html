@@ -4,13 +4,14 @@
 <h1>My record</h1>
 <p>
   {{ student.display_name }} · {{ student.student_number }}<br>
-  {{ course.name }}{% if major %}, {{ major.name }} major{% else %}, major not chosen yet{% endif %}<br>
+  {{ course.name }}{% if major %}, {{ major.name }} major{% else %}, major not chosen yet{% endif %}{% if submajor %}, {{ submajor.name }} sub-major{% elif electives %}, general electives{% else %}, sub-major not chosen yet{% endif %}<br>
   <strong>Year {{ year }}</strong> · {{ current_session }}
   {% if student.commencement_session == current_session %}(your first session){% endif %}
 </p>
 <p class="count">
   {{ record.counted_cp }} of {{ record.degree_total_cp }} credit points counted:
   {{ record.completed_cp }} completed, {{ record.enrolled_cp }} in progress.
+  {% if record.not_counted_cp %}{{ record.not_counted_cp }} cp of it doesn't count towards this degree (for example after changing major).{% endif %}
 </p>
 
 {% if not record.enrolled and not record.completed_by_session %}

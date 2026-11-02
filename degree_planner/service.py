@@ -20,15 +20,18 @@ from enrolment.service import (
 )
 from subject_catalogue.service import (
     DEGREE_CREDIT_POINTS,
-    ELECTIVE_CATEGORIES,
     ELECTIVE_CREDIT_POINTS,
     MAJOR_CREDIT_POINTS,
+    SUBMAJOR_CREDIT_POINTS,
     degree_categories,
     degree_subjects,
     group_text,
+    is_choose_category,
     load_credit_requirements,
     load_prerequisites,
+    uses_general_electives,
     user_major,
+    user_submajor,
 )
 
 PLAN_SESSIONS = 10  # five years of Autumn and Spring sessions from the current one
@@ -63,12 +66,17 @@ def _state(conn, user_id):
         subjects[s["code"]] = {
             "code": s["code"], "name": s["name"], "credit_points": s["credit_points"],
             "category": s["category"], "sessions_offered": s["sessions_offered"],
-            "in_degree": s["in_degree"],
+            "in_degree": s["in_degree"], "stored_category": s["stored_category"],
             "category_label": section["label"] if section else None,
             "required_cp": section["required_credit_points"] if section else 0,
             "sort_order": section["sort_order"] if section else 99,
         }
     major = user_major(conn, user_id)
+    submajor = user_submajor(conn, user_id)
+    membership = (
+        {r[0] for r in conn.execute("SELECT subject_code FROM major_subjects")},
+        {r[0] for r in conn.execute("SELECT subject_code FROM submajor_group_subjects")},
+    )
     rules = defaultdict(list, load_prerequisites(conn))  # {subject: [group, ...]}
     prereqs = defaultdict(list)  # every prerequisite code of a subject, flat (for "who depends on this")
     for subject, groups in rules.items():
@@ -91,6 +99,7 @@ def _state(conn, user_id):
     }
     return {
         "subjects": subjects, "prereqs": prereqs, "rules": rules, "records": records, "plan": plan, "major": major,
+        "submajor": submajor, "electives": uses_general_electives(conn, user_id), "membership": membership, "degree_categories": list(sections.values()),
         "credit_rules": load_credit_requirements(conn), "major_members": major_members,
     }
 
@@ -127,9 +136,25 @@ def _check_placement(state, code, session, ignore_self=False):
         return "That subject does not exist."
     label = _label(state, code)
     if not subject["in_degree"]:
-        if state["major"] is None:
+        in_major, in_sub = code in state["membership"][0], code in state["membership"][1]
+        major, sub = state["major"], state["submajor"]
+        if subject["stored_category"] == "general_elective":
+            if sub is not None:
+                return f"{label} is not part of your degree: you chose the {sub['name']} sub-major instead of general electives."
+            return f"{label} is a general elective. Choose general electives or a sub-major first."
+        if in_sub and not in_major and sub is None and state["electives"]:
+            return f"{label} is not part of your degree: you chose general electives instead of a sub-major."
+        if in_major and major is None:
             return f"{label} is part of a major. Choose a major first."
-        return f"{label} is not part of your {state['major']['name']} major."
+        if in_sub and not in_major and sub is None:
+            return f"{label} is part of a sub-major. Choose a sub-major first."
+        if in_major and in_sub and sub is not None:
+            return f"{label} is not part of your {major['name']} major or your {sub['name']} sub-major."
+        if in_sub and not in_major:
+            return f"{label} is not part of your {sub['name']} sub-major."
+        if major is not None:
+            return f"{label} is not part of your {major['name']} major."
+        return f"{label} is not part of your degree."
     record = state["records"].get(code)
     if record and record[0] == "completed":
         return f"You have already completed {label}."
@@ -173,7 +198,7 @@ def _check_placement(state, code, session, ignore_self=False):
                 f"({have} completed, or planned in earlier sessions)."
             )
 
-    if subject["category"] in ELECTIVE_CATEGORIES:
+    if is_choose_category(subject["category"]):
         counted = _category_counted(state, subject["category"], ignore=code if ignore_self else None)
         if counted + subject["credit_points"] > subject["required_cp"]:
             return (
@@ -237,7 +262,7 @@ def get_plan(conn, user_id):
     for label in plan_sessions():
         enrolled = [
             {"code": c, "name": subjects[c]["name"], "credit_points": subjects[c]["credit_points"],
-             "category_label": subjects[c]["category_label"] or "Outside your major"}
+             "category_label": subjects[c]["category_label"] or "Doesn't count towards your degree"}
             for c, (status, session) in sorted(state["records"].items())
             if status == "enrolled" and session == label
         ]
@@ -266,11 +291,12 @@ def get_plan(conn, user_id):
     for category, sample in sorted(categories.items(), key=lambda kv: kv[1]["sort_order"]):
         members = sorted((s for s in subjects.values() if s["category"] == category), key=lambda s: s["code"])
         untaken = [s for s in members if s["code"] not in state["records"] and s["code"] not in state["plan"]]
-        if category in ELECTIVE_CATEGORIES:
+        if is_choose_category(category):
             counted = _category_counted(state, category)
-            choose = sample["required_cp"] // ELECTIVE_CREDIT_POINTS
-            chosen = counted // ELECTIVE_CREDIT_POINTS
-            need = max(0, (sample["required_cp"] - counted) // ELECTIVE_CREDIT_POINTS)
+            unit = min((s["credit_points"] for s in members), default=ELECTIVE_CREDIT_POINTS)  # 6, or 8 for languages
+            choose = sample["required_cp"] // unit
+            chosen = counted // unit
+            need = max(0, (sample["required_cp"] - counted) // unit)
             section = {
                 "label": sample["category_label"],
                 "choose": choose,  # how many the degree asks for
@@ -296,21 +322,39 @@ def get_plan(conn, user_id):
                 })
     outstanding.sort(key=lambda o: (o["category_label"], o["name"].lower()))
 
-    def cp(status):
-        return sum(subjects[c]["credit_points"] for c, (st, _) in state["records"].items() if st == status)
+    def cp(status):  # only what counts towards this degree, so nothing is counted twice or outside the degree
+        return sum(subjects[c]["credit_points"] for c, (st, _) in state["records"].items()
+                   if st == status and subjects[c]["in_degree"])
+
+    extra_cp = sum(subjects[c]["credit_points"] for c, (st, _) in state["records"].items() if not subjects[c]["in_degree"])
 
     planned_cp = sum(subjects[c]["credit_points"] for c in state["plan"])
     remaining = 0
-    for category, sample in categories.items():
-        remaining += max(0, sample["required_cp"] - _category_counted(state, category))
+    notes = []
+    for c in state["degree_categories"]:  # every requirement, even one whose subjects have not been loaded yet
+        remaining += max(0, c["required_credit_points"] - _category_counted(state, c["category"]))
+        available = sum(s["credit_points"] for s in subjects.values() if s["category"] == c["category"])
+        if available == 0:
+            notes.append(f"The subjects for {c['label']} have not been loaded, so this can't be planned yet.")
+        elif available < c["required_credit_points"]:
+            notes.append(
+                f"Only {available} cp of subjects are available for {c['label']} (it needs {c['required_credit_points']} cp) "
+                "because some of its subjects also count in your major. Check the course rules for a substitute."
+            )
     if state["major"] is None:
         remaining += MAJOR_CREDIT_POINTS  # the major's 48 cp can't be planned until a major is chosen
+    if state["submajor"] is None and not state["electives"]:
+        remaining += SUBMAJOR_CREDIT_POINTS  # nor the 24 cp block: a sub-major or general electives, not chosen yet
+    if state["submajor"] is not None and state["submajor"]["needs_language"]:
+        remaining += SUBMAJOR_CREDIT_POINTS
+        notes.append("Choose a language program for your language sub-major.")
     return {
         "sessions": sessions,
         "outstanding": outstanding,
         "elective_needs": elective_needs,
         "elective_sections": elective_sections,
         "problems": problems,
+        "extra_cp": extra_cp,  # done, but not counting towards this degree (for example after changing major)
         "completed_cp": cp("completed"),
         "enrolled_cp": cp("enrolled"),
         "planned_cp": planned_cp,
@@ -319,6 +363,10 @@ def get_plan(conn, user_id):
         "has_plan": bool(state["plan"]),
         "major": state["major"],
         "needs_major": state["major"] is None,
+        "submajor": state["submajor"],
+        "needs_submajor": state["submajor"] is None and not state["electives"],  # neither alternative chosen yet
+        "uses_electives": state["electives"],
+        "notes": notes,
         "complete": remaining == 0 and not problems,
     }
 
@@ -418,7 +466,7 @@ def suggest_plan(conn, user_id):
     def pick_required(session):
         options = [
             s for s in subjects.values()
-            if s["in_degree"] and s["category"] not in ELECTIVE_CATEGORIES and untaken(s["code"])
+            if s["in_degree"] and not is_choose_category(s["category"]) and untaken(s["code"])
             and _check_placement(state, s["code"], session) is None
         ]
         if not options:
@@ -427,7 +475,7 @@ def suggest_plan(conn, user_id):
         return options[0]["code"]
 
     def pick_elective(session):
-        present = {s["category"] for s in subjects.values() if s["in_degree"] and s["category"] in ELECTIVE_CATEGORIES}
+        present = {s["category"] for s in subjects.values() if s["in_degree"] and is_choose_category(s["category"])}
         for category in sorted(present, key=lambda c: next(
                 s["sort_order"] for s in subjects.values() if s["category"] == c)):
             sample = next(s for s in subjects.values() if s["category"] == category)
@@ -461,6 +509,6 @@ def suggest_plan(conn, user_id):
 
     unplaced = [
         _label(state, s["code"]) for s in subjects.values()
-        if s["in_degree"] and s["category"] not in ELECTIVE_CATEGORIES and untaken(s["code"])
+        if s["in_degree"] and not is_choose_category(s["category"]) and untaken(s["code"])
     ]
     return len(added), sorted(unplaced)

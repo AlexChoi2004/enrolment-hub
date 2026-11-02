@@ -7,14 +7,15 @@ from collections import defaultdict
 
 from subject_catalogue.service import (
     DEGREE_CREDIT_POINTS,
-    ELECTIVE_CATEGORIES,
-    ELECTIVE_CREDIT_POINTS,
     degree_categories,
     degree_subjects,
     group_text,
+    is_choose_category,
     load_credit_requirements,
     load_prerequisites,
+    uses_general_electives,
     user_major,
+    user_submajor,
 )
 
 CURRENT_SESSION = "Autumn 2027"  # the session the prototype treats as "now"
@@ -70,7 +71,8 @@ def get_record(conn, user_id):
     )
     for item in items:
         category = effective.get(item["code"])
-        item["category_label"] = labels[category] if category else "Outside your major"
+        item["counts"] = category is not None
+        item["category_label"] = labels[category] if category else "Doesn't count towards your degree"
     completed = [i for i in items if i["status"] == "completed"]
     enrolled = [i for i in items if i["status"] == "enrolled"]
 
@@ -80,14 +82,38 @@ def get_record(conn, user_id):
 
     completed_cp = sum(i["credit_points"] for i in completed)
     enrolled_cp = sum(i["credit_points"] for i in enrolled)
+    counted_cp = sum(i["credit_points"] for i in items if i["counts"])
     return {
         "completed_by_session": list(by_session.items()),
         "enrolled": enrolled,
         "completed_cp": completed_cp,
         "enrolled_cp": enrolled_cp,
-        "counted_cp": completed_cp + enrolled_cp,  # one row per subject, so never double counted
+        "counted_cp": counted_cp,  # one row per subject, and only what counts towards this degree
+        "not_counted_cp": completed_cp + enrolled_cp - counted_cp,
         "degree_total_cp": DEGREE_CREDIT_POINTS,
     }
+
+
+def _out_of_degree_reason(code, stored, major, submajor, uses_electives, in_major_lists, in_sub_lists):
+    """Why a subject is not part of this student's degree."""
+    in_major, in_sub = code in in_major_lists, code in in_sub_lists
+    if stored == "general_elective":  # the 24 cp block is either a sub-major or general electives
+        if submajor is not None:
+            return f"Not part of your degree: you chose the {submajor['name']} sub-major instead of general electives"
+        return "Choose general electives or a sub-major to take this subject"
+    if in_major and major is None:
+        return "Choose a major to take this subject"
+    if in_sub and not in_major and submajor is None:
+        if uses_electives:
+            return "Not part of your degree: you chose general electives instead of a sub-major"
+        return "Choose a sub-major to take this subject"
+    if in_major and in_sub and submajor is not None:
+        return f"Not part of your {major['name']} major or your {submajor['name']} sub-major"
+    if in_sub and not in_major:
+        return f"Not part of your {submajor['name']} sub-major"
+    if major is not None:
+        return f"Not part of your {major['name']} major"
+    return "Not part of your degree"
 
 
 def evaluate_subjects(conn, user_id):
@@ -109,6 +135,10 @@ def evaluate_subjects(conn, user_id):
 
     subjects = degree_subjects(conn, user_id)  # category is None for subjects outside this student's degree
     major = user_major(conn, user_id)
+    submajor = user_submajor(conn, user_id)
+    uses_electives = uses_general_electives(conn, user_id)
+    in_major_lists = {r[0] for r in conn.execute("SELECT subject_code FROM major_subjects")}
+    in_sub_lists = {r[0] for r in conn.execute("SELECT subject_code FROM submajor_group_subjects")}
     names = {s["code"]: s["name"] for s in subjects}
     rules = load_prerequisites(conn)  # {subject: [group, ...]}: every group needed, any one code in a group
     credit_rules = load_credit_requirements(conn)
@@ -170,9 +200,8 @@ def evaluate_subjects(conn, user_id):
             moves = with_room(s, [label for label in open_labels if label != sessions[code]])
         elif s["category"] is None:
             status = "blocked"
-            reasons = [
-                f"Not part of your {major['name']} major" if major else "Choose a major to take this subject"
-            ]
+            reasons = [_out_of_degree_reason(code, s["stored_category"], major, submajor, uses_electives,
+                                             in_major_lists, in_sub_lists)]
             note = reasons[0]
         else:
             missing = [
@@ -191,7 +220,7 @@ def evaluate_subjects(conn, user_id):
                         f"Needs {req['min_cp']} credit points completed in {req['major_name']} (you have {have})"
                     )
             progress = categories[s["category"]]
-            if s["category"] in ELECTIVE_CATEGORIES and progress["counted_cp"] >= progress["required_cp"]:
+            if is_choose_category(s["category"]) and progress["counted_cp"] >= progress["required_cp"]:
                 reasons.append(f"{progress['label']} requirement already complete")
             if not reasons:
                 offered = [label for label in open_labels if offered_in(s["sessions_offered"], label)]
@@ -221,6 +250,22 @@ def evaluate_subjects(conn, user_id):
         "session_loads": loads,
         "major_credit": major_credit,
     }
+
+
+def withdraw_in_progress(conn, user_id, codes):
+    """Remove in-progress enrolments (and their class choices) for these subjects. The caller commits.
+
+    Used when a swap of major, sub-major or electives leaves in-progress subjects that no longer count; completed
+    subjects are history and are never touched.
+    """
+    removed = 0
+    for code in codes:
+        cur = conn.execute(
+            "DELETE FROM enrolments WHERE user_id = ? AND subject_code = ? AND status = 'enrolled'", (user_id, code)
+        )
+        removed += cur.rowcount
+        conn.execute("DELETE FROM class_choices WHERE user_id = ? AND subject_code = ?", (user_id, code))
+    return removed
 
 
 # --- changing an enrolment -------------------------------------------------------------------

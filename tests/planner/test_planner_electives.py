@@ -6,6 +6,7 @@ from accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
 from accounts.service import create_user
 from degree_planner.service import add_to_plan, get_plan
 from majors.service import choose_major
+from submajors.service import choose_submajor
 
 TOKEN = re.compile(r'name="csrf_token" value="([^"]+)"')
 
@@ -14,6 +15,7 @@ TOKEN = re.compile(r'name="csrf_token" value="([^"]+)"')
 def student(conn):
     user = create_user(conn, "new.student@student.uni.edu.au", "Str0ng#Pass", "Autumn 2027")["id"]
     choose_major(conn, user, "MAJ03519")  # new accounts choose a major; these tests use Enterprise Software Development
+    choose_submajor(conn, user, "SMJ10157")  # Information Security: core 41181 plus 18 cp of options
     return user
 
 
@@ -23,15 +25,13 @@ def sections(conn, user_id):
 
 # --- the data: both elective requirements are always listed -------------------------------------------
 
-def test_both_elective_sections_are_always_present_and_in_degree_order(conn):
-    assert [s["label"] for s in get_plan(conn, 1)["elective_sections"]] == ["Major electives", "General electives"]
+def test_the_demo_student_has_one_elective_section_because_the_sub_major_core_is_not_a_choice(conn):
+    assert [s["label"] for s in get_plan(conn, 1)["elective_sections"]] == ["Major electives"]
 
 
-def test_a_finished_section_stays_in_the_list(conn):
-    general = sections(conn, 1)["General electives"]  # the demo student has completed all four
-    assert general["complete"] is True
-    assert (general["choose"], general["chosen"], general["need"]) == (4, 4, 0)
-    assert general["candidates"] == []
+def test_a_completed_sub_major_core_does_not_appear_as_an_elective_section(conn):
+    assert "Sub-major core" not in sections(conn, 1)
+    assert get_plan(conn, 1)["outstanding"]  # required subjects are listed separately
 
 
 def test_an_unfinished_section_lists_what_is_still_needed(conn):
@@ -44,8 +44,8 @@ def test_an_unfinished_section_lists_what_is_still_needed(conn):
 def test_a_new_student_has_two_unfinished_sections(conn, student):
     result = sections(conn, student)
     assert (result["Major electives"]["chosen"], result["Major electives"]["need"]) == (0, 3)
-    assert (result["General electives"]["chosen"], result["General electives"]["need"]) == (0, 4)
-    assert not result["Major electives"]["complete"] and not result["General electives"]["complete"]
+    assert (result["Sub-major options"]["chosen"], result["Sub-major options"]["need"]) == (0, 3)  # 18 cp of 6 cp subjects
+    assert not result["Major electives"]["complete"] and not result["Sub-major options"]["complete"]
 
 
 def test_planning_the_last_elective_completes_the_section(conn):
@@ -75,9 +75,13 @@ def planner_page(client):
 
 
 def test_a_finished_section_shows_a_message_instead_of_disappearing(client):
-    html = planner_page(sign_in(client))
+    sign_in(client)
+    for code in ("41052", "32113"):
+        token = TOKEN.search(planner_page(client)).group(1)
+        client.post("/planner/add", data={"subject_code": code, "session_label": "Spring 2028", "csrf_token": token})
+    html = planner_page(client)
     assert 'class="card plan-complete"' in html
-    assert "already completed or chosen all 4 general electives (4 of 4)" in html
+    assert "already completed or chosen all 3 major electives (3 of 3)" in html
 
 
 def test_an_unfinished_section_is_still_an_expandable_list(client):
@@ -106,7 +110,8 @@ def test_a_new_student_sees_both_lists_and_no_completion_messages(tmp_path):
                                    "confirm_password": "Str0ng#Pass", "csrf_token": token})
     token = TOKEN.search(client.get("/planner").get_data(as_text=True)).group(1)
     client.post("/major/MAJ03519/choose", data={"csrf_token": token})  # new accounts choose a major first
+    client.post("/submajor/SMJ10157/choose", data={"csrf_token": token})  # and a sub-major
     html = client.get("/planner").get_data(as_text=True)
     assert "Major electives: choose 3 more (0 of 3 chosen)" in html
-    assert "General electives: choose 4 more (0 of 4 chosen)" in html
+    assert "Sub-major options: choose 3 more (0 of 3 chosen)" in html
     assert "already completed or chosen all" not in html

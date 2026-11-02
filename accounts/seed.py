@@ -10,6 +10,7 @@ DEMO_PASSWORD = "Johndoe#1"  # noqa: S105 (intentionally public; shown on the lo
 DEMO_DISPLAY_NAME = "John Doe"
 DEMO_COURSE_CODE = "C09119"
 DEMO_MAJOR_CODE = "MAJ03519"  # Enterprise Software Development; new accounts choose theirs
+DEMO_SUBMAJOR_CODE = "SMJ10156"  # Innovation and Entrepreneurship (four core subjects, completed)
 DEMO_COMMENCEMENT_SESSION = "Autumn 2025"  # two years before the app's current session
 
 
@@ -25,7 +26,7 @@ def seed_accounts(conn):
         return
     conn.execute(
         "INSERT INTO users (email, student_number, display_name, password_hash,"
-        " course_code, commencement_session, major_code) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        " course_code, commencement_session, major_code, submajor_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         (
             DEMO_EMAIL,
             DEMO_STUDENT_NUMBER,
@@ -34,5 +35,6 @@ def seed_accounts(conn):
             DEMO_COURSE_CODE,
             DEMO_COMMENCEMENT_SESSION,
             DEMO_MAJOR_CODE,
+            DEMO_SUBMAJOR_CODE,
         ),
     )

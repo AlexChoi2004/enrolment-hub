@@ -70,6 +70,53 @@ CREATE TABLE IF NOT EXISTS major_subjects (
     PRIMARY KEY (major_code, subject_code)
 );
 
+-- Sub-majors: a separate 24 cp block of the degree (not part of the 48 cp major).
+-- Each sub-major is made of groups: a "core" group (complete every subject) or a "choose" group (select
+-- required_cp credit points from the listed subjects, from a stream, or from one language program).
+CREATE TABLE IF NOT EXISTS submajors (
+    code           TEXT PRIMARY KEY,
+    name           TEXT NOT NULL,
+    total_cp       INTEGER NOT NULL CHECK (total_cp = 24),
+    note           TEXT NOT NULL DEFAULT '',
+    source         TEXT NOT NULL,
+    academic_year  INTEGER,
+    verification   TEXT NOT NULL CHECK (verification IN ('verified', 'supplied', 'unverified'))
+);
+
+CREATE TABLE IF NOT EXISTS submajor_groups (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    submajor_code    TEXT NOT NULL REFERENCES submajors(code) ON DELETE CASCADE,
+    position         INTEGER NOT NULL,
+    kind             TEXT NOT NULL CHECK (kind IN ('core', 'choose')),
+    label            TEXT NOT NULL,
+    required_cp      INTEGER NOT NULL CHECK (required_cp > 0),
+    stream_code      TEXT,
+    -- For the language sub-major: the program (for example CBK90494) a group belongs to.
+    language_program TEXT,
+    language_name    TEXT,
+    UNIQUE (submajor_code, position)
+);
+
+CREATE TABLE IF NOT EXISTS submajor_group_subjects (
+    group_id     INTEGER NOT NULL REFERENCES submajor_groups(id) ON DELETE CASCADE,
+    subject_code TEXT NOT NULL REFERENCES subjects(code) ON DELETE CASCADE,
+    PRIMARY KEY (group_id, subject_code)
+);
+
+-- A stream is a named list of subjects to choose from. It is not a subject itself.
+CREATE TABLE IF NOT EXISTS streams (
+    code TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    cp   INTEGER NOT NULL CHECK (cp > 0),
+    note TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS stream_subjects (
+    stream_code  TEXT NOT NULL REFERENCES streams(code) ON DELETE CASCADE,
+    subject_code TEXT NOT NULL REFERENCES subjects(code) ON DELETE CASCADE,
+    PRIMARY KEY (stream_code, subject_code)
+);
+
 -- Notes about a prerequisite the app can NOT enforce (for example a subject that is not in this data),
 -- shown on the subject but never blocking anything.
 CREATE TABLE IF NOT EXISTS prerequisite_notes (

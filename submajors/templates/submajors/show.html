@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}{{ sub.name }} · Enrolment Hub{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('submajors.index') }}">&larr; All sub-majors</a></p>
+<h1>{{ sub.name }}</h1>
+<p class="muted">{{ sub.code }} · 24 credit points</p>
+{% if sub.note %}<p class="notice">{{ sub.note }}</p>{% endif %}
+
+{% if sub.is_language %}
+  <h2>Choose one language program</h2>
+  <p>You take 24 credit points (three 8 credit point subjects) from one language only. You can't combine languages.</p>
+  <ul class="plain">
+    {% for l in sub.languages %}
+      <li>
+        <a href="{{ url_for('submajors.show', code=sub.code, language=l.code) }}"><strong>{{ l.name }}</strong></a>
+        <span class="muted">{{ l.code }} · {{ l.subjects|length }} subjects</span>
+        {% if picked == l.code %}<span class="badge st-enrolled">Selected</span>{% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+{% for g in sub.groups %}
+  <h2>
+    {% if g.kind == 'core' %}Core subjects <span class="muted">(all {{ g.subjects|length }} required · {{ g.required_cp }} cp)</span>
+    {% else %}{{ g.label }} <span class="muted">(choose {{ g.required_cp }} cp from {{ g.subjects|length }} subjects)</span>{% endif %}
+  </h2>
+  {% if g.stream %}
+    <p class="notice">Stream {{ g.stream.code }} {{ g.stream.name }}: {{ g.stream.note }}</p>
+  {% endif %}
+  {% if g.subjects %}
+    <table class="table">
+      <tbody>
+        {% for s in g.subjects %}
+          <tr>
+            <td class="code">{{ s.code }}</td>
+            <td>{{ s.name }}{% if s.overlaps_major %} <span class="badge warn">also in your major</span>{% endif %}</td>
+            <td>{{ s.credit_points }} cp</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endfor %}
+
+{% if sub.overlap_count %}
+  <p class="notice">
+    {{ sub.overlap_count }} subject(s) here are also in your major. A subject counts once, in your major, so it won't
+    count towards this sub-major. UTS may require another subject instead (check the course rules).
+  </p>
+{% endif %}
+
+{% if sub.impact.lost or sub.impact.plan_removed %}
+  <div class="flash flash-warning">
+    {% if sub.impact.lost %}
+      <p>These subjects you have done would stop counting towards your degree. They stay on your record.</p>
+      <ul class="plain">
+        {% for l in sub.impact.lost %}<li>{{ l.subject_code }} {{ l.name }} ({{ l.status }})</li>{% endfor %}
+      </ul>
+    {% endif %}
+    {% if sub.impact.plan_removed %}<p>{{ sub.impact.plan_removed }} planned subject(s) would be removed from your plan.</p>{% endif %}
+  </div>
+{% endif %}
+
+{% if sub.is_current %}
+  <p class="demo-note">This is your sub-major.</p>
+{% elif sub.is_language and not picked %}
+  <p class="muted">Pick a language above, then confirm.</p>
+{% else %}
+  {% if sub.has_current %}<p>Swapping keeps what you have done. Anything that isn't in the new sub-major (or your major) stops counting.</p>{% endif %}
+  <form method="post" action="{{ url_for('submajors.choose', code=sub.code) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if sub.is_language %}<input type="hidden" name="language" value="{{ picked }}">{% endif %}
+    {% if sub.impact.withdrawable %}
+      <p><label>
+        <input type="checkbox" name="withdraw_in_progress" value="1" checked>
+        Also withdraw me from the {{ sub.impact.withdrawable|length }} in-progress subject(s) listed above (marked "enrolled")
+      </label></p>
+    {% endif %}
+    <button type="submit" class="btn">{{ 'Swap to this sub-major' if sub.has_current else 'Confirm this sub-major' }}</button>
+  </form>
+{% endif %}
+<p class="muted">The structure was supplied from the UTS Handbook and has not been independently verified. Prerequisites for subjects that exist only in sub-majors have not been researched yet.</p>
+{% endblock %}

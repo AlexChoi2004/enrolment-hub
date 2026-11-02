@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Sub-major or electives · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>{{ 'Swap sub-major' if current else 'Choose your sub-major' }}{% if not current %} or electives{% endif %}</h1>
+<p>
+  This 24 credit point block of your degree is <strong>either a sub-major or general electives</strong>, on top of your
+  48 credit point major. Pick a sub-major below to see its compulsory (core) subjects and its options, or take electives instead.
+</p>
+{% if electives %}
+  <p class="demo-note">You are taking <strong>general electives</strong> instead of a sub-major.</p>
+{% endif %}
+{% if current %}
+  <p class="demo-note">Your sub-major is <strong>{{ current.name }}</strong>{% if current.language_name %} ({{ current.language_name }}){% endif %}.</p>
+{% endif %}
+
+<ul class="plain major-list">
+  <li class="card{{ ' plan-complete' if electives }}">
+    <a href="{{ url_for('submajors.electives') }}"><strong>General electives instead of a sub-major</strong></a><br>
+    Choose any 4 subjects from the sample electives · 24 cp
+    {% if electives %}<span class="badge st-completed">Your choice</span>{% endif %}
+  </li>
+  {% for s in submajors %}
+    <li class="card{{ ' plan-complete' if current and current.code == s.code }}">
+      <a href="{{ url_for('submajors.show', code=s.code) }}"><strong>{{ s.name }}</strong></a>
+      <span class="muted">{{ s.code }}</span><br>
+      {% if s.is_language %}
+        Choose one of {{ s.languages|length }} language programs · 24 cp (three 8 cp subjects)
+      {% elif s.choose_cp %}
+        {{ s.core_cp }} cp core, plus {{ s.choose_cp }} cp of options · 24 cp
+      {% else %}
+        All subjects are core · 24 cp
+      {% endif %}
+      {% if current and current.code == s.code %}<span class="badge st-completed">Your sub-major</span>{% endif %}
+    </li>
+  {% endfor %}
+</ul>
+<p class="muted">The structure of each sub-major was supplied from the UTS Handbook and has not been independently verified.</p>
+{% endblock %}

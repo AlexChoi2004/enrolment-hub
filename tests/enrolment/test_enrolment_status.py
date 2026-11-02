@@ -61,15 +61,18 @@ def test_every_missing_prerequisite_is_named(conn):
 
 # --- elective requirements ----------------------------------------------------
 
-def test_all_four_general_electives_completed_blocks_the_rest(conn):
-    result = demo(conn)
-    general = [code for code in result["subjects"] if code.startswith("SYN")]
-    states = {code: status(result, code) for code in general}
-    assert sum(1 for s in states.values() if s == "completed") == 4
-    assert sum(1 for s in states.values() if s == "blocked") == 8
-    assert "available" not in states.values()
-    blocked = next(code for code, s in states.items() if s == "blocked")
-    assert result["subjects"][blocked]["reasons"] == ["General electives requirement already complete"]
+def test_a_full_sub_major_option_group_blocks_the_rest(conn):
+    from submajors.service import choose_submajor
+
+    user = create_user(conn, "new.student@student.uni.edu.au", "Str0ng#Pass", "Autumn 2027")
+    choose_submajor(conn, user["id"], "SMJ10157")  # Information Security: choose 18 cp from six options
+    for code in ("41182", "41183", "41184"):
+        conn.execute("INSERT INTO enrolments (user_id, subject_code, status, session_label) VALUES (?, ?, 'completed', 'Autumn 2026')", (user["id"], code))
+    conn.commit()
+    result = evaluate_subjects(conn, user["id"])
+    for code in ("41180", "41185", "48730"):
+        assert result["subjects"][code]["status"] == "blocked"
+    assert result["subjects"]["41180"]["reasons"] == ["Sub-major options requirement already complete"]
 
 
 def test_major_electives_stay_open_until_three_are_chosen(conn):
@@ -100,8 +103,8 @@ def test_category_progress_counts_completed_and_in_progress(conn):
     categories = demo(conn)["categories"]
     assert (categories["core"]["completed"], categories["core"]["enrolled"], categories["core"]["pool"]) == (9, 1, 16)
     assert (categories["major_core"]["completed"], categories["major_core"]["enrolled"]) == (3, 1)
-    assert categories["general_elective"]["counted_cp"] == 24
-    assert categories["general_elective"]["required_cp"] == 24
+    assert categories["sub_core"]["counted_cp"] == 24
+    assert categories["sub_core"]["required_cp"] == 24
 
 
 def test_counted_credit_points_match_the_students_record(conn):
@@ -119,7 +122,8 @@ def test_a_new_student_has_nothing_completed_and_can_only_take_subjects_without_
     assert states["41039"] == "available"  # Programming 1: no prerequisite
     assert states["48024"] == "blocked"  # Programming 2 needs Programming 1
     assert states["41026"] == "blocked"
-    assert states["SYN101"] == "available"  # general electives are open
+    assert states["37242"] == "blocked"  # Introduction to Optimisation is only in sub-majors, and none is chosen
+    assert result["subjects"]["37242"]["note"] == "Choose a sub-major to take this subject"
     assert all(p["counted_cp"] == 0 for p in result["categories"].values())
 
 

@@ -5,6 +5,7 @@ from degree_planner import service
 from degree_planner.service import PlanError, add_to_plan, clear_plan, get_plan, move_in_plan, remove_from_plan
 from enrolment.service import enrol, evaluate_subjects, withdraw
 from majors.service import choose_major
+from submajors.service import choose_submajor
 
 AUTUMN_27, SPRING_27 = "Autumn 2027", "Spring 2027"
 
@@ -14,6 +15,7 @@ def student(conn):
     """A brand new student with nothing completed, enrolled or planned."""
     user = create_user(conn, "new.student@student.uni.edu.au", "Str0ng#Pass", AUTUMN_27)["id"]
     choose_major(conn, user, "MAJ03519")  # new accounts choose a major; these tests use Enterprise Software Development
+    choose_submajor(conn, user, "SMJ10156")  # Innovation and Entrepreneurship: four core subjects
     return user
 
 
@@ -128,8 +130,10 @@ def test_an_enrolled_prerequisite_does_not_count_in_its_own_session(conn, studen
 # --- electives -------------------------------------------------------------------------------------------
 
 def test_a_finished_elective_requirement_cannot_be_exceeded(conn):
-    with pytest.raises(PlanError, match=r"General electives requirement would be exceeded \(24 of 24"):
-        add_to_plan(conn, 1, "SYN102", "Autumn 2028")  # an Autumn elective
+    add_to_plan(conn, 1, "41052", "Spring 2028")
+    add_to_plan(conn, 1, "32113", "Spring 2028")  # with 41040 already enrolled, the three major electives are chosen
+    with pytest.raises(PlanError, match=r"Major electives requirement would be exceeded \(18 of 18"):
+        add_to_plan(conn, 1, "31927", "Spring 2029")
 
 
 def test_planned_electives_count_towards_the_requirement(conn):
@@ -139,11 +143,14 @@ def test_planned_electives_count_towards_the_requirement(conn):
         add_to_plan(conn, 1, "31260", "Spring 2029")
 
 
-def test_four_general_electives_can_be_planned_but_not_a_fifth(conn, student):
-    for code in ["SYN101", "SYN103", "SYN106", "SYN109"]:
-        add_to_plan(conn, student, code, "Spring 2028" if code != "SYN101" else "Autumn 2028")
-    with pytest.raises(PlanError, match="General electives requirement would be exceeded"):
-        add_to_plan(conn, student, "SYN111", "Spring 2029")
+def test_a_sub_major_option_group_can_be_filled_but_not_exceeded(conn, student):
+    choose_submajor(conn, student, "SMJ10157")  # Information Security: choose 18 cp from six options
+    add_to_plan(conn, student, "41039", "Autumn 2027")
+    add_to_plan(conn, student, "41182", "Autumn 2028")
+    add_to_plan(conn, student, "41183", "Spring 2028")
+    add_to_plan(conn, student, "41185", "Spring 2029")  # three options = 18 cp
+    with pytest.raises(PlanError, match="Sub-major options requirement would be exceeded"):
+        add_to_plan(conn, student, "41180", "Autumn 2029")
 
 
 # --- moving (Update) ---------------------------------------------------------------------------------------
@@ -275,7 +282,7 @@ def test_totals_for_the_demo_student(conn):
 
 def test_totals_always_add_up_to_the_degree(conn, student):
     add_to_plan(conn, student, "41039", AUTUMN_27)
-    add_to_plan(conn, student, "SYN101", "Spring 2028")
+    add_to_plan(conn, student, "48080", "Spring 2028")
     plan = get_plan(conn, student)
     assert plan["completed_cp"] + plan["enrolled_cp"] + plan["planned_cp"] + plan["remaining_cp"] == 192
 
@@ -303,7 +310,7 @@ def test_elective_needs_for_the_demo_student(conn):
 
 def test_elective_needs_for_a_new_student(conn, student):
     needs = {n["label"]: n["need"] for n in get_plan(conn, student)["elective_needs"]}
-    assert needs == {"Major electives": 3, "General electives": 4}
+    assert needs == {"Major electives": 3}  # the Innovation sub-major has no options to choose
 
 
 def test_a_subject_whose_prerequisites_are_not_planned_has_no_sessions_yet(conn, student):

@@ -1,6 +1,7 @@
 import pytest
 
 from accounts.service import create_user
+from submajors.service import choose_submajor
 from enrolment.service import (
     EnrolmentError,
     enrol,
@@ -24,7 +25,9 @@ def rows(conn, user_id=1):
 @pytest.fixture()
 def student(conn):
     """A brand new student with nothing enrolled."""
-    return create_user(conn, "new.student@student.uni.edu.au", "Str0ng#Pass", AUTUMN)["id"]
+    user = create_user(conn, "new.student@student.uni.edu.au", "Str0ng#Pass", AUTUMN)["id"]
+    choose_submajor(conn, user, "SMJ10156")  # Innovation and Entrepreneurship: four core subjects, no prerequisites known
+    return user
 
 
 # --- the open sessions -----------------------------------------------------------------------
@@ -104,7 +107,7 @@ def test_only_the_open_sessions_are_accepted(conn, student, session_label):
 
 def test_subject_must_be_offered_in_the_chosen_session(conn, student):
     with pytest.raises(EnrolmentError, match="is not offered in Spring 2027"):
-        enrol(conn, student, "SYN102", SPRING)  # Financial Accounting Basics is Autumn only
+        enrol(conn, student, "32144", SPRING)  # Technology Research Preparation is Autumn only
 
 
 # --- the load limit ----------------------------------------------------------------------------------------
@@ -141,7 +144,7 @@ def test_the_limit_counts_credit_points_not_subjects(conn):
 
 def test_a_student_can_plan_a_whole_year_of_eight_subjects(conn, student):
     autumn = ["33130", "41039", "31265", "37181"]
-    spring = ["31268", "41092", "SYN104", "SYN107"]
+    spring = ["31268", "41092", "48080", "81529"]
     for code in autumn:
         enrol(conn, student, code, AUTUMN)
     for code in spring:
@@ -155,16 +158,20 @@ def test_a_student_can_plan_a_whole_year_of_eight_subjects(conn, student):
 def test_a_ninth_subject_is_refused_because_both_sessions_are_full(conn, student):
     for code in ["33130", "41039", "31265", "37181"]:
         enrol(conn, student, code, AUTUMN)
-    for code in ["31268", "41092", "SYN104", "SYN107"]:
+    for code in ["31268", "41092", "48080", "81529"]:
         enrol(conn, student, code, SPRING)
     with pytest.raises(EnrolmentError, match="Autumn 2027 is full .* and Spring 2027 is full"):
         enrol(conn, student, "43030", SPRING)
     assert len(rows(conn, student)) == 8
 
 
-def test_elective_limits_still_apply(conn):
-    with pytest.raises(EnrolmentError, match="General electives requirement already complete"):
-        enrol(conn, 1, "SYN102", SPRING)
+def test_elective_limits_still_apply(conn, student):
+    choose_submajor(conn, student, "SMJ10157")  # Information Security: choose 18 cp from six options
+    for code in ("41182", "41183", "41184"):
+        conn.execute("INSERT INTO enrolments (user_id, subject_code, status, session_label) VALUES (?, ?, 'completed', 'Autumn 2026')", (student, code))
+    conn.commit()
+    with pytest.raises(EnrolmentError, match="Sub-major options requirement already complete"):
+        enrol(conn, student, "41180", AUTUMN)
 
 
 # --- withdrawing (Delete) ----------------------------------------------------------------------------------------
@@ -230,7 +237,7 @@ def test_cannot_move_to_a_session_the_subject_is_not_offered_in(conn):
 
 
 def test_cannot_move_into_a_full_session(conn, student):
-    for code in ["31268", "41092", "SYN104", "SYN107"]:
+    for code in ["31268", "41092", "48080", "81529"]:
         enrol(conn, student, code, SPRING)
     enrol(conn, student, "43030", AUTUMN)
     with pytest.raises(EnrolmentError, match="Spring 2027 is full"):

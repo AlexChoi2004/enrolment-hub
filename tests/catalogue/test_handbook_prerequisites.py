@@ -4,6 +4,7 @@ from accounts.service import create_user
 from degree_planner.service import PlanError, add_to_plan, get_plan, suggest_plan
 from enrolment.service import evaluate_subjects
 from majors.service import choose_major
+from submajors.service import choose_submajor
 
 AUTUMN = "Autumn 2027"
 MAJORS = ["MAJ03519", "MAJ10053", "MAJ02080", "MAJ02900", "MAJ02092", "MAJ01156", "MAJ03445", "MAJ02901"]
@@ -105,6 +106,7 @@ def test_planning_counts_credit_planned_in_earlier_sessions(conn, student):
 def test_every_major_still_plans_in_full_under_the_handbook_rules(conn, major):
     uid = create_user(conn, "m.student@student.uni.edu.au", "Str0ng#Pass", AUTUMN)["id"]
     choose_major(conn, uid, major)
+    choose_submajor(conn, uid, "SMJ10156")  # Innovation and Entrepreneurship: four core subjects
     added, unplaced = suggest_plan(conn, uid)
     plan = get_plan(conn, uid)
     assert unplaced == [] and plan["complete"] is True and plan["remaining_cp"] == 0

@@ -6,11 +6,15 @@
   Bachelor of Computing Science (Honours){% if major %}, {{ major.name }} major ·
     <a href="{{ url_for('majors.index') }}">Swap major</a>
   {% else %} · You haven't chosen a major yet · <a href="{{ url_for('majors.index') }}">Choose major</a>{% endif %}
+  {% if submajor %} · {{ submajor.name }}{% if submajor.language_name %} ({{ submajor.language_name }}){% endif %} sub-major ·
+    <a href="{{ url_for('submajors.index') }}">Swap sub-major</a>
+  {% elif electives %} · General electives instead of a sub-major · <a href="{{ url_for('submajors.index') }}">Change</a>
+  {% else %} · No sub-major yet · <a href="{{ url_for('submajors.index') }}">Choose sub-major or electives</a>{% endif %}
 </p>
 
 <form class="filters" method="get" action="{{ url_for('catalogue.list_page') }}"
       hx-get="{{ url_for('catalogue.list_page') }}" hx-target="#results"
-      hx-trigger="input delay:300ms, change" hx-push-url="true">
+      hx-trigger="submit" hx-push-url="true">
   <label>Search name or code
     <input type="search" name="q" value="{{ filters.q }}" maxlength="50" autocomplete="off">
   </label>
@@ -46,7 +50,8 @@
       <option value="none" {{ 'selected' if filters.prereqs == 'none' }}>No prerequisites</option>
     </select>
   </label>
-  <noscript><button type="submit">Apply</button></noscript>
+  <button type="submit">Apply</button>
+  <a class="btn btn-secondary" href="{{ url_for('catalogue.list_page') }}">Reset filters</a>
 </form>
 
 <p class="loads">
@@ -54,6 +59,7 @@
     <span class="load{{ ' load-full' if cp >= max_cp }}">{{ label }}: {{ cp }} of {{ max_cp }} credit points</span>
   {% endfor %}
 </p>
+
 <div id="results">
   {% include 'catalogue/_results.html' %}
 </div>

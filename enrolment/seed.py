@@ -9,13 +9,13 @@ from accounts.seed import DEMO_STUDENT_NUMBER
 from enrolment.service import CURRENT_SESSION
 
 
-# (session, status, subject codes). 16 completed subjects = 96 cp (including all four general
-# electives, so that requirement is complete), then 4 in progress = 24 cp.
+# (session, status, subject codes). 16 completed subjects = 96 cp (including all four core subjects of the
+# Innovation and Entrepreneurship sub-major, so that requirement is complete), then 4 in progress = 24 cp.
 DEMO_HISTORY = [
-    ("Autumn 2025", "completed", ["41039", "33130", "31268", "SYN101"]),
-    ("Spring 2025", "completed", ["48024", "33230", "31269", "SYN103"]),
+    ("Autumn 2025", "completed", ["41039", "33130", "31268", "48080"]),
+    ("Spring 2025", "completed", ["48024", "33230", "31269", "81529"]),
     ("Autumn 2026", "completed", ["31251", "41025", "41078", "31271"]),
-    ("Spring 2026", "completed", ["48433", "31282", "SYN106", "SYN109"]),
+    ("Spring 2026", "completed", ["48433", "31282", "81546", "81547"]),
     (CURRENT_SESSION, "enrolled", ["41026", "31272", "32144", "41040"]),
 ]
 

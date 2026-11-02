@@ -25,17 +25,17 @@ def count(conn, sql, *args):
 
 # --- the stored data -----------------------------------------------------------------------------------------
 
-def test_every_subject_has_a_description_and_exactly_one_current_structure(conn):
+def test_every_subject_has_exactly_one_current_structure_and_the_researched_ones_have_a_description(conn):
     subjects = count(conn, "SELECT COUNT(*) FROM subjects")
-    assert subjects == 105
-    assert count(conn, "SELECT COUNT(*) FROM subject_descriptions") == subjects
+    assert subjects == 181
+    assert count(conn, "SELECT COUNT(*) FROM subject_descriptions") == 105  # the 76 sub-major-only subjects are not researched yet
     assert count(conn, "SELECT COUNT(*) FROM assessment_structures WHERE is_current = 1") == subjects
     assert count(conn, "SELECT COUNT(DISTINCT subject_code) FROM assessment_structures WHERE is_current = 1") == subjects
 
 
 def test_the_verification_labels_are_split_as_expected(conn):
     counts = dict(conn.execute("SELECT verification, COUNT(*) FROM assessment_structures GROUP BY verification").fetchall())
-    assert counts == {"indicative": 85, "historical": 2, "unverified": 6, "synthetic": 12}
+    assert counts == {"indicative": 85, "historical": 2, "unverified": 6 + 76, "synthetic": 12}
 
 
 def test_the_weights_of_every_structure_with_tasks_add_up_to_100(conn):
@@ -43,7 +43,7 @@ def test_the_weights_of_every_structure_with_tasks_add_up_to_100(conn):
         "SELECT s.subject_code, COALESCE(SUM(a.weight), 0) AS total FROM assessment_structures s"
         " JOIN assessments a ON a.structure_id = s.id GROUP BY s.id"
     ).fetchall()
-    assert len(rows) == 99  # every structure except the six unverified ones
+    assert len(rows) == 99  # the 85 indicative, 2 historical and 12 sample ones; every unverified structure has no tasks
     assert [r["subject_code"] for r in rows if r["total"] != 100] == []
 
 
@@ -124,12 +124,6 @@ def test_seeding_twice_adds_nothing(conn):
     assert [count(conn, f"SELECT COUNT(*) FROM {t}") for t in ("subject_descriptions", "assessment_structures", "assessments")] == before
 
 
-def test_the_sample_electives_are_labelled_as_invented(conn):
-    for code in [f"SYN{n}" for n in range(101, 113)]:
-        info = assessment_info(conn, code)
-        assert info["status"] == "synthetic" and "invented" in info["banner"]
-
-
 def test_every_task_has_a_short_explanation(conn):
     assert count(conn, "SELECT COUNT(*) FROM assessments WHERE description = ''") == 0
     assert explain("exam", "individual") == "A timed exam covering the subject."
@@ -208,10 +202,6 @@ def test_the_ai_is_told_historical_information_is_unconfirmed(conn):
     assert "Interview research poster (30%, group work, marked individually" in context["text"]
 
 
-def test_the_ai_is_told_sample_data_is_invented(conn):
-    assert "invented" in ai_context(conn, "SYN101")["text"]
-
-
 def test_an_unknown_subject_is_not_enough_context(conn):
     assert ai_context(conn, "00000")["text"].startswith(NOT_ENOUGH)
 
@@ -253,7 +243,7 @@ def test_a_new_structure_must_add_up_and_use_known_values(conn):
 
 
 def test_loading_all_assessment_information_covers_every_subject(conn):
-    assert len(load_assessment_info(conn)) == 105
+    assert len(load_assessment_info(conn)) == 181
 
 
 # --- the pages ------------------------------------------------------------------------------------------------------
@@ -316,12 +306,6 @@ def test_a_historical_subject_is_shown_with_a_warning(client, register):
     assert "Source: UTS Handbook" not in page and "(indicative)" not in page
 
 
-def test_a_sample_elective_says_it_is_invented(client, log_in):
-    log_in()
-    page = card(html(client, "/subjects"), "SYN101")
-    assert "Sample data invented for this prototype" in page
-
-
 def test_the_detail_page_shows_the_same_information(client, log_in):
     log_in()
     page = html(client, "/subjects/41039")
@@ -332,3 +316,28 @@ def test_a_student_cannot_see_unverified_data_as_confirmed(client, log_in):
     log_in()
     page = html(client, "/subjects")
     assert "verified against the official outline" not in page  # nothing is verified-current yet
+
+
+def test_the_new_sub_major_subjects_have_no_confirmed_assessment_information(conn):
+    for code in ("37242", "97101", "48080"):
+        info = assessment_info(conn, code)
+        assert info["status"] == "none" and info["tasks"] == []
+        assert ai_context(conn, code)["text"].startswith(NOT_ENOUGH)
+
+
+def test_the_sample_electives_are_labelled_as_invented(conn):
+    for code in [f"SYN{n}" for n in range(101, 113)]:
+        info = assessment_info(conn, code)
+        assert info["status"] == "synthetic" and "invented" in info["banner"]
+
+
+def test_the_ai_is_told_sample_data_is_invented(conn):
+    assert "invented" in ai_context(conn, "SYN101")["text"]
+
+
+def test_a_sample_elective_says_it_is_invented(client, register):
+    register()
+    token_ = TOKEN.search(client.get("/subjects").get_data(as_text=True)).group(1)
+    client.post("/submajor/electives/choose", data={"csrf_token": token_})
+    page = card(html(client, "/subjects"), "SYN101")
+    assert "Sample data invented for this prototype" in page

@@ -15,7 +15,7 @@ from accounts.service import STUDENT_NUMBER_PATTERN
 from enrolment import service
 from shared import security
 from shared.db import get_db
-from subject_catalogue.service import is_valid_code, user_major
+from subject_catalogue.service import is_valid_code, uses_general_electives, user_major, user_submajor
 
 bp = Blueprint("enrolment", __name__, template_folder="templates", url_prefix="/students")
 
@@ -48,6 +48,8 @@ def record(student_number):
             course=service.get_course(conn, g.user["course_code"]),
             record=record_data,
             major=user_major(conn, g.user["id"]),
+            submajor=user_submajor(conn, g.user["id"]),
+            electives=uses_general_electives(conn, g.user["id"]),
             year=service.study_year(g.user["commencement_session"]),
             current_session=service.CURRENT_SESSION,
             session_loads=progress["session_loads"],

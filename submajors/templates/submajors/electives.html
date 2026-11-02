@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}General electives · Enrolment Hub{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('submajors.index') }}">&larr; Sub-majors</a></p>
+<h1>General electives instead of a sub-major</h1>
+<p class="muted">24 credit points: choose any 4 of the subjects below.</p>
+<p class="notice">These electives are invented sample subjects for this prototype. They are not real UTS subjects.</p>
+
+<table class="table">
+  <tbody>
+    {% for s in options.subjects %}
+      <tr><td class="code">{{ s.code }}</td><td>{{ s.name }}</td><td>{{ s.credit_points }} cp</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if options.impact.lost or options.impact.plan_removed %}
+  <div class="flash flash-warning">
+    {% if options.impact.lost %}
+      <p>These subjects you have done would stop counting towards your degree. They stay on your record.</p>
+      <ul class="plain">
+        {% for l in options.impact.lost %}<li>{{ l.subject_code }} {{ l.name }} ({{ l.status }})</li>{% endfor %}
+      </ul>
+    {% endif %}
+    {% if options.impact.plan_removed %}<p>{{ options.impact.plan_removed }} planned subject(s) would be removed from your plan.</p>{% endif %}
+  </div>
+{% endif %}
+
+{% if options.is_current %}
+  <p class="demo-note">This is your choice.</p>
+{% else %}
+  {% if options.has_current %}<p>Swapping keeps what you have done. Anything that isn't a general elective (or in your major) stops counting.</p>{% endif %}
+  <form method="post" action="{{ url_for('submajors.choose_electives') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if options.impact.withdrawable %}
+      <p><label>
+        <input type="checkbox" name="withdraw_in_progress" value="1" checked>
+        Also withdraw me from the {{ options.impact.withdrawable|length }} in-progress subject(s) listed above (marked "enrolled")
+      </label></p>
+    {% endif %}
+    <button type="submit" class="btn">{{ 'Swap to general electives' if options.has_current else 'Choose general electives' }}</button>
+  </form>
+{% endif %}
+{% endblock %}
