@@ -5,6 +5,8 @@ page and (next) the enrol endpoint can never disagree about what a student may d
 """
 from collections import defaultdict
 
+from enrolment.results import failed_subjects
+
 from subject_catalogue.service import (
     DEGREE_CREDIT_POINTS,
     degree_categories,
@@ -133,6 +135,7 @@ def evaluate_subjects(conn, user_id):
         records[row["subject_code"]] = row["status"]
         sessions[row["subject_code"]] = row["session_label"]
 
+    failed = failed_subjects(conn, user_id)  # failed and not yet passed: they need a retake
     subjects = degree_subjects(conn, user_id)  # category is None for subjects outside this student's degree
     major = user_major(conn, user_id)
     submajor = user_submajor(conn, user_id)
@@ -140,6 +143,7 @@ def evaluate_subjects(conn, user_id):
     in_major_lists = {r[0] for r in conn.execute("SELECT subject_code FROM major_subjects")}
     in_sub_lists = {r[0] for r in conn.execute("SELECT subject_code FROM submajor_group_subjects")}
     names = {s["code"]: s["name"] for s in subjects}
+    shown = {c: (f"{n} (failed: retake it first)" if c in failed else n) for c, n in names.items()}  # for messages
     rules = load_prerequisites(conn)  # {subject: [group, ...]}: every group needed, any one code in a group
     credit_rules = load_credit_requirements(conn)
     # Completed credit points per major, for conditions such as "30 cp completed in MAJ03445".
@@ -197,6 +201,8 @@ def evaluate_subjects(conn, user_id):
             status, note = "completed", f"Completed in {sessions[code]}"
         elif state == "enrolled":
             status, note = "enrolled", f"In progress in {sessions[code]}"
+            if code in failed:
+                note += f" (retake, attempt {failed[code]['attempts'] + 1})"
             moves = with_room(s, [label for label in open_labels if label != sessions[code]])
         elif s["category"] is None:
             status = "blocked"
@@ -212,7 +218,7 @@ def evaluate_subjects(conn, user_id):
                 )
             ]
             if missing:
-                reasons.append("Needs " + ", ".join(group_text(names, g) for g in missing))
+                reasons.append("Needs " + ", ".join(group_text(shown, g) for g in missing))
             for req in credit_rules.get(code, []):
                 have = major_credit.get(req["major_code"], 0)
                 if have < req["min_cp"]:
@@ -236,7 +242,14 @@ def evaluate_subjects(conn, user_id):
                     )
             status = "blocked" if reasons else "available"
             note = " · ".join(reasons)
+            if code in failed:  # an outstanding requirement again, with the reason it is
+                f = failed[code]
+                head = f"Failed in {f['last_session']} (mark {f['last_mark']}): retake needed"
+                note = head + (" · " + note if note else "")
         result[code] = {
+            "retake": code in failed and state is None,  # failed, not passed and not currently being retaken
+            "attempts": failed[code]["attempts"] if code in failed else 0,
+            "last_failed": failed.get(code),
             "status": status,
             "reasons": reasons,
             "note": note,

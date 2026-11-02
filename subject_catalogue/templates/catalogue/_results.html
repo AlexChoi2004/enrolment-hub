@@ -26,6 +26,8 @@
             {% elif s.status == 'enrolled' %}<span class="badge st-enrolled">Enrolled</span>
             {% elif s.status == 'available' %}<span class="badge st-available">Can enrol</span>
             {% else %}<span class="badge st-blocked">Can't enrol</span>{% endif %}
+            {% if s.retake %}<span class="badge st-retake">Failed: retake needed</span>
+            {% elif s.attempts and s.status == 'enrolled' %}<span class="badge st-retake">Retake in progress</span>{% endif %}
             <span class="badge">{{ s.credit_points }} cp</span>
             <span class="badge category">{{ s.category_label }}</span>
             {% if s.is_synthetic %}<span class="badge warn">synthetic</span>{% endif %}

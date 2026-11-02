@@ -12,6 +12,7 @@ Rules for placing a subject in a session:
 """
 from collections import defaultdict
 
+from enrolment.results import failed_subjects
 from enrolment.service import (
     CURRENT_SESSION,
     MAX_CP_PER_SESSION,
@@ -100,7 +101,9 @@ def _state(conn, user_id):
     }
     return {
         "subjects": subjects, "prereqs": prereqs, "rules": rules, "records": records, "plan": plan, "major": major,
-        "submajor": submajor, "electives": uses_general_electives(conn, user_id), "membership": membership, "degree_categories": list(sections.values()),
+        "submajor": submajor, "electives": uses_general_electives(conn, user_id), "membership": membership,
+        "failed": failed_subjects(conn, user_id),  # failed and not yet passed: they need a retake
+        "degree_categories": list(sections.values()),
         "credit_rules": load_credit_requirements(conn), "major_members": major_members,
     }
 
@@ -187,7 +190,8 @@ def _check_placement(state, code, session, ignore_self=False):
         earlier, here = session_sort_key(when), session_sort_key(session)
         return earlier <= here if concurrent else earlier < here  # a corequisite may be in the same session
 
-    names = {c: s_["name"] for c, s_ in state["subjects"].items()}
+    names = {c: s_["name"] + (" (failed: retake it first)" if c in state["failed"] else "")
+             for c, s_ in state["subjects"].items()}
     missing = [g for g in state["rules"].get(code, []) if not any(satisfied_by(p, g["concurrent"]) for p in g["codes"])]
     if missing:
         return f"Needs {', '.join(group_text(names, g) for g in missing)} completed or planned in an earlier session."
@@ -332,8 +336,30 @@ def get_plan(conn, user_id):
                 outstanding.append({
                     "code": s["code"], "name": s["name"], "credit_points": s["credit_points"],
                     "category_label": s["category_label"], "sessions": _valid_sessions(state, s["code"]),
+                    "retake": s["code"] in state["failed"], "last_result": state["failed"].get(s["code"]),
                 })
     outstanding.sort(key=lambda o: (o["category_label"], o["name"].lower()))
+
+    # Failed subjects that still need a retake, and where each one stands.
+    retakes = []
+    for code, f in sorted(state["failed"].items()):
+        if code not in subjects or not subjects[code]["in_degree"]:
+            continue
+        record = state["records"].get(code)
+        stage = "enrolled" if record and record[0] == "enrolled" else "planned" if code in state["plan"] else "needs"
+        retakes.append({
+            "code": code, "name": subjects[code]["name"], "credit_points": subjects[code]["credit_points"],
+            "stage": stage, "session": (record[1] if stage == "enrolled" else state["plan"].get(code)),
+            "attempts": f["attempts"], "last_session": f["last_session"], "last_mark": f["last_mark"],
+            "sessions": _valid_sessions(state, code) if stage == "needs" else [],
+        })
+    counts = {
+        "completed": sum(1 for c, (st, _) in state["records"].items() if st == "completed" and subjects[c]["in_degree"]),
+        "enrolled": sum(1 for c, (st, _) in state["records"].items() if st == "enrolled" and subjects[c]["in_degree"]),
+        "planned": len(state["plan"]),
+        "blocked": sum(1 for s in sessions for p in s["planned"] if p["problem"]),
+        "retake": sum(1 for r in retakes if r["stage"] == "needs"),
+    }
 
     def cp(status):  # only what counts towards this degree, so nothing is counted twice or outside the degree
         return sum(subjects[c]["credit_points"] for c, (st, _) in state["records"].items()
@@ -367,6 +393,8 @@ def get_plan(conn, user_id):
         "elective_needs": elective_needs,
         "elective_sections": elective_sections,
         "problems": problems,
+        "retakes": retakes,
+        "counts": counts,
         "extra_cp": extra_cp,  # done, but not counting towards this degree (for example after changing major)
         "completed_cp": cp("completed"),
         "enrolled_cp": cp("enrolled"),
