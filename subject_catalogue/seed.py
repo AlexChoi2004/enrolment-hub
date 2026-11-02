@@ -1,6 +1,6 @@
 """Load the supplied handbook-derived data into SQLite (idempotent)."""
 from subject_catalogue.assessment_data import ASSESSMENTS, DESCRIPTIONS
-from subject_catalogue.assessments import explain
+from subject_catalogue.assessments import explain, illustrative_due_weeks
 from subject_catalogue.submajor_data import SOURCE_NOTE, STREAMS, SUBJECTS as SUBMAJOR_SUBJECTS, SUBMAJORS
 from subject_catalogue.seed_data import (
     CATEGORIES,
@@ -94,11 +94,12 @@ def seed_assessments(conn):
             " verification, note) VALUES (?, ?, ?, ?, ?, ?, ?)",
             (code, s["year"], s["session"], s["source"], s["retrieved_on"], s["verification"], s["note"]),
         )
-        for position, (name, type_, groupwork, weight) in enumerate(s["tasks"], 1):
+        weeks = illustrative_due_weeks(code, s["tasks"])
+        for position, ((name, type_, groupwork, weight), week) in enumerate(zip(s["tasks"], weeks), 1):
             conn.execute(
-                "INSERT INTO assessments (structure_id, position, name, description, type, weight, groupwork)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?)",
-                (cur.lastrowid, position, name, explain(type_, groupwork), type_, weight, groupwork),
+                "INSERT INTO assessments (structure_id, position, name, description, type, weight, groupwork,"
+                " due_week, due_week_source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'illustrative')",
+                (cur.lastrowid, position, name, explain(type_, groupwork), type_, weight, groupwork, week),
             )
 
 

@@ -63,6 +63,25 @@
     <h3>{{ s.label }}
       <span class="load{{ ' load-full' if s.load_cp >= max_cp }}">{{ s.load_cp }} of {{ max_cp }} credit points</span>
     </h3>
+    {% if s.workload.status %}
+      <details class="workload wl-{{ s.workload.status }}">
+        <summary><span class="badge wl-badge-{{ s.workload.status }}">Workload: {{ s.workload.label }}</span>
+          <span class="muted">average assessment load {{ s.workload.average_load }} of 5 (app estimate)</span></summary>
+        {% if s.workload.warnings %}<ul class="plain">{% for w in s.workload.warnings %}<li class="unmet">{{ w }}</li>{% endfor %}</ul>{% endif %}
+        {% if s.workload.positives %}<ul class="plain">{% for p in s.workload.positives %}<li class="met">&#10003; {{ p }}</li>{% endfor %}</ul>{% endif %}
+        {% if s.workload.weeks %}
+          <p class="muted">Deadlines by week (illustrative): {% for wk, v in s.workload.weeks.items() %}week {{ wk }}: {{ v.count }}{{ ', ' if not loop.last }}{% endfor %}. Exams are in the exam period.</p>
+        {% endif %}
+        {% for sg in s.suggestions %}
+          <form class="enrol-form" method="post" action="{{ url_for('planner.move', code=sg.code) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="session_label" value="{{ sg.to }}">
+            <p>Suggestion: move {{ sg.code }} {{ sg.name }} to {{ sg.to }}. {{ sg.reason }}.
+              <button type="submit" class="btn btn-secondary">Move to {{ sg.to }}</button></p>
+          </form>
+        {% endfor %}
+      </details>
+    {% endif %}
     {% if s.enrolled or s.planned %}
       <table class="table">
         <tbody>

@@ -18,6 +18,7 @@ from enrolment.service import (
     offered_in,
     session_sort_key,
 )
+from workload.service import context_for_ai, load_context, session_workload, suggest_moves
 from subject_catalogue.service import (
     DEGREE_CREDIT_POINTS,
     ELECTIVE_CREDIT_POINTS,
@@ -279,9 +280,21 @@ def get_plan(conn, user_id):
                 "credit_points": subjects[code]["credit_points"],
                 "category_label": subjects[code]["category_label"],
                 "problem": problem,
-                "move_sessions": _valid_sessions(state, code, ignore_self=True, exclude=session),
+                "move_sessions": [
+                    s for s in _valid_sessions(state, code, ignore_self=True, exclude=session)
+                    if _dependents_problem(state, code, s) is None  # nothing planned later needs it earlier
+                ],
             })
         sessions.append({"label": label, "load_cp": loads[label], "enrolled": enrolled, "planned": planned})
+
+    # Workload for every session, with moves that would lighten a heavy one (rules in code, never the AI).
+    wl = load_context(conn)
+    codes_by_session = {s["label"]: [i["code"] for i in s["enrolled"] + s["planned"]] for s in sessions}
+    for s in sessions:
+        s["workload"] = session_workload(wl, codes_by_session[s["label"]])
+        s["suggestions"] = suggest_moves(
+            wl, codes_by_session, s["label"], [(p["code"], p["move_sessions"]) for p in s["planned"]]
+        )
 
     outstanding, elective_needs, elective_sections = [], [], []
     categories = {}

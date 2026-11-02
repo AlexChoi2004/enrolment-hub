@@ -48,6 +48,36 @@ TAG_LABELS = {
     "essay": "Essay writing",
 }
 
+EXAM_WEEK = 14  # the exam period; every other illustrative due week falls between weeks 2 and 13
+
+
+def illustrative_due_weeks(code, tasks):
+    """Invented due weeks (the handbook does not publish them) for tasks = [(name, type, groupwork, weight)].
+
+    Repeatable for a subject: marked tasks are spread across the session by how much of the marks come before them,
+    exams go in the exam period, and a small per-task nudge stops every subject peaking in the same weeks. These are
+    illustrative only: the real dates are in the subject outline students get when they enrol.
+    """
+    import zlib
+
+    marked = [t for t in tasks if t[3] is not None and t[1] != "exam"]
+    total = sum(t[3] for t in marked) or 1
+    weeks, before = [], 0
+    for name, type_, _, weight in tasks:
+        if type_ == "exam":
+            weeks.append(EXAM_WEEK)
+            continue
+        if weight is None:  # a mandatory task with no marks
+            weeks.append(3)
+            continue
+        middle = before + weight / 2
+        before += weight
+        week = 3 + round(10 * middle / total)
+        week += zlib.crc32(f"{code}:{name}".encode()) % 3 - 1
+        weeks.append(max(2, min(13, week)))
+    return weeks
+
+
 NO_BREAKDOWN = "No assessment breakdown has been published yet. You'll find out when you enrol and receive the subject outline."
 NOT_ENOUGH = "Not enough context"
 
@@ -155,7 +185,12 @@ def ai_context(conn, code):
             "assessments_known": False, "status": "none",
             "text": f"{NOT_ENOUGH}: there is no confirmed assessment breakdown for {label}.{summary}",
         }
-    parts = [f"{t['name']} ({t['weight_text']}, {t['group_label'].lower()}, {t['type_label'].lower()})" for t in info["tasks"]]
+    parts = [
+        f"{t['name']} ({t['weight_text']}, {t['group_label'].lower()}, {t['type_label'].lower()}"
+        + (f", due week {t['due_week']} (illustrative)" if t["due_week"] and t["due_week_source"] == "illustrative" else "")
+        + ")"
+        for t in info["tasks"]
+    ]
     caveat = {
         "indicative": "Indicative information from the UTS Handbook; the subject outline is authoritative.",
         "verified_current": "Verified against the official subject outline.",

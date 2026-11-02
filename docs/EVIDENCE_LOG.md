@@ -42,7 +42,10 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
                              | chooser with an impact preview; major, sub-major and electives swaps are never blocked and can withdraw in-progress      |        |        |
                              | subjects that stop counting; the planner and enrolment handle choose-groups in credit points and flag overlaps with the  |        |        |
                              | major; filters apply only on Apply with a Reset button; about 150 new tests                                              |        |        |
-
+| 2026-11-03 | 3 (dev tools) | Added an assessment load estimate (1 to 5) worked out from the handbook assessment data, illustrative due weeks for      | 1 HOUR | PR #17 |
+                             | every assessment, workload verdicts for each planner session and the timetable session in view (light, balanced, heavy,  |        |        |
+                             | too heavy) with warnings and positives, and suggested moves that lighten a heavy session; kept the score inside the      |        |        |
+                             | opened subject card only; 52 new tests                                                                                   |        |        |
 
 
 ## Things that went wrong or changed
@@ -179,6 +182,18 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed the Apply button coming back, because a package of my files overwrote a one-line fix I had made locally; I now check which files a package changes before unpacking it
 - Fixed the Reset filters button, which looked wrong because it was a link stretched to the height of the row and underlined
 - Fixed about 60 existing tests that assumed the old subject counts and the old swap rule
+
+### PR #17: Assessment load, due weeks and workload
+- Added an assessment load score from 1 to 5 using a visible formula (prerequisite chain depth, exam share, number of assessments, hurdle, one big task, honours or 12 cp subjects), and gave subjects with no confirmed assessment information no score instead of an average, so the AI layer cannot pretend to know them
+- Decided to label the score as the app's own estimate and due weeks as illustrative everywhere they appear, and to pass the same caveats to the AI context, because the handbook publishes neither
+- Changed the formula's weights after counting how many subjects landed on each score, because my first version put 70 of 100 subjects on 2 and none on 5
+- Changed the crunch-week thresholds after running the verdicts over 600 random sessions, because my first numbers rated about half of all sessions heavy; the new ones spread the verdicts across all four
+- Fixed my first suggestion rule, which compared combined points and so never suggested anything, because moving one subject between two sessions keeps the combined total; it now requires the moved subject to lighten this session and land somewhere lighter than this one was
+- Fixed the planner offering Move choices that it would later refuse (moving a prerequisite later than something planned that needs it), after one of my new tests applied a suggestion and was refused
+- Decided the AI may explain these results but never decide them, so the verdicts and suggestions are worked out by rules in code
+- Changed the name from "difficulty" to "assessment load" after thinking about what the score really measures: how heavy the assessment is, not how hard the content is, so "difficulty" claimed more than I knew; I also kept the score inside the opened subject card only, so it cannot become a ranking of subjects
+- Fixed one old test that said due weeks were never stored, and one that checked the exact AI context wording
+- Fixed unpacking the rename on a branch that did not have the earlier workload files, which produced import errors, by checking for a key line of the earlier package before unpacking and sending one complete package instead
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.

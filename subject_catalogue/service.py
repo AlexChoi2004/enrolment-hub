@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass
 
 from subject_catalogue.assessments import load_assessment_info
+from subject_catalogue.assessment_load import assessment_load_map
 
 SESSIONS = ("Autumn", "Spring")
 PREREQ_FILTERS = ("required", "none")
@@ -444,6 +445,7 @@ def _attach_relations(conn, rows):
     credit = load_credit_requirements(conn)
     notes = {r["subject_code"]: r["note"] for r in conn.execute("SELECT subject_code, note FROM prerequisite_notes")}
     assessments = load_assessment_info(conn)
+    assessment_load = assessment_load_map(load_prerequisites(conn), assessments, [dict(r) for r in rows])
     submajors = {}
     for r in conn.execute(
         "SELECT gs.subject_code, sm.code, sm.name, g.kind, g.language_name FROM submajor_group_subjects gs"
@@ -478,6 +480,7 @@ def _attach_relations(conn, rows):
         subject["summary"] = info["summary"] if info else ""
         subject["style_tags"] = info["tags"] if info else []
         subject["assessment"] = info
+        subject["assessment_load"] = assessment_load.get(code, {"score": None, "reasons": []})  # the app's estimate, not UTS's
         out.append(subject)
     return out
 

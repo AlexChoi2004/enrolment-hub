@@ -217,3 +217,15 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 .tt-subject p { margin: .2rem 0; }
 .tt-component { margin: .6rem 0 .8rem; }
 .flash-warning { background: #fff6d6; border-color: #e0c36a; color: #6b5300; }
+
+/* Workload and assessment load */
+.workload { margin: .4rem 0 .8rem; padding: .5rem .8rem; border: 1px solid var(--border); border-radius: 8px; background: var(--card); }
+.workload summary { cursor: pointer; }
+.wl-light { border-left: 5px solid #15803d; }
+.wl-balanced { border-left: 5px solid #0f8b8d; }
+.wl-heavy { border-left: 5px solid #c2570c; }
+.wl-too_heavy { border-left: 5px solid #b91c1c; }
+.wl-badge-light { background: #dcfce7; } .wl-badge-balanced { background: #ccfbf1; }
+.wl-badge-heavy { background: #ffedd5; } .wl-badge-too_heavy { background: #fee2e2; }
+.aload-1 { background: #dcfce7; } .aload-2 { background: #ecfccb; } .aload-3 { background: #fef9c3; }
+.aload-4 { background: #ffedd5; } .aload-5 { background: #fee2e2; }

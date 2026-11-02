@@ -11,6 +11,12 @@
   {% endif %}
 
   <h3>Assessment</h3>
+  {% if subject.assessment_load.score %}
+    <p>
+      <span class="badge aload-{{ subject.assessment_load.score }}">Assessment load {{ subject.assessment_load.score }} of 5</span>
+      <span class="muted">App estimate, not a UTS rating: {{ subject.assessment_load.reasons|join('; ') }}.</span>
+    </p>
+  {% endif %}
   {% set a = subject.assessment %}
   {% if not a or a.status == 'none' %}
     <p>{{ a.banner if a else 'No assessment breakdown has been published yet. You will find out when you enrol.' }}</p>
@@ -18,7 +24,7 @@
     <p class="notice">{{ a.banner }}</p>
     <div class="table-wrap">
       <table class="table assessments">
-        <thead><tr><th>Task</th><th>Type</th><th>Weight</th><th>Individual or group</th></tr></thead>
+        <thead><tr><th>Task</th><th>Type</th><th>Weight</th><th>Individual or group</th><th>Due</th></tr></thead>
         <tbody>
           {% for t in a.tasks %}
             <tr>
@@ -26,12 +32,16 @@
               <td>{{ t.type_label }}</td>
               <td>{{ t.weight_text }}</td>
               <td>{{ t.group_label }}</td>
+              <td>{% if t.due_week %}{{ 'Exam period' if t.type == 'exam' else 'Week ' ~ t.due_week }}{% if t.due_week_source == 'illustrative' %}*{% endif %}{% else %}&ndash;{% endif %}</td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
     <p class="muted">Group work counts for {{ a.group_weight }}% of the marks and exams for {{ a.exam_weight }}%.</p>
+    {% if a.tasks and a.tasks[0].due_week_source == 'illustrative' %}
+      <p class="muted">*Due weeks are illustrative (invented for this prototype). The real dates are in the subject outline you get when you enrol.</p>
+    {% endif %}
   {% endif %}
 
   <h3>Prerequisites</h3>

@@ -6,6 +6,7 @@ from shared import security
 from shared.db import get_db
 from subject_catalogue.service import is_valid_code
 from timetable import service
+from workload.service import load_context, session_workload
 
 bp = Blueprint("timetable", __name__, template_folder="templates", url_prefix="/timetable")
 
@@ -14,10 +15,13 @@ bp = Blueprint("timetable", __name__, template_folder="templates", url_prefix="/
 @security.login_required
 def page():
     session_label = service.valid_session(request.args.get("session", ""))
+    timetable = service.get_timetable(get_db(), g.user["id"], session_label)
+    workload = session_workload(load_context(get_db()), [c["code"] for c in timetable["subjects"]])
     response = make_response(
         render_template(
             "timetable/index.html",
-            timetable=service.get_timetable(get_db(), g.user["id"], session_label),
+            timetable=timetable,
+            workload=workload,
             sessions=open_sessions(),
             current=session_label,
         )
