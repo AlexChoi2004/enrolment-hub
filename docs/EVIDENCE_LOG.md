@@ -32,7 +32,9 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
                              | 2 historical, 6 unconfirmed and 12 sample electives; each assessment structure carries a source, year and verification   |        |        |
                              | label; unconfirmed subjects say there is no breakdown yet; a single function decides what the AI features may use, and   |        |        |
                              | says "not enough context" otherwise; 56 new tests                                                                        |        |        |
-
+| 1016-11-02 | 3 (dev tools) | Compared my prerequisites with the UTS Handbook for every subject I could read, then matched them: 34 rules added and    | 1 HOUR | PR #14 |
+                             |7 corrected, degree-wide credit-point conditions, corequisites, the handbook's wording kept as notes where the app cannot |        |        |
+                             |enforce it, five subject names corrected, and the demo student's history fixed; 24 new tests                              |        |        |
 
 ## Things that went wrong or changed
 
@@ -135,6 +137,21 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed my plan to read every subject from the handbook after finding that six of the pages block automated access; I did not work around that and used the descriptions 
   and historical information I was given instead
 - Decided to keep the explanations of each task general to its type instead of copying handbook text
+
+### PR #14: Prerequisites matched to the handbook
+- Changed my prerequisites from the supplied rules and research leads to the UTS Handbook's requisites, after finding that my own leads were wrong for several subjects 
+  (for example Fundamentals of Interaction Design has no prerequisite at all)
+- Decided to enforce only the alternatives that exist in my app and keep the full handbook wording as a visible note, because many handbook requisites accept subjects 
+  from other faculties that I do not have
+- Decided not to enforce the handbook rule for Data Visualisation, because Business Information Systems makes it core but the subject it requires is not in that major,
+  and showed it as a note instead
+- Changed credit-point conditions so they can apply to the whole degree as well as to one major, and made the planner count credit planned in earlier sessions
+- Fixed the demo student's history after the new rules showed that Database Fundamentals was taken before Programming 1; I swapped two subjects between sessions so 
+  his totals did not change
+- Fixed five subject names that did not match the handbook, including Real Analysis, which I had called Mathematics 3
+- Fixed about 40 existing tests that assumed the old rules, and added a test that every major still produces a full plan
+- Decided to leave six subjects on their old rules because their handbook pages block automated access
+
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
