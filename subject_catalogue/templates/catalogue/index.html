@@ -42,8 +42,8 @@
   <label>Prerequisites
     <select name="prereqs">
       <option value="">Any</option>
-      <option value="supplied" {{ 'selected' if filters.prereqs == 'supplied' }}>Has a supplied rule</option>
-      <option value="not_supplied" {{ 'selected' if filters.prereqs == 'not_supplied' }}>Not in supplied data</option>
+      <option value="required" {{ 'selected' if filters.prereqs == 'required' }}>Has prerequisites</option>
+      <option value="none" {{ 'selected' if filters.prereqs == 'none' }}>No prerequisites</option>
     </select>
   </label>
   <button type="submit">Apply</button>
