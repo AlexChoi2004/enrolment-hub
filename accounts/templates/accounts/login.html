@@ -25,5 +25,10 @@
   <button type="submit">Log in</button>
 </form>
 
-<p>New student? <a href="{{ url_for('accounts.register') }}">Create an account</a> and start in Year 1.</p>
+{% if config.ALLOW_REGISTRATION %}
+  <p>New student? <a href="{{ url_for('accounts.register') }}">Create an account</a> and start in Year 1.</p>
+{% else %}
+  <p class="muted">There is no public sign-up: at a real university, students receive their login from admissions. This
+    demonstration has one simulated student. See <a href="{{ url_for('guide.page') }}">how to try the demo</a>.</p>
+{% endif %}
 {% endblock %}

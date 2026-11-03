@@ -1,6 +1,7 @@
 """Login, registration and logout pages. Business rules live in service.py."""
 from flask import (
     Blueprint,
+    abort,
     current_app,
     g,
     make_response,
@@ -113,6 +114,8 @@ def login():
 
 @bp.route("/register", methods=["GET", "POST"])
 def register():
+    if not current_app.config["ALLOW_REGISTRATION"]:
+        abort(404)  # accounts are issued by the university, not created here
     if request.method == "GET":
         return _render_register()
 
@@ -148,8 +151,8 @@ def profile():
             "accounts/profile.html",
             person=person,
             course=enrolment_service.get_course(conn, person["course_code"]),
-            year=enrolment_service.study_year(person["commencement_session"]),
-            current_session=CURRENT_SESSION,
+            year=enrolment_service.study_year(person["commencement_session"], g.user["current_session"]),
+            current_session=g.user["current_session"],
             record=enrolment_service.get_record(conn, g.user["id"]),
             major=get_major(conn, person["major_code"]),
             submajor=user_submajor(conn, g.user["id"]),

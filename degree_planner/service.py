@@ -12,8 +12,12 @@ Rules for placing a subject in a session:
 """
 from collections import defaultdict
 
+from enrolment.results import failed_subjects
 from enrolment.service import (
     CURRENT_SESSION,
+    current_session_of,
+    semester_number,
+    study_year,
     MAX_CP_PER_SESSION,
     offered_in,
     session_sort_key,
@@ -99,8 +103,11 @@ def _state(conn, user_id):
         if subjects.get(r["subject_code"], {}).get("in_degree")  # ignore anything left over from another major
     }
     return {
+        "current": current_session_of(conn, user_id),
         "subjects": subjects, "prereqs": prereqs, "rules": rules, "records": records, "plan": plan, "major": major,
-        "submajor": submajor, "electives": uses_general_electives(conn, user_id), "membership": membership, "degree_categories": list(sections.values()),
+        "submajor": submajor, "electives": uses_general_electives(conn, user_id), "membership": membership,
+        "failed": failed_subjects(conn, user_id),  # failed and not yet passed: they need a retake
+        "degree_categories": list(sections.values()),
         "credit_rules": load_credit_requirements(conn), "major_members": major_members,
     }
 
@@ -164,7 +171,7 @@ def _check_placement(state, code, session, ignore_self=False):
     if not ignore_self and code in state["plan"]:
         return f"{label} is already planned for {state['plan'][code]}."
 
-    window = plan_sessions()
+    window = plan_sessions(state["current"])
     if session not in window:
         return f"Choose a session from {window[0]} to {window[-1]}."
     if not offered_in(subject["sessions_offered"], session):
@@ -187,7 +194,8 @@ def _check_placement(state, code, session, ignore_self=False):
         earlier, here = session_sort_key(when), session_sort_key(session)
         return earlier <= here if concurrent else earlier < here  # a corequisite may be in the same session
 
-    names = {c: s_["name"] for c, s_ in state["subjects"].items()}
+    names = {c: s_["name"] + (" (failed: retake it first)" if c in state["failed"] else "")
+             for c, s_ in state["subjects"].items()}
     missing = [g for g in state["rules"].get(code, []) if not any(satisfied_by(p, g["concurrent"]) for p in g["codes"])]
     if missing:
         return f"Needs {', '.join(group_text(names, g) for g in missing)} completed or planned in an earlier session."
@@ -246,7 +254,7 @@ def _dependents_problem(state, code, new_session=None):
 
 def _valid_sessions(state, code, ignore_self=False, exclude=None):
     return [
-        s for s in plan_sessions()
+        s for s in plan_sessions(state["current"])
         if s != exclude and _check_placement(state, code, s, ignore_self=ignore_self) is None
     ]
 
@@ -260,7 +268,7 @@ def get_plan(conn, user_id):
 
     sessions = []
     problems = []
-    for label in plan_sessions():
+    for label in plan_sessions(state["current"]):
         enrolled = [
             {"code": c, "name": subjects[c]["name"], "credit_points": subjects[c]["credit_points"],
              "category_label": subjects[c]["category_label"] or "Doesn't count towards your degree"}
@@ -332,8 +340,40 @@ def get_plan(conn, user_id):
                 outstanding.append({
                     "code": s["code"], "name": s["name"], "credit_points": s["credit_points"],
                     "category_label": s["category_label"], "sessions": _valid_sessions(state, s["code"]),
+                    "retake": s["code"] in state["failed"], "last_result": state["failed"].get(s["code"]),
                 })
     outstanding.sort(key=lambda o: (o["category_label"], o["name"].lower()))
+
+    # Failed subjects that still need a retake, and where each one stands.
+    retakes = []
+    for code, f in sorted(state["failed"].items()):
+        if code not in subjects or not subjects[code]["in_degree"]:
+            continue
+        record = state["records"].get(code)
+        stage = "enrolled" if record and record[0] == "enrolled" else "planned" if code in state["plan"] else "needs"
+        retakes.append({
+            "code": code, "name": subjects[code]["name"], "credit_points": subjects[code]["credit_points"],
+            "stage": stage, "session": (record[1] if stage == "enrolled" else state["plan"].get(code)),
+            "attempts": f["attempts"], "last_session": f["last_session"], "last_mark": f["last_mark"],
+            "sessions": _valid_sessions(state, code) if stage == "needs" else [],
+        })
+    past_plans = []
+    for code, session in sorted(state["plan"].items()):
+        if session_sort_key(session) < session_sort_key(state["current"]):
+            past_plans.append({
+                "code": code, "name": subjects[code]["name"], "credit_points": subjects[code]["credit_points"],
+                "session": session,
+                "problem": f"Planned for {session}, which has passed. Move it to a future session or remove it.",
+                "move_sessions": _valid_sessions(state, code, ignore_self=True),
+            })
+    counts = {
+        "past": len(past_plans),
+        "completed": sum(1 for c, (st, _) in state["records"].items() if st == "completed" and subjects[c]["in_degree"]),
+        "enrolled": sum(1 for c, (st, _) in state["records"].items() if st == "enrolled" and subjects[c]["in_degree"]),
+        "planned": len(state["plan"]),
+        "blocked": sum(1 for s in sessions for p in s["planned"] if p["problem"]),
+        "retake": sum(1 for r in retakes if r["stage"] == "needs"),
+    }
 
     def cp(status):  # only what counts towards this degree, so nothing is counted twice or outside the degree
         return sum(subjects[c]["credit_points"] for c, (st, _) in state["records"].items()
@@ -361,12 +401,18 @@ def get_plan(conn, user_id):
     if state["submajor"] is not None and state["submajor"]["needs_language"]:
         remaining += SUBMAJOR_CREDIT_POINTS
         notes.append("Choose a language program for your language sub-major.")
+    commenced = conn.execute("SELECT commencement_session FROM users WHERE id = ?", (user_id,)).fetchone()[0]
     return {
+        "period": {"label": state["current"], "year": study_year(commenced, state["current"]),
+                   "semester": semester_number(state["current"])},
         "sessions": sessions,
+        "past_plans": past_plans,
         "outstanding": outstanding,
         "elective_needs": elective_needs,
         "elective_sections": elective_sections,
         "problems": problems,
+        "retakes": retakes,
+        "counts": counts,
         "extra_cp": extra_cp,  # done, but not counting towards this degree (for example after changing major)
         "completed_cp": cp("completed"),
         "enrolled_cp": cp("enrolled"),
@@ -470,6 +516,10 @@ def suggest_plan(conn, user_id):
     the room that is left. Existing planned subjects are never moved. Returns (added, unplaced).
     """
     state = _state(conn, user_id)
+    stale = [c for c, s in state["plan"].items() if session_sort_key(s) < session_sort_key(state["current"])]
+    for code in stale:  # planned for a session that has passed: plan them again from here
+        conn.execute("DELETE FROM planned_subjects WHERE user_id = ? AND subject_code = ?", (user_id, code))
+        del state["plan"][code]
     depths = _depths(state)
     subjects = state["subjects"]
 
@@ -506,7 +556,7 @@ def suggest_plan(conn, user_id):
         return None
 
     added = []
-    for session in plan_sessions():
+    for session in plan_sessions(state["current"]):
         while True:
             code = pick_required(session) or pick_elective(session)
             if code is None:

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Skip to next semester' if mode == 'skip' else 'Complete semester' }} · Enrolment Hub{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('simulator.index') }}">&larr; Semester simulator</a></p>
+<h1>{{ 'Skip to next semester' if mode == 'skip' else 'Complete semester' }}</h1>
+<p><strong>Year {{ state.year }}, Semester {{ state.semester }}</strong> ({{ state.label }}). Choose what happens to each subject, then check it on the next screen.</p>
+<p class="notice">Simulated demonstration data, not genuine UTS academic records.</p>
+
+{% for e in errors %}<p class="flash flash-error">{{ e }}</p>{% endfor %}
+
+{% if not state.subjects %}
+  <p>You are not enrolled in anything this session, so there are no results to enter. Continuing only moves you to {{ state.next }}.</p>
+{% endif %}
+
+<form method="post" action="{{ url_for('simulator.review') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="mode" value="{{ mode }}">
+  {% if state.subjects %}
+  <table class="table">
+    <thead><tr><th>Subject</th><th>Result</th><th>Mark (optional)</th></tr></thead>
+    <tbody>
+      {% for s in state.subjects %}
+        {% set chosen = form.get('result_' ~ s.code) or ('none' if mode == 'skip' else 'passed') %}
+        <tr>
+          <td>{{ s.code }} {{ s.name }}<br><span class="muted">{{ s.credit_points }} cp</span></td>
+          <td>
+            <select name="result_{{ s.code }}">
+              {% for value, label in labels.items() %}<option value="{{ value }}" {{ 'selected' if chosen == value }}>{{ label }}</option>{% endfor %}
+            </select>
+          </td>
+          <td><input type="text" inputmode="numeric" name="mark_{{ s.code }}" value="{{ form.get('mark_' ~ s.code, '') }}" placeholder="0 to 100" size="6"></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="muted"><strong>No result yet</strong> records nothing: no pass, no fail, and the subject goes back to your outstanding
+    requirements. Leave the mark empty to have a plausible one filled in (50 to 89 for a pass, 20 to 49 for a fail).</p>
+  {% endif %}
+  <button type="submit" class="btn">Review</button>
+</form>
+{% endblock %}

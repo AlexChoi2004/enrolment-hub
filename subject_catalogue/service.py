@@ -11,7 +11,7 @@ from subject_catalogue.assessment_load import assessment_load_map
 
 SESSIONS = ("Autumn", "Spring")
 PREREQ_FILTERS = ("required", "none")
-STATUS_FILTERS = ("completed", "enrolled", "available", "blocked")
+STATUS_FILTERS = ("completed", "enrolled", "available", "blocked", "retake")
 MAX_QUERY_LENGTH = 50
 ELECTIVE_CREDIT_POINTS = 6  # every major option in the supplied data is 6 cp
 CODE_PATTERN = re.compile(r"^[A-Za-z0-9]{3,10}$")
@@ -324,6 +324,9 @@ def attach_status(subjects, progress):
         subject["status"] = info["status"]
         subject["note"] = info["note"]
         subject["reasons"] = info["reasons"]
+        subject["retake"] = info["retake"]
+        subject["attempts"] = info["attempts"]
+        subject["last_failed"] = info["last_failed"]
         subject["enrol_sessions"] = info["sessions"]
         subject["move_sessions"] = info["move_sessions"]
         for prereq in subject["prerequisites"]:
@@ -342,6 +345,8 @@ def attach_status(subjects, progress):
 
 
 def filter_by_status(subjects, status):
+    if status == "retake":  # failed and not yet passed
+        return [s for s in subjects if s.get("retake")]
     return [s for s in subjects if s["status"] == status] if status else subjects
 
 

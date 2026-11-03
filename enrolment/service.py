@@ -5,6 +5,8 @@ page and (next) the enrol endpoint can never disagree about what a student may d
 """
 from collections import defaultdict
 
+from enrolment.results import failed_subjects
+
 from subject_catalogue.service import (
     DEGREE_CREDIT_POINTS,
     degree_categories,
@@ -30,6 +32,23 @@ def open_sessions(current_session=CURRENT_SESSION):
     """Sessions a student may enrol in: the current one and, from Autumn, the Spring after it."""
     season, year = current_session.split()
     return [current_session, f"Spring {year}"] if season == "Autumn" else [current_session]
+
+
+def next_session(label):
+    """The session after this one: Autumn then Spring of the same year, then Autumn of the next."""
+    season, year = label.split()
+    return f"Spring {year}" if season == "Autumn" else f"Autumn {int(year) + 1}"
+
+
+def semester_number(label):
+    """Autumn is Semester 1 and Spring is Semester 2."""
+    return 1 if label.split()[0] == "Autumn" else 2
+
+
+def current_session_of(conn, user_id):
+    """The session this student is in right now."""
+    row = conn.execute("SELECT current_session FROM users WHERE id = ?", (user_id,)).fetchone()
+    return row["current_session"] if row else CURRENT_SESSION
 
 
 def offered_in(sessions_offered, session_label):
@@ -133,6 +152,7 @@ def evaluate_subjects(conn, user_id):
         records[row["subject_code"]] = row["status"]
         sessions[row["subject_code"]] = row["session_label"]
 
+    failed = failed_subjects(conn, user_id)  # failed and not yet passed: they need a retake
     subjects = degree_subjects(conn, user_id)  # category is None for subjects outside this student's degree
     major = user_major(conn, user_id)
     submajor = user_submajor(conn, user_id)
@@ -140,6 +160,7 @@ def evaluate_subjects(conn, user_id):
     in_major_lists = {r[0] for r in conn.execute("SELECT subject_code FROM major_subjects")}
     in_sub_lists = {r[0] for r in conn.execute("SELECT subject_code FROM submajor_group_subjects")}
     names = {s["code"]: s["name"] for s in subjects}
+    shown = {c: (f"{n} (failed: retake it first)" if c in failed else n) for c, n in names.items()}  # for messages
     rules = load_prerequisites(conn)  # {subject: [group, ...]}: every group needed, any one code in a group
     credit_rules = load_credit_requirements(conn)
     # Completed credit points per major, for conditions such as "30 cp completed in MAJ03445".
@@ -173,7 +194,7 @@ def evaluate_subjects(conn, user_id):
             progress[state] += 1
             progress["counted_cp"] += s["credit_points"]  # one record per subject: no double counting
 
-    open_labels = open_sessions()
+    open_labels = open_sessions(current_session_of(conn, user_id))
     loads = {label: 0 for label in open_labels}
     for s in subjects:
         if records.get(s["code"]) == "enrolled" and sessions[s["code"]] in loads:
@@ -197,6 +218,8 @@ def evaluate_subjects(conn, user_id):
             status, note = "completed", f"Completed in {sessions[code]}"
         elif state == "enrolled":
             status, note = "enrolled", f"In progress in {sessions[code]}"
+            if code in failed:
+                note += f" (retake, attempt {failed[code]['attempts'] + 1})"
             moves = with_room(s, [label for label in open_labels if label != sessions[code]])
         elif s["category"] is None:
             status = "blocked"
@@ -212,7 +235,7 @@ def evaluate_subjects(conn, user_id):
                 )
             ]
             if missing:
-                reasons.append("Needs " + ", ".join(group_text(names, g) for g in missing))
+                reasons.append("Needs " + ", ".join(group_text(shown, g) for g in missing))
             for req in credit_rules.get(code, []):
                 have = major_credit.get(req["major_code"], 0)
                 if have < req["min_cp"]:
@@ -236,7 +259,14 @@ def evaluate_subjects(conn, user_id):
                     )
             status = "blocked" if reasons else "available"
             note = " · ".join(reasons)
+            if code in failed:  # an outstanding requirement again, with the reason it is
+                f = failed[code]
+                head = f"Failed in {f['last_session']} (mark {f['last_mark']}): retake needed"
+                note = head + (" · " + note if note else "")
         result[code] = {
+            "retake": code in failed and state is None,  # failed, not passed and not currently being retaken
+            "attempts": failed[code]["attempts"] if code in failed else 0,
+            "last_failed": failed.get(code),
             "status": status,
             "reasons": reasons,
             "note": note,
@@ -277,8 +307,9 @@ def _describe(conn, code):
 
 def _session_problem(conn, user_id, subject, session_label, exclude_code=None):
     """Why a subject can't go into a session, or None if it can."""
-    if session_label not in open_sessions():
-        return "You can only enrol in " + " or ".join(open_sessions()) + "."
+    open_now = open_sessions(current_session_of(conn, user_id))
+    if session_label not in open_now:
+        return "You can only enrol in " + " or ".join(open_now) + "."
     if not offered_in(subject["sessions_offered"], session_label):
         return f"{subject['code']} {subject['name']} is not offered in {session_label}."
     load = conn.execute(

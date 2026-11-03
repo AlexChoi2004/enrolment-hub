@@ -229,3 +229,5 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 .wl-badge-heavy { background: #ffedd5; } .wl-badge-too_heavy { background: #fee2e2; }
 .aload-1 { background: #dcfce7; } .aload-2 { background: #ecfccb; } .aload-3 { background: #fef9c3; }
 .aload-4 { background: #ffedd5; } .aload-5 { background: #fee2e2; }
+
+.st-retake { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }

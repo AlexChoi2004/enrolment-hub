@@ -6,6 +6,7 @@ demonstrating eligibility checks: some subjects are now available, and some
 (for example Honours Project A) are blocked until a prerequisite is completed.
 """
 from accounts.seed import DEMO_STUDENT_NUMBER
+from enrolment.results import default_mark, grade_for
 from enrolment.service import CURRENT_SESSION
 
 
@@ -20,7 +21,10 @@ DEMO_HISTORY = [
 ]
 
 
-def seed_enrolment(conn):
+def seed_enrolment(conn, profile="fresh"):
+    """The sample profile gets the two-year history; the fresh profile starts with nothing at all."""
+    if profile != "sample":
+        return
     user = conn.execute(
         "SELECT id FROM users WHERE student_number = ?", (DEMO_STUDENT_NUMBER,)
     ).fetchone()
@@ -35,4 +39,14 @@ def seed_enrolment(conn):
         "INSERT OR IGNORE INTO enrolments (user_id, subject_code, status, session_label)"
         " VALUES (?, ?, ?, ?)",
         rows,
+    )
+    # The results behind the completed subjects, so the transcript and the enrolments never disagree.
+    conn.executemany(
+        "INSERT OR IGNORE INTO subject_attempts (user_id, subject_code, session_label, attempt_number, outcome, mark,"
+        " grade, source) VALUES (?, ?, ?, 1, 'passed', ?, ?, 'seed')",
+        [
+            (user["id"], code, session, default_mark(user["id"], code, 1, "passed"),
+             grade_for(default_mark(user["id"], code, 1, "passed")))
+            for session, status, codes in DEMO_HISTORY if status == "completed" for code in codes
+        ],
     )

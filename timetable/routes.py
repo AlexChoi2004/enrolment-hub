@@ -1,7 +1,7 @@
 """Timetable pages. A student can only ever change their own class choices."""
 from flask import Blueprint, abort, flash, g, make_response, redirect, render_template, request, url_for
 
-from enrolment.service import open_sessions
+from enrolment.service import current_session_of, open_sessions
 from shared import security
 from shared.db import get_db
 from subject_catalogue.service import is_valid_code
@@ -14,7 +14,8 @@ bp = Blueprint("timetable", __name__, template_folder="templates", url_prefix="/
 @bp.get("")
 @security.login_required
 def page():
-    session_label = service.valid_session(request.args.get("session", ""))
+    current = current_session_of(get_db(), g.user["id"])
+    session_label = service.valid_session(request.args.get("session", ""), current)
     timetable = service.get_timetable(get_db(), g.user["id"], session_label)
     workload = session_workload(load_context(get_db()), [c["code"] for c in timetable["subjects"]])
     response = make_response(
@@ -22,7 +23,7 @@ def page():
             "timetable/index.html",
             timetable=timetable,
             workload=workload,
-            sessions=open_sessions(),
+            sessions=open_sessions(current),
             current=session_label,
         )
     )
@@ -33,7 +34,8 @@ def page():
 # --- changes: POST only, CSRF protected, always on the signed-in student's own choices --------------
 
 def _back(session_label):
-    return redirect(url_for("timetable.page", session=service.valid_session(session_label)), code=303)
+    current = current_session_of(get_db(), g.user["id"])
+    return redirect(url_for("timetable.page", session=service.valid_session(session_label, current)), code=303)
 
 
 @bp.post("/choose")

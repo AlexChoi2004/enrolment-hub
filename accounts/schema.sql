@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS users (
     submajor_language    TEXT,
     -- 1 = the student took 24 cp of general electives INSTEAD of a sub-major (the two are alternatives).
     general_electives    INTEGER NOT NULL DEFAULT 0 CHECK (general_electives IN (0, 1)),
+    -- The session this student is "in" right now. The semester simulator moves it forward; everything else
+    -- (which sessions are open to enrol in, the planning window, the timetable) follows it.
+    current_session      TEXT NOT NULL DEFAULT 'Autumn 2027',
     failed_logins        INTEGER NOT NULL DEFAULT 0,
     -- Unix time until which logins are refused after too many failures (0 = not locked).
     locked_until         INTEGER NOT NULL DEFAULT 0

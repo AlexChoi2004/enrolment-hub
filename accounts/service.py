@@ -127,11 +127,17 @@ def account_count(conn):
 
 def get_user(conn, user_id):
     row = conn.execute(
-        "SELECT id, student_number, display_name, course_code, commencement_session, major_code"
+        "SELECT id, student_number, display_name, course_code, commencement_session, major_code, current_session"
         " FROM users WHERE id = ?",
         (user_id,),
     ).fetchone()
-    return dict(row) if row else None
+    if row is None:
+        return None
+    from accounts.seed import DEMO_STUDENT_NUMBER
+
+    user = dict(row)
+    user["is_demo"] = user["student_number"] == DEMO_STUDENT_NUMBER  # only the simulated demo student has the simulator
+    return user
 
 
 def get_profile(conn, user_id):

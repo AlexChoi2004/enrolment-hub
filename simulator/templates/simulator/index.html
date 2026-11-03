@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Semester simulator · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>Semester simulator</h1>
+<p class="notice">Demonstration feature. Everything here uses simulated academic data, not genuine UTS academic records.</p>
+
+<div class="card">
+  <p><strong>Year {{ state.year }}, Semester {{ state.semester }}</strong> ({{ state.label }})</p>
+  {% if state.subjects %}
+    <p>You are enrolled in {{ state.subjects|length }} subject(s) this session:</p>
+    <ul class="plain">{% for s in state.subjects %}<li>{{ s.code }} {{ s.name }} · {{ s.credit_points }} cp</li>{% endfor %}</ul>
+  {% else %}
+    <p>You are not enrolled in anything this session.</p>
+  {% endif %}
+  {% if state.enrolled_later %}<p class="muted">{{ state.enrolled_later }} subject(s) are enrolled for a later session and stay as they are.</p>{% endif %}
+  <p>
+    <a class="btn" href="{{ url_for('simulator.results', mode='complete') }}">Complete semester</a>
+    <a class="btn btn-secondary" href="{{ url_for('simulator.results', mode='skip') }}">Skip to next semester</a>
+  </p>
+  <p class="muted">Both let you choose, subject by subject, Passed, Failed or No result yet. A subject with no result
+    gets no pass or fail: nothing is invented, and it goes back to your outstanding requirements. Next is
+    {{ state.next }} (Year {{ state.next_year }}, Semester {{ state.next_semester }}).</p>
+</div>
+
+<h2>Start again</h2>
+<p><a href="{{ url_for('simulator.reset_page') }}">Reset the simulation</a> to a first-year student, or load the sample two-year history.</p>
+<p class="muted">See also your <a href="{{ url_for('transcript.page') }}">results</a> and the <a href="{{ url_for('planner.page') }}">degree planner</a>.</p>
+{% endblock %}

@@ -19,6 +19,76 @@
   <p class="flash flash-success">Your plan covers every requirement of the degree.</p>
 {% endif %}
 
+<p class="muted">
+  Completed {{ plan.counts.completed }} · In progress {{ plan.counts.enrolled }} · Planned {{ plan.counts.planned }} ·
+  <span{% if plan.counts.retake %} class="unmet"{% endif %}>Failed, retake needed {{ plan.counts.retake }}</span> ·
+  <span{% if plan.counts.blocked %} class="unmet"{% endif %}>Planned but blocked {{ plan.counts.blocked }}{% if plan.counts.past %} · <span class="unmet">Needs rescheduling {{ plan.counts.past }}</span>{% endif %}</span>
+</p>
+{% if plan.past_plans %}
+  <section class="card">
+    <h2>Needs rescheduling</h2>
+    <p>These were planned for a session that has now passed. Nothing has been deleted: move each to a future session, or remove it.</p>
+    <table class="table">
+      <tbody>
+        {% for p in plan.past_plans %}
+          <tr>
+            <td class="code">{{ p.code }}</td>
+            <td>{{ p.name }}<br><span class="unmet">{{ p.problem }}</span></td>
+            <td>{{ p.credit_points }} cp</td>
+            <td class="actions-cell">
+              {% if p.move_sessions %}
+                <form class="enrol-form" method="post" action="{{ url_for('planner.move', code=p.code) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <select name="session_label" aria-label="Move {{ p.code }} to">
+                    {% for label in p.move_sessions %}<option value="{{ label }}">{{ label }}</option>{% endfor %}
+                  </select>
+                  <button type="submit" class="btn btn-secondary">Move</button>
+                </form>
+              {% endif %}
+              <form class="enrol-form" method="post" action="{{ url_for('planner.remove', code=p.code) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger">Remove</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endif %}
+{% if plan.retakes %}
+  <section class="card plan-problem">
+    <h2>Failed subjects</h2>
+    <p>A failed subject counts for zero credit points and is an outstanding requirement again. Anything planned that needs it is flagged until you pass it.</p>
+    <ul class="plain">
+      {% for r in plan.retakes %}
+        <li>
+          <strong>{{ r.code }} {{ r.name }}</strong>: failed {{ r.attempts }} time{{ '' if r.attempts == 1 else 's' }}
+          (last: {{ r.last_session }}, mark {{ r.last_mark }}).
+          {% if r.stage == 'enrolled' %}<span class="badge st-enrolled">Retake in progress in {{ r.session }}</span>
+          {% elif r.stage == 'planned' %}<span class="badge st-planned">Retake planned for {{ r.session }}</span>
+          {% elif r.sessions %}
+            <form class="enrol-form" method="post" action="{{ url_for('planner.add') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="subject_code" value="{{ r.code }}">
+              <select name="session_label" aria-label="Plan a retake of {{ r.code }} for">
+                {% for label in r.sessions %}<option value="{{ label }}">{{ label }}</option>{% endfor %}
+              </select>
+              <button type="submit" class="btn">Add retake to plan</button>
+            </form>
+          {% else %}<span class="muted">Plan its prerequisites first</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endif %}
+<p class="notice">
+  Current period: <strong>Year {{ plan.period.year }}, Semester {{ plan.period.semester }}</strong> ({{ plan.period.label }}).
+  {% if g.user.is_demo %}
+    <a class="btn" href="{{ url_for('simulator.results', mode='complete') }}">Complete semester</a>
+    <a class="btn btn-secondary" href="{{ url_for('simulator.results', mode='skip') }}">Skip to next semester</a>
+  {% endif %}
+</p>
 {% if plan.extra_cp %}
   <p class="notice">{{ plan.extra_cp }} cp you have done doesn't count towards this degree (for example after changing major). It stays on your record.</p>
 {% endif %}
@@ -129,7 +199,7 @@
     <tbody>
       {% for o in plan.outstanding %}
         <tr>
-          <td class="code">{{ o.code }}</td><td>{{ o.name }}</td><td>{{ o.category_label }}</td><td>{{ o.credit_points }}</td>
+          <td class="code">{{ o.code }}</td><td>{{ o.name }}{% if o.retake %} <span class="badge st-retake">Failed: retake</span>{% endif %}</td><td>{{ o.category_label }}</td><td>{{ o.credit_points }}</td>
           <td class="actions-cell">
             {% if o.sessions %}
               <form class="enrol-form" method="post" action="{{ url_for('planner.add') }}">

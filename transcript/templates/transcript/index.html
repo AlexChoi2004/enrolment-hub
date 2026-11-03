@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Results · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>Results</h1>
+<p class="notice"><strong>Simulated demonstration data.</strong> These are not genuine UTS academic records.</p>
+<p>
+  {{ result.passed_cp }} credit points passed (each subject counted once, however many attempts it took) ·
+  {{ result.attempt_count }} result{{ '' if result.attempt_count == 1 else 's' }} recorded ·
+  {{ result.failed_attempts }} failed attempt{{ '' if result.failed_attempts == 1 else 's' }} ·
+  {{ result.in_progress }} in progress
+</p>
+<p class="muted">
+  {% if result.newest_first %}Newest session first. <a href="{{ url_for('transcript.page', order='oldest') }}">Show oldest first</a>
+  {% else %}Oldest session first. <a href="{{ url_for('transcript.page') }}">Show newest first</a>{% endif %}
+</p>
+{% if result.retakes %}
+  <p class="notice">Retake needed: {{ result.retakes|join(', ') }}. Open the <a href="{{ url_for('planner.page') }}">Degree planner</a> to add a retake.</p>
+{% endif %}
+
+{% for group in result.groups %}
+  <section class="plan-session">
+    <h2>{{ group.season }} {{ group.year }}</h2>
+    <table class="table">
+      <thead><tr><th>Code</th><th>Subject</th><th>cp</th><th>Mark</th><th>Grade</th><th>Outcome</th><th>Attempt</th></tr></thead>
+      <tbody>
+        {% for r in group.rows %}
+          <tr class="result-{{ r.kind }}">
+            <td class="code">{{ r.code }}</td><td>{{ r.name }}</td><td>{{ r.credit_points }}</td>
+            <td>{{ r.mark if r.mark is not none else '' }}</td><td>{{ r.grade or '' }}</td>
+            <td>
+              {% if r.kind == 'passed' %}<span class="badge st-completed">Passed</span>
+              {% elif r.kind == 'failed' %}<span class="badge st-retake">Failed</span>
+              {% else %}<span class="badge st-enrolled">In Progress</span>{% endif %}
+            </td>
+            <td>{{ r.attempt }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% else %}
+  <p class="demo-note">No results yet. Results appear here once a semester is completed.</p>
+{% endfor %}
+{% endblock %}
