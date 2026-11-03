@@ -20,9 +20,9 @@ def season_of(session_label):
     return session_label.split()[0]
 
 
-def valid_session(label):
-    """A session the timetable can show, falling back to the current one."""
-    return label if label in open_sessions() else CURRENT_SESSION
+def valid_session(label, current=CURRENT_SESSION):
+    """A session the timetable can show for a student in `current`, falling back to that session."""
+    return label if label in open_sessions(current) else current
 
 
 def overlaps(a, b):

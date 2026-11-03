@@ -13,6 +13,7 @@ from degree_planner.routes import bp as planner_bp
 from majors.routes import bp as majors_bp
 from transcript.routes import bp as transcript_bp
 from submajors.routes import bp as submajors_bp
+from simulator.routes import bp as simulator_bp
 from timetable.routes import bp as timetable_bp
 from enrolment.routes import bp as enrolment_bp
 from shared import db, security
@@ -55,6 +56,7 @@ def create_app(test_config=None):
     app.register_blueprint(majors_bp)
     app.register_blueprint(transcript_bp)
     app.register_blueprint(submajors_bp)
+    app.register_blueprint(simulator_bp)
     app.register_blueprint(enrolment_bp)
 
     @app.get("/")

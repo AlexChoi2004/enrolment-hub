@@ -32,15 +32,21 @@ def default_mark(user_id, subject_code, attempt_number, outcome):
     return 50 + n % 40 if outcome == "passed" else 20 + n % 30
 
 
-def record_result(conn, user_id, subject_code, session_label, outcome, mark=None, source="simulated", commit=True):
-    """Record one finished attempt and bring the student's current state into line. Returns the new attempt."""
+def check_mark(outcome, mark):
+    """Raise ResultError unless this outcome and mark (or no mark) make sense together."""
     if outcome not in OUTCOMES:
         raise ResultError("A result must be passed or failed.")
-    if mark is not None:
-        if not isinstance(mark, int) or isinstance(mark, bool) or not 0 <= mark <= 100:
-            raise ResultError("A mark must be a whole number from 0 to 100.")
-        if (outcome == "passed") != (mark >= PASS_MARK):
-            raise ResultError(f"A mark of {mark} is a {'pass' if mark >= PASS_MARK else 'fail'}, not a {outcome[:-2]}.")
+    if mark is None:
+        return
+    if not isinstance(mark, int) or isinstance(mark, bool) or not 0 <= mark <= 100:
+        raise ResultError("A mark must be a whole number from 0 to 100.")
+    if (outcome == "passed") != (mark >= PASS_MARK):
+        raise ResultError(f"A mark of {mark} is a {'pass' if mark >= PASS_MARK else 'fail'}, not a {outcome[:-2]}.")
+
+
+def record_result(conn, user_id, subject_code, session_label, outcome, mark=None, source="simulated", commit=True):
+    """Record one finished attempt and bring the student's current state into line. Returns the new attempt."""
+    check_mark(outcome, mark)
     subject = conn.execute("SELECT code, name FROM subjects WHERE code = ?", (subject_code,)).fetchone()
     if subject is None:
         raise ResultError("That subject does not exist.")

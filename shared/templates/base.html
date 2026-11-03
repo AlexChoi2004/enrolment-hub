@@ -19,6 +19,7 @@
         <a href="{{ url_for('timetable.page') }}"{% if request.blueprint == 'timetable' %} aria-current="page"{% endif %}>Timetable</a>
         <a href="{{ url_for('enrolment.me') }}"{% if request.blueprint == 'enrolment' %} aria-current="page"{% endif %}>Record</a>
         <a href="{{ url_for('transcript.page') }}"{% if request.blueprint == 'transcript' %} aria-current="page"{% endif %}>Results</a>
+        {% if g.user.is_demo %}<a href="{{ url_for('simulator.index') }}"{% if request.blueprint == 'simulator' %} aria-current="page"{% endif %}>Simulator</a>{% endif %}
       {% endif %}
     </nav>
     <nav class="nav-account">

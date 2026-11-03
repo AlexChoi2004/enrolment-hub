@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Reset the simulation · Enrolment Hub{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('simulator.index') }}">&larr; Semester simulator</a></p>
+<h1>Reset the simulation</h1>
+<p>This puts the simulated demo student back exactly as originally seeded: the starting session, major and sub-major, the
+  original results, and the original enrolments. It removes every result, retake, plan and class choice created while testing.
+  It does not touch any other account.</p>
+<form method="post" action="{{ url_for('simulator.reset') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <p><label><input type="checkbox" name="confirm" value="yes"> I understand this removes everything I have simulated.</label></p>
+  <button type="submit" class="btn btn-danger">Reset the simulation</button>
+  <a class="btn btn-secondary" href="{{ url_for('simulator.index') }}">Cancel</a>
+</form>
+{% endblock %}

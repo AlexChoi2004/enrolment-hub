@@ -34,6 +34,23 @@ def open_sessions(current_session=CURRENT_SESSION):
     return [current_session, f"Spring {year}"] if season == "Autumn" else [current_session]
 
 
+def next_session(label):
+    """The session after this one: Autumn then Spring of the same year, then Autumn of the next."""
+    season, year = label.split()
+    return f"Spring {year}" if season == "Autumn" else f"Autumn {int(year) + 1}"
+
+
+def semester_number(label):
+    """Autumn is Semester 1 and Spring is Semester 2."""
+    return 1 if label.split()[0] == "Autumn" else 2
+
+
+def current_session_of(conn, user_id):
+    """The session this student is in right now."""
+    row = conn.execute("SELECT current_session FROM users WHERE id = ?", (user_id,)).fetchone()
+    return row["current_session"] if row else CURRENT_SESSION
+
+
 def offered_in(sessions_offered, session_label):
     return sessions_offered in (session_label.split()[0], "Both")
 
@@ -177,7 +194,7 @@ def evaluate_subjects(conn, user_id):
             progress[state] += 1
             progress["counted_cp"] += s["credit_points"]  # one record per subject: no double counting
 
-    open_labels = open_sessions()
+    open_labels = open_sessions(current_session_of(conn, user_id))
     loads = {label: 0 for label in open_labels}
     for s in subjects:
         if records.get(s["code"]) == "enrolled" and sessions[s["code"]] in loads:
@@ -290,8 +307,9 @@ def _describe(conn, code):
 
 def _session_problem(conn, user_id, subject, session_label, exclude_code=None):
     """Why a subject can't go into a session, or None if it can."""
-    if session_label not in open_sessions():
-        return "You can only enrol in " + " or ".join(open_sessions()) + "."
+    open_now = open_sessions(current_session_of(conn, user_id))
+    if session_label not in open_now:
+        return "You can only enrol in " + " or ".join(open_now) + "."
     if not offered_in(subject["sessions_offered"], session_label):
         return f"{subject['code']} {subject['name']} is not offered in {session_label}."
     load = conn.execute(
