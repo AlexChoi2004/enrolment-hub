@@ -27,6 +27,7 @@
   <p class="muted">This major has no options: every subject is core.</p>
 {% endif %}
 
+{% include '_advice.html' %}
 {% if major.impact.carried %}
   <p class="notice">These subjects you have done count in this major:
     {% for c in major.impact.carried %}{{ c.subject_code }} {{ c.name }} ({{ c.status }}){{ ', ' if not loop.last }}{% endfor %}.
@@ -51,6 +52,8 @@
   {% if major.has_current %}<p>Swapping keeps what you have done. Subjects they share count in the new major; anything else stops counting.</p>{% endif %}
   <form method="post" action="{{ url_for('majors.choose', code=major.code) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% include '_advice_electives.html' %}
+    {% include '_advice_ack.html' %}
     {% if major.impact.withdrawable %}
       <p><label>
         <input type="checkbox" name="withdraw_in_progress" value="1" checked>

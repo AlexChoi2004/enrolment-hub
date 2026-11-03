@@ -1,0 +1,6 @@
+{% if advice and advice.needs_ack %}
+  <p><label>
+    <input type="checkbox" name="acknowledge" value="1" required>
+    {{ advice.ack_text }}
+  </label></p>
+{% endif %}

@@ -14,6 +14,7 @@
   </tbody>
 </table>
 
+{% include '_advice.html' %}
 {% if options.impact.lost or options.impact.plan_removed %}
   <div class="flash flash-warning">
     {% if options.impact.lost %}
@@ -32,6 +33,8 @@
   {% if options.has_current %}<p>Swapping keeps what you have done. Anything that isn't a general elective (or in your major) stops counting.</p>{% endif %}
   <form method="post" action="{{ url_for('submajors.choose_electives') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% include '_advice_electives.html' %}
+    {% include '_advice_ack.html' %}
     {% if options.impact.withdrawable %}
       <p><label>
         <input type="checkbox" name="withdraw_in_progress" value="1" checked>

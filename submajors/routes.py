@@ -1,6 +1,7 @@
 """Choose or swap a sub-major. A student can only ever change their own."""
 from flask import Blueprint, abort, flash, g, make_response, redirect, render_template, request, url_for
 
+from advisor.service import ElectiveChoiceError, assess, validate_electives
 from shared import security
 from shared.db import get_db
 from subject_catalogue.service import (
@@ -34,15 +35,31 @@ def index():
 @bp.get("/electives")
 @security.login_required
 def electives():
-    return _private(render_template("submajors/electives.html", options=service.electives_preview(get_db(), g.user["id"])))
+    conn = get_db()
+    options = service.electives_preview(conn, g.user["id"])
+    advice = None if options["is_current"] else assess(conn, g.user["id"], "electives")
+    if advice and advice["first_choice"]:
+        advice = None
+    return _private(render_template("submajors/electives.html", options=options, advice=advice))
 
 
 @bp.post("/electives/choose")
 @security.login_required
 def choose_electives():
     security.require_csrf()
+    conn = get_db()
+    try:  # subjects the student chose to count as general electives instead of losing them
+        counted = validate_electives(conn, g.user["id"], "electives", None, None, request.form.getlist("count_as_electives"))
+    except ElectiveChoiceError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("submajors.electives"), code=303)
+    advice = assess(conn, g.user["id"], "electives", elective_codes=counted)
+    if advice["needs_ack"] and request.form.get("acknowledge") != "1":  # the student's own yes is required
+        flash("Please tick the box to confirm you understand what this swap costs.", "error")
+        return redirect(url_for("submajors.electives"), code=303)
     try:
-        result = service.choose_electives(get_db(), g.user["id"], withdraw=request.form.get("withdraw_in_progress") == "1")
+        result = service.choose_electives(get_db(), g.user["id"], withdraw=request.form.get("withdraw_in_progress") == "1",
+                                          count_as_electives=counted)
     except service.SubmajorError as exc:
         flash(str(exc), "error")
         return redirect(url_for("submajors.electives"), code=303)
@@ -50,6 +67,8 @@ def choose_electives():
     flash(f"{verb} 24 cp of general electives instead of a sub-major.", "success")
     if result["withdrawn"]:
         flash(f"Withdrew you from {result['withdrawn']} in-progress subject(s) that no longer count.", "success")
+    if result["counted_as_electives"]:
+        flash(f"Counted {result['counted_as_electives']} subject(s) as general electives.", "success")
     if result["no_longer_counted"]:
         flash(f"{result['no_longer_counted']} subject(s) you have done no longer count towards your degree.", "warning")
     if result["plan_removed"]:
@@ -65,10 +84,15 @@ def show(code):
     language = request.args.get("language") or None
     if language is not None and not is_valid_language_code(language):
         abort(400)
-    sub = service.preview(get_db(), g.user["id"], code, language)
+    conn = get_db()
+    sub = service.preview(conn, g.user["id"], code, language)
     if sub is None:
         abort(404)
-    return _private(render_template("submajors/show.html", sub=sub, picked=language))
+    ready = not sub["is_current"] and not (sub["is_language"] and language is None)
+    advice = assess(conn, g.user["id"], "submajor", code, language if sub["is_language"] else None) if ready else None
+    if advice and advice["first_choice"]:
+        advice = None
+    return _private(render_template("submajors/show.html", sub=sub, picked=language, advice=advice))
 
 
 @bp.post("/<code>/choose")
@@ -80,6 +104,10 @@ def choose(code):
     language = (request.form.get("language") or "").strip() or None
     if language is not None and not is_valid_language_code(language):
         abort(400)
+    advice = assess(get_db(), g.user["id"], "submajor", code, language)
+    if advice and advice["needs_ack"] and request.form.get("acknowledge") != "1":  # the student's own yes is required
+        flash("Please tick the box to confirm you understand what this swap costs.", "error")
+        return redirect(url_for("submajors.show", code=code, language=language), code=303)
     try:
         result = service.choose_submajor(get_db(), g.user["id"], code, language,
                                          withdraw=request.form.get("withdraw_in_progress") == "1")

@@ -58,7 +58,19 @@ def preview(conn, user_id, major_code):
     return major
 
 
-def choose_major(conn, user_id, major_code, withdraw=False):
+def _count_as_electives(conn, user_id, codes):
+    """Count these done-or-in-progress subjects as general electives. Only on the electives path (the caller has checked
+    that there is room); anything else is ignored, so a stray value can never put a subject into the degree."""
+    on_path = conn.execute("SELECT general_electives FROM users WHERE id = ?", (user_id,)).fetchone()[0]
+    if not on_path:
+        return 0
+    return sum(
+        conn.execute("INSERT OR IGNORE INTO elective_credits (user_id, subject_code) VALUES (?, ?)", (user_id, c)).rowcount
+        for c in codes
+    )
+
+
+def choose_major(conn, user_id, major_code, withdraw=False, count_as_electives=()):
     """Confirm a major (or swap to another one). Returns what changed.
 
     With withdraw=True the student is also withdrawn from in-progress subjects that stop counting.
@@ -72,6 +84,7 @@ def choose_major(conn, user_id, major_code, withdraw=False):
     effect = impact(conn, user_id, major_code)
 
     conn.execute("UPDATE users SET major_code = ? WHERE id = ?", (major_code, user_id))
+    counted = _count_as_electives(conn, user_id, count_as_electives)
     withdrawn = withdraw_in_progress(conn, user_id, [l["subject_code"] for l in effect["withdrawable"]]) if withdraw else 0
     # Plan items that are no longer part of the degree are dropped, so the plan stays valid.
     in_degree = {s["code"] for s in degree_subjects(conn, user_id) if s["in_degree"]}
@@ -82,4 +95,5 @@ def choose_major(conn, user_id, major_code, withdraw=False):
             removed += 1
     conn.commit()
     return {"major": major["name"], "swapped": current is not None, "plan_removed": removed,
-            "no_longer_counted": len(effect["lost"]) - withdrawn, "withdrawn": withdrawn, "carried": len(effect["carried"])}
+            "no_longer_counted": len(effect["lost"]) - withdrawn - counted, "withdrawn": withdrawn, "carried": len(effect["carried"]),
+            "counted_as_electives": counted}

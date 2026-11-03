@@ -191,7 +191,7 @@ def test_the_demo_student_can_swap_and_is_told_what_stops_counting(app, client, 
     assert "These subjects you have done would stop counting towards your degree" in page
     assert "41025 Introduction to Software Development (completed)" in page
     assert "Swap to this major" in page and "You can't swap" not in page
-    choose(client, AI)
+    choose(client, AI, acknowledge="1")
     assert stored_major(app, 1) == AI
     after = html(client, "/subjects")
     assert "Swapped to Artificial Intelligence and Data Analytics as your major." in after
@@ -358,7 +358,7 @@ def enrolment_status(app, code, user_id=1):
 
 def test_swapping_with_the_box_ticked_withdraws_them(app, client, log_in):
     log_in()
-    choose(client, AI, withdraw_in_progress="1")
+    choose(client, AI, withdraw_in_progress="1", acknowledge="1")
     assert enrolment_status(app, "41026") is None  # Advanced Software Development is withdrawn
     assert enrolment_status(app, "41025") == "completed"  # history stays
     assert "Withdrew you from 1 in-progress subject(s) that are not in this major." in html(client, "/subjects")

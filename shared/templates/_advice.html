@@ -1,0 +1,27 @@
+{% if advice and advice.progress.counted_cp == 0 %}
+<section class="card advice advice-good">
+  <h2>Swap advice: {{ advice.label }}</h2>
+  <p>You have not done anything that counts towards your degree yet, so changing costs you nothing.</p>
+</section>
+{% elif advice %}
+<section class="card advice advice-{{ advice.tier }}">
+  <h2>Swap advice: {{ advice.label }}</h2>
+  <ul class="plain">{% for r in advice.reasons %}<li>{{ r }}</li>{% endfor %}</ul>
+  <ul class="plain">
+    <li>You are <strong>{{ advice.progress.percent }}%</strong> through your degree ({{ advice.progress.counted_cp }} of {{ advice.progress.degree_cp }} credit points)
+      and <strong>{{ advice.progress.major_percent }}%</strong> through your major.</li>
+    <li><strong>{{ advice.carried_cp }}</strong> credit points ({{ advice.carry_percent }}%) of what you have done or are doing carry over;
+      <strong>{{ advice.lost_cp }}</strong> would stop counting.</li>
+    <li>You would need about <strong>{{ advice.extra_subjects }}</strong> more subject(s) ({{ advice.extra_cp }} credit points) and
+      <strong>{{ advice.extra_sessions }}</strong> more session(s).</li>
+    <li>Projected graduation: <strong>{{ advice.graduate_before }}</strong> now, <strong>{{ advice.graduate_after }}</strong> after this swap.</li>
+  </ul>
+  {% for n in advice.notes %}<p class="notice">{{ n }}</p>{% endfor %}
+  <p class="muted">{{ advice.tuition_note }}</p>
+  <details>
+    <summary>How this verdict is worked out</summary>
+    <p>It is calculated by fixed rules from your own record, not decided by an AI, and nothing is changed until you confirm. You make the final decision.</p>
+    <ul class="plain">{% for r in advice.rules %}<li>{{ r }}</li>{% endfor %}</ul>
+  </details>
+</section>
+{% endif %}

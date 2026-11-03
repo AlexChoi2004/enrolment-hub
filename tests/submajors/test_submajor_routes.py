@@ -175,7 +175,7 @@ def test_swapping_changes_the_sections_and_warns_about_subjects_that_stop_counti
     page = html(client, "/submajor/SMJ10157")
     assert "These subjects you have done would stop counting towards your degree" in page
     assert "48080 Introduction to Innovation (completed)" in page and "Swap to this sub-major" in page
-    res = choose(client, INFOSEC)
+    res = choose(client, INFOSEC, acknowledge="1")
     assert res.status_code == 303 and stored(app, 1) == (INFOSEC, None)
     after = html(client, "/subjects")
     assert "Swapped to Information Security as your sub-major." in after

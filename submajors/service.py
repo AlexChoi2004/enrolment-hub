@@ -119,6 +119,7 @@ def choose_submajor(conn, user_id, code, language=None, withdraw=False):
         "UPDATE users SET submajor_code = ?, submajor_language = ?, general_electives = 0 WHERE id = ?",
         (code, language, user_id),
     )
+    conn.execute("DELETE FROM elective_credits WHERE user_id = ?", (user_id,))  # no electives block any more
     withdrawn = withdraw_in_progress(conn, user_id, [l["subject_code"] for l in lost["withdrawable"]]) if withdraw else 0
     removed = _drop_plan_items_outside_the_degree(conn, user_id)
     conn.commit()
@@ -127,7 +128,7 @@ def choose_submajor(conn, user_id, code, language=None, withdraw=False):
             "plan_removed": removed, "no_longer_counted": len(lost["lost"]) - withdrawn, "withdrawn": withdrawn}
 
 
-def choose_electives(conn, user_id, withdraw=False):
+def choose_electives(conn, user_id, withdraw=False, count_as_electives=()):
     """Take 24 cp of general electives instead of a sub-major. Nothing done is deleted."""
     current_code, _, electives = _current(conn, user_id)
     if electives:
@@ -136,8 +137,12 @@ def choose_electives(conn, user_id, withdraw=False):
     conn.execute(
         "UPDATE users SET submajor_code = NULL, submajor_language = NULL, general_electives = 1 WHERE id = ?", (user_id,)
     )
+    counted = sum(
+        conn.execute("INSERT OR IGNORE INTO elective_credits (user_id, subject_code) VALUES (?, ?)", (user_id, c)).rowcount
+        for c in count_as_electives
+    )
     withdrawn = withdraw_in_progress(conn, user_id, [l["subject_code"] for l in lost["withdrawable"]]) if withdraw else 0
     removed = _drop_plan_items_outside_the_degree(conn, user_id)
     conn.commit()
-    return {"swapped": current_code is not None, "plan_removed": removed,
-            "no_longer_counted": len(lost["lost"]) - withdrawn, "withdrawn": withdrawn}
+    return {"swapped": current_code is not None, "plan_removed": removed, "counted_as_electives": counted,
+            "no_longer_counted": len(lost["lost"]) - withdrawn - counted, "withdrawn": withdrawn}

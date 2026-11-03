@@ -1,0 +1,13 @@
+{% if advice and advice.electives_offer %}
+<fieldset class="card advice-electives">
+  <legend>Count these as general electives?</legend>
+  <p>You are taking general electives, and <strong>{{ advice.electives_offer.space_cp }}</strong> credit points of that block are still free.
+    Subjects that would stop counting can fill it instead of being lost. Tick the ones you want to keep counting
+    (up to {{ advice.electives_offer.max_cp }} credit points):</p>
+  {% for e in advice.electives_offer.eligible %}
+    <label><input type="checkbox" name="count_as_electives" value="{{ e.code }}"> {{ e.code }} {{ e.name }}
+      ({{ e.credit_points }} cp, {{ e.status }})</label><br>
+  {% endfor %}
+  <p class="muted">Anything you don't tick stays on your record but doesn't count. The swap advice above shows the effect if you count none of them.</p>
+</fieldset>
+{% endif %}

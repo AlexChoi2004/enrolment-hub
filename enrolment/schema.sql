@@ -27,3 +27,12 @@ CREATE TABLE IF NOT EXISTS subject_attempts (
     CHECK ((outcome = 'passed' AND grade <> 'FL' AND (mark IS NULL OR mark >= 50))
         OR (outcome = 'failed' AND grade = 'FL' AND (mark IS NULL OR mark < 50)))
 );
+
+-- Subjects a student has done (or is doing) that stopped counting in their major, and chose to count as general
+-- electives instead. Only meaningful while the student is on the general electives path (not a sub-major); the rows
+-- are removed when they leave it. It never holds more than the 24 cp the electives block is worth.
+CREATE TABLE IF NOT EXISTS elective_credits (
+    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    subject_code TEXT NOT NULL REFERENCES subjects(code) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, subject_code)
+);

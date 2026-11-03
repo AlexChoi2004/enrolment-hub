@@ -261,6 +261,15 @@ def _valid_sessions(state, code, ignore_self=False, exclude=None):
 
 # --- reading the plan (Read) ----------------------------------------------------------------------
 
+def check_placement(conn, user_id, subject_code, session_label):
+    """Would this subject be allowed in this session of the plan? Changes nothing. Returns {allowed, reason}."""
+    state = _state(conn, user_id)
+    if subject_code not in state["subjects"]:
+        return {"allowed": False, "reason": "That subject does not exist."}
+    problem = _check_placement(state, subject_code, session_label, ignore_self=subject_code in state["plan"])
+    return {"allowed": problem is None, "reason": problem}
+
+
 def get_plan(conn, user_id):
     state = _state(conn, user_id)
     subjects = state["subjects"]

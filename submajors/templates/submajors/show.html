@@ -43,6 +43,7 @@
   {% endif %}
 {% endfor %}
 
+{% include '_advice.html' %}
 {% if sub.overlap_count %}
   <p class="notice">
     {{ sub.overlap_count }} subject(s) here are also in your major. A subject counts once, in your major, so it won't
@@ -71,6 +72,7 @@
   <form method="post" action="{{ url_for('submajors.choose', code=sub.code) }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {% if sub.is_language %}<input type="hidden" name="language" value="{{ picked }}">{% endif %}
+    {% include '_advice_ack.html' %}
     {% if sub.impact.withdrawable %}
       <p><label>
         <input type="checkbox" name="withdraw_in_progress" value="1" checked>

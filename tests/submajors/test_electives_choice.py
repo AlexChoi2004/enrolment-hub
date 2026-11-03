@@ -52,7 +52,7 @@ def test_until_one_is_chosen_the_electives_and_sub_major_subjects_are_both_unava
 
 def test_choosing_electives_counts_24_cp_of_them(conn, student):
     result = choose_electives(conn, student)
-    assert result == {"swapped": False, "plan_removed": 0, "no_longer_counted": 0, "withdrawn": 0}
+    assert result == {"swapped": False, "plan_removed": 0, "no_longer_counted": 0, "withdrawn": 0, "counted_as_electives": 0}
     cats = categories(conn, student)
     assert cats["general_elective"]["required_credit_points"] == 24 and cats["general_elective"]["subject_count"] == 12
     assert not any(k.startswith("sub_") for k in cats)
@@ -236,7 +236,7 @@ def test_swapping_to_electives_warns_about_what_stops_counting(app, client, log_
     page = html(client, "/submajor/electives")
     assert "These subjects you have done would stop counting towards your degree" in page
     assert "48080 Introduction to Innovation (completed)" in page and "Swap to general electives" in page
-    client.post("/submajor/electives/choose", data={"csrf_token": token(client)})
+    client.post("/submajor/electives/choose", data={"csrf_token": token(client), "acknowledge": "1"})
     assert stored(app, 1) == (None, 1)
     assert "4 subject(s) you have done no longer count towards your degree." in html(client, "/subjects")
 

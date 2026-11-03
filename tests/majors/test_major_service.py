@@ -86,7 +86,7 @@ def test_without_a_major_major_subjects_cannot_be_planned(conn, student):
 def test_choosing_a_major_confirms_it(conn, student):
     result = choose_major(conn, student, AI)
     assert result == {"major": "Artificial Intelligence and Data Analytics", "swapped": False, "plan_removed": 0,
-                      "no_longer_counted": 0, "withdrawn": 0, "carried": 0}
+                      "no_longer_counted": 0, "withdrawn": 0, "carried": 0, "counted_as_electives": 0}
     assert major_of(conn, student) == AI
 
 

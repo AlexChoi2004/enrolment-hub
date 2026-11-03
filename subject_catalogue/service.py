@@ -194,6 +194,9 @@ def degree_subjects(conn, user_id):
     for g in (sub["groups"] if sub else []):
         for s in g["subjects"]:
             sub_roles.setdefault(s["code"], g["category"])
+    chosen_electives = set()
+    if uses_electives:  # subjects the student chose to count as general electives instead of losing them
+        chosen_electives = {r[0] for r in conn.execute("SELECT subject_code FROM elective_credits WHERE user_id = ?", (user_id,))}
     subjects = []
     for r in conn.execute("SELECT * FROM subjects"):
         subject = dict(r)
@@ -206,6 +209,8 @@ def degree_subjects(conn, user_id):
             effective = "major_core" if roles[subject["code"]] == "core" else "major_elective"
         elif subject["code"] in sub_roles:
             effective = sub_roles[subject["code"]]
+        elif subject["code"] in chosen_electives:
+            effective = "general_elective"
         else:
             effective = None
         # A subject that is in both the major and the sub-major counts once, in the major: it is flagged, not doubled.

@@ -146,7 +146,7 @@ def reset_demo_student(conn, profile="fresh"):
     try:
         counts = {
             table: conn.execute(f"DELETE FROM {table} WHERE user_id = ?", (uid,)).rowcount  # noqa: S608 (fixed table names)
-            for table in ("subject_attempts", "class_choices", "planned_subjects", "enrolments")
+            for table in ("elective_credits", "subject_attempts", "class_choices", "planned_subjects", "enrolments")
         }
         commencement, major, submajor = demo_profile_state(profile)
         conn.execute(
