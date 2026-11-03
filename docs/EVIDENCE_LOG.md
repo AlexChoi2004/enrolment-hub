@@ -50,6 +50,13 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 |            |               | records every result, a Results tab, and failed-subject handling in the catalogue, planner and enrolment (retakes,       |        |        |
 |            |               | blocked dependants with reasons, credit points counted once); made the tests build the seeded database once per run so   |        |        |
 |            |               | the suite takes under 2 minutes; 71 new tests                                                                            |        |        |
+| 2026-11-03 | 3 (dev tools) | Made the current session a per-student setting that enrolment, the planner, the timetable and the profile all follow;    | 1 HOUR | PR #19 |
+|            |               | built a semester simulator (Complete semester and Skip share one results screen with a Passed, Failed or No result yet   |        |        |
+|            |               | choice per subject, a review step, all-or-nothing saving and a confirmed reset); planned subjects stranded in a session  |        |        |
+|            |               | that has passed appear under Needs rescheduling; made the demo student start as a first-year with no major or sub-major  |        |        |
+|            |               | (the two-year student is a sample history the reset can load); switched off public sign-up; added a Help guide with      |        |        |
+|            |               |   step-by-step scenarios; the Results page lists the newest session first; 116 new tests                                 |        |        |
+
 
 ## Things that went wrong or changed
 
@@ -208,6 +215,22 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed a dictionary key I accidentally commented out when adding the failed-subject data to the planner, which broke 7 tests with a KeyError
 - Fixed my own planner summary test that expected the wrong wording, and an isolation test that forgot the demo student has his own Programming 1
 
+### PR #19: Semester simulator and a first-year demo student
+- Changed the current session from one fixed constant to a per-student setting, so the planner window, the open sessions, the timetable and the profile all follow it and the simulator can move one student forward without touching the others
+- Decided Complete semester and Skip are one results screen with a Passed, Failed or No result yet choice per subject, after reconsidering my first idea that Skip should only work with nothing enrolled; "No result yet" records no attempt and ends the enrolment, so advancing the calendar never invents a pass or fail
+- Decided finishing a semester is one transaction (all results, the ended enrolments and the new session together), and wrote a test that forces a failure part-way and checks nothing changed
+- Decided only the demo student can use the simulator or reset it, and that reset only ever touches that one account's records
+- Changed the mark check into one shared function so the simulator and the results code apply the same rule (a mark must agree with the result)
+- Decided the demo student starts as a first-year student and kept the old two-year student as a sample history the reset can load, because a fresh student lets people create their own scenarios while the sample history is still useful for exploring blocked subjects and sub-majors
+- Decided to switch off public sign-up, because at a real university students get their login from admissions, and kept the registration code behind a setting for development instead of deleting it
+- Decided the Results page lists the newest session first, because it is the page students open to see their latest results, and left Record oldest first as the degree-history view
+- Changed the tests to get the two-year student and sign-up through environment settings instead of rewriting about 150 tests, and added separate tests for the real defaults
+- Wrote the help guide's scenarios as tests that follow their steps through the app, so the guide cannot say something the app no longer does
+- Fixed a gap my own tests exposed: a subject planned for a session that had just passed vanished from the planner, so I added a Needs rescheduling section with the reason, and Suggest a plan now re-plans those subjects
+- Fixed my first version of the fresh demo student, which had the Enterprise Software Development major already chosen; a real first-year student has not picked a major yet, so the fresh student now starts with no major or sub-major and chooses both from the Subjects page
+- Fixed the reset command, which rebuilt the database with the wrong starting student after I added the two profiles
+- Fixed my first test helper, which looked for a CSRF token on a page with no form, and a reset test that enrolled the student in an Autumn-only subject in Spring
+- Fixed several weak assertions in my first test drafts (ones that could never fail) by making them exact
 
 
 ## AI assistance used (disclose in the report as the subject requires)
