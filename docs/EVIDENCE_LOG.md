@@ -57,11 +57,11 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 |            |               | (the two-year student is a sample history the reset can load); switched off public sign-up; added a Help guide with      |        |        |
 |            |               |   step-by-step scenarios; the Results page lists the newest session first; 116 new tests                                 |        |        |
 | 2026-11-04 | 1 (ethics) and 3 (dev tools) | Built swap advice worked out by rules (progress, what carries over, extra credit points and sessions,     | 1 HOUR | PR #20 |
-|            |                              | projected graduation, a good, costs-time or think-carefully verdict) on every major, sub-major and        |        |        |
-|            |                              | electives swap page, with a confirmation tick the server enforces for any swap that is not a good one;    |        |        |
-|            |                              | added a prompt to count subjects that would stop counting as general electives when that blockhas room;   |        |        |
+|            |                              | projected graduation, a good, costs-time or think-carefully verdict) on every major, sub-major and        | commit 32917a0  |
+|            |                              | electives swap page, with a confirmation tick the server enforces for any swap that is not a good one;    | Pushed to main  |
+|            |                              | added a prompt to count subjects that would stop counting as general electives when that block has room;  |        |        |
 |            |                              | built a shared read-only tool layer of ten tools for the AI features, scoped to the signed-in student;    |        |        |
-|            |                              | 130 new tests 
+|            |                              | 130 new tests
 
 ## Things that went wrong or changed
 
@@ -237,7 +237,7 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed my first test helper, which looked for a CSRF token on a page with no form, and a reset test that enrolled the student in an Autumn-only subject in Spring
 - Fixed several weak assertions in my first test drafts (ones that could never fail) by making them exact
 
-### PR #20: Swap advice, count-as-electives and the AI tool layer
+### Swap advice, count-as-electives and the AI tool layer (pushed directly to main)
 - Decided the swap verdict is worked out by fixed rules from the student's own record and the AI will only explain it, because a verdict that could change between runs cannot be tested or trusted, and the student must be able to see why
 - Decided to keep the final yes with the student: any swap that is not a good one needs a tick box that the server checks, so a missing or wrong tick refuses the swap and changes nothing
 - Decided to show extra credit points, sessions and a projected graduation session but no dollar amount, because every extra subject costs tuition whether or not it is paid through HECS and the app does not know the student's fees
@@ -249,6 +249,9 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed a bug in my first subject tool, which flattened "(A or B) and C" prerequisites into one list of alternatives and would have told the AI wrong rules, by using the same requirement groups the pages use
 - Fixed my first version, which showed "Swap advice" and a table of zeros when a first-year student was choosing their first major; a first choice has nothing to swap from, so the box is now hidden for it and a short note replaces the numbers when nothing that counts has been done yet; I found it by looking at the page as a new student, because my tests only checked that the verdict was "good"
 - Fixed four earlier swap tests that now needed the confirmation tick, a prerequisite test that assumed a subject outside the degree was an error when it is correctly reported as not part of the degree, and four mistakes in my first count-as-electives tests (a subject with an unmet prerequisite, subjects that would not really stop counting, a core subject that always counts, and a message read from the wrong page)
+- Fixed my own mistake of pushing this work straight to main: my command to create a branch failed because that branch name already existed from an earlier attempt, and I did not check which branch I was on before committing
+- Checked main afterwards by running the whole suite (1303 passed) and the GitHub Actions run, and turned on branch protection (a pull request and passing checks are required, with no bypass for me as the owner), so a direct push to main is now refused
+- Changed my routine to print the current branch name before any commit and to stop if a "fatal" line appears
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
