@@ -142,3 +142,9 @@ def test_there_is_a_reset_filters_button_that_clears_everything(client):
     assert 'href="/subjects">Reset filters</a>' in page
     reset = client.get("/subjects").get_data(as_text=True)
     assert 'value="web"' not in reset and "Reset filters" in reset
+
+
+def test_the_reset_button_is_styled_to_match_the_apply_button(client):
+    css = client.get("/static/theme.css").get_data(as_text=True)
+    assert ".filters .btn-secondary" in css and "text-decoration: none" in css
+    assert "align-self: flex-end" in css  # both sit on the same line as the inputs instead of stretching

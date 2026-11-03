@@ -17,6 +17,7 @@ def sample_demo_and_registration_for_tests(monkeypatch):
     environment setting, exactly how the real app is configured). Tests of the real defaults remove them."""
     monkeypatch.setenv("DEMO_PROFILE", "sample")
     monkeypatch.setenv("ALLOW_REGISTRATION", "1")
+    monkeypatch.setenv("AI_BACKEND", "off")  # no test ever contacts a real model
 
 
 @pytest.fixture(scope="session")

@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS users (
     -- The session this student is "in" right now. The semester simulator moves it forward; everything else
     -- (which sessions are open to enrol in, the planning window, the timetable) follows it.
     current_session      TEXT NOT NULL DEFAULT 'Autumn 2027',
+    -- AI mode is off until the student turns it on; nothing is sent to any model while it is off.
+    ai_mode              INTEGER NOT NULL DEFAULT 0 CHECK (ai_mode IN (0, 1)),
     failed_logins        INTEGER NOT NULL DEFAULT 0,
     -- Unix time until which logins are refused after too many failures (0 = not locked).
     locked_until         INTEGER NOT NULL DEFAULT 0

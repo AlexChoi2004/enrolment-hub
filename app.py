@@ -15,6 +15,7 @@ from transcript.routes import bp as transcript_bp
 from submajors.routes import bp as submajors_bp
 from simulator.routes import bp as simulator_bp
 from guide.routes import bp as guide_bp
+from rag.routes import bp as ai_bp
 from timetable.routes import bp as timetable_bp
 from enrolment.routes import bp as enrolment_bp
 from shared import db, security
@@ -44,6 +45,11 @@ def create_app(test_config=None):
         ALLOW_REGISTRATION=os.getenv("ALLOW_REGISTRATION") == "1",
         # "fresh": the demo student starts in Year 1, Semester 1. "sample": two years in, with a history to explore.
         DEMO_PROFILE=os.getenv("DEMO_PROFILE", "fresh"),
+        # The AI model: "ollama" (a model on this computer, default qwen3:14b) or "off". Questions never leave the machine.
+        AI_BACKEND=os.getenv("AI_BACKEND", "ollama"),
+        OLLAMA_URL=os.getenv("OLLAMA_URL", "http://127.0.0.1:11434"),
+        OLLAMA_MODEL=os.getenv("OLLAMA_MODEL", "qwen3:14b"),
+        AI_QUESTIONS_PER_HOUR=30,
     )
     if test_config:
         app.config.update(test_config)
@@ -64,6 +70,7 @@ def create_app(test_config=None):
     app.register_blueprint(submajors_bp)
     app.register_blueprint(simulator_bp)
     app.register_blueprint(guide_bp)
+    app.register_blueprint(ai_bp)
     app.register_blueprint(enrolment_bp)
 
     @app.get("/")

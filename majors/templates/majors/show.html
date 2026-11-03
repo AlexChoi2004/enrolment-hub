@@ -3,6 +3,7 @@
 {% block content %}
 <p><a href="{{ url_for('majors.index') }}">&larr; All majors</a></p>
 <h1>{{ major.name }}</h1>
+{% include '_ask_panel.html' %}
 <p class="muted">{{ major.code }} · 48 credit points: {{ major.core_cp }} core{% if major.options_cp %} + {{ major.options_cp }} options{% endif %}</p>
 
 <h2>Core subjects <span class="muted">(all {{ major.core|length }} required)</span></h2>

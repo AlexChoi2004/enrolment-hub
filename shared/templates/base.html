@@ -24,6 +24,13 @@
     </nav>
     <nav class="nav-account">
       <a href="{{ url_for('guide.page') }}"{% if request.blueprint == 'guide' %} aria-current="page"{% endif %}>Help</a>
+      {% if g.user %}
+        <form method="post" action="{{ url_for('ai.mode') }}" class="ai-switch">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <button type="submit" class="link-button" aria-pressed="{{ 'true' if g.user.ai_mode else 'false' }}">AI mode: {{ 'On' if g.user.ai_mode else 'Off' }}</button>
+        </form>
+      {% endif %}
       {% if current_user %}
         <a href="{{ url_for('accounts.profile') }}"{% if request.endpoint == 'accounts.profile' %} aria-current="page"{% endif %}>Profile</a>
       {% else %}

@@ -1,0 +1,13 @@
+{% if g.user and g.user.ai_mode %}
+<details class="card ask-panel" open>
+  <summary>Ask about a rule or subject (AI mode)</summary>
+  <form method="post" action="{{ url_for('ai.ask_question') }}" hx-post="{{ url_for('ai.ask_question') }}" hx-target="#ask-answer" hx-swap="innerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="text" name="question" maxlength="500" required size="50" placeholder="For example: What does Programming 2 require?" aria-label="Your question">
+    <button type="submit" class="btn">Ask</button>
+  </form>
+  <div id="ask-answer" aria-live="polite"></div>
+  <p class="muted">Answers come only from the app's own sources and are checked before they are shown; if the sources don't cover it,
+    you will get "Not enough context". The AI can be wrong, so check the cited source.</p>
+</details>
+{% endif %}

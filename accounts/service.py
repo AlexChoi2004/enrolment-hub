@@ -127,7 +127,7 @@ def account_count(conn):
 
 def get_user(conn, user_id):
     row = conn.execute(
-        "SELECT id, student_number, display_name, course_code, commencement_session, major_code, current_session"
+        "SELECT id, student_number, display_name, course_code, commencement_session, major_code, current_session, ai_mode"
         " FROM users WHERE id = ?",
         (user_id,),
     ).fetchone()

@@ -1,0 +1,19 @@
+<div class="card ask-answer ask-{{ result.status }}">
+  {% if result.status == 'answered' %}
+    <p>{{ result.answer }}</p>
+  {% else %}
+    <p class="notice">{{ result.message }}</p>
+  {% endif %}
+  {% if result.citations %}
+    <h4>Sources</h4>
+    <ol class="plain">
+      {% for c in result.citations %}
+        <li>[{{ c.n }}] <strong>{{ c.title }}</strong> <span class="muted">({{ c.source }})</span><br>
+          <span class="muted">{{ c.snippet }}</span></li>
+      {% endfor %}
+    </ol>
+  {% endif %}
+  {% if result.status == 'answered' %}
+    <p class="muted">Written by the AI model ({{ result.backend }}) from the sources above and checked before showing. It can still be wrong, so check the sources.</p>
+  {% endif %}
+</div>

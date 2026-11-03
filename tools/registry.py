@@ -15,7 +15,7 @@ from advisor.service import KINDS, assess
 from degree_planner.service import check_placement, get_plan
 from enrolment.service import current_session_of, evaluate_subjects, open_sessions
 from subject_catalogue.assessments import ai_context
-from subject_catalogue.service import get_subject, group_text, load_credit_requirements, load_prerequisites
+from subject_catalogue.service import get_subject, prerequisite_lines
 from timetable.service import get_timetable
 from transcript.service import transcript
 from workload.service import context_for_ai, load_context
@@ -83,17 +83,6 @@ def search_subjects(conn, user_id, query):
     return {"matches": [dict(r) for r in rows]}
 
 
-def _prerequisite_lines(conn, code):
-    """One line per requirement: all lines must be met, and 'or' inside a line means any one will do."""
-    groups = load_prerequisites(conn).get(code, [])
-    names = {r["code"]: r["name"] for r in conn.execute("SELECT code, name FROM subjects")}
-    lines = [group_text(names, g) for g in groups]
-    for need in load_credit_requirements(conn).get(code, []):
-        where = need["major_name"] if need["major_code"] else "your degree"
-        lines.append(f"{need['min_cp']} credit points completed in {where}")
-    return lines
-
-
 def get_subject_info(conn, user_id, code):
     """Everything known about one subject, and where this student stands with it."""
     subject = get_subject(conn, code)
@@ -107,7 +96,7 @@ def get_subject_info(conn, user_id, code):
         "assessment_load": subject["assessment_load"]["score"],
         "assessment_load_note": "The app's own estimate of how heavy the assessment is, not a UTS rating.",
         "assessments_known": context["assessments_known"], "assessment_summary": context["text"],
-        "prerequisites": _prerequisite_lines(conn, code),
+        "prerequisites": prerequisite_lines(conn, code),
         "prerequisites_how_to_read": "Every line must be met; inside a line, 'or' means any one of the alternatives will do.",
         "prerequisite_note": subject["prerequisite_note"],
         "my_status": mine.get("status"), "my_note": mine.get("note"), "needs_retake": bool(mine.get("retake")),
