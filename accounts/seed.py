@@ -16,12 +16,12 @@ DEMO_PROFILES = ("fresh", "sample")  # fresh = a first-year student; sample = ab
 
 
 def demo_profile_state(profile):
-    """(commencement session, major, sub-major) the demo student has under a profile."""
+    """(commencement session, major, sub-major) the demo student has under a profile. A fresh student has neither yet."""
     from enrolment.service import CURRENT_SESSION
 
     if profile == "sample":
         return DEMO_COMMENCEMENT_SESSION, DEMO_MAJOR_CODE, DEMO_SUBMAJOR_CODE
-    return CURRENT_SESSION, DEMO_MAJOR_CODE, None  # a first-year student with a major but no sub-major yet
+    return CURRENT_SESSION, None, None  # a first-year student: no major and no sub-major chosen yet
 
 
 @lru_cache(maxsize=1)

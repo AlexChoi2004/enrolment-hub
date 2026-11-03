@@ -36,10 +36,23 @@ def test_the_fresh_demo_student_has_no_history_at_all(fresh_conn):
     assert get_record(fresh_conn, 1)["completed_cp"] == 0 and transcript(fresh_conn, 1)["groups"] == []
 
 
-def test_the_fresh_demo_student_has_a_major_but_no_sub_major_yet(fresh_conn):
+def test_the_fresh_demo_student_has_chosen_neither_a_major_nor_a_sub_major(fresh_conn):
     row = fresh_conn.execute("SELECT major_code, submajor_code, general_electives FROM users WHERE id = 1").fetchone()
-    assert tuple(row) == ("MAJ03519", None, 0)
-    assert catalogue.user_submajor(fresh_conn, 1) is None
+    assert tuple(row) == (None, None, 0)
+    assert catalogue.user_major(fresh_conn, 1) is None and catalogue.user_submajor(fresh_conn, 1) is None
+
+
+def test_the_fresh_student_can_choose_a_major_like_any_first_year(fresh_conn):
+    from majors.service import choose_major
+
+    assert choose_major(fresh_conn, 1, "MAJ03519")["swapped"] is False
+    assert catalogue.user_major(fresh_conn, 1)["code"] == "MAJ03519"
+
+
+def test_the_fresh_student_can_enrol_in_core_subjects_before_choosing_a_major(fresh_conn):
+    from enrolment.service import enrol
+
+    enrol(fresh_conn, 1, "41039", "Autumn 2027")  # Programming 1 is core for everyone
 
 
 def test_the_fresh_student_can_choose_a_sub_major_like_anyone(fresh_conn):
@@ -87,7 +100,7 @@ def test_a_reset_to_fresh_removes_everything_and_restarts_the_year(conn):
     state = current_state(conn, 1)
     assert (state["label"], state["year"], state["semester"]) == ("Autumn 2027", 1, 1)
     assert attempts_for(conn, 1) == [] and conn.execute("SELECT COUNT(*) FROM enrolments WHERE user_id = 1").fetchone()[0] == 0
-    assert conn.execute("SELECT commencement_session, submajor_code FROM users WHERE id = 1").fetchone()[:] == ("Autumn 2027", None)
+    assert conn.execute("SELECT commencement_session, major_code, submajor_code FROM users WHERE id = 1").fetchone()[:] == ("Autumn 2027", None, None)
 
 
 def test_a_reset_to_the_sample_history_restores_year_three(conn):
@@ -96,6 +109,7 @@ def test_a_reset_to_the_sample_history_restores_year_three(conn):
     state = current_state(conn, 1)
     assert (state["year"], state["semester"], len(state["subjects"])) == (3, 1, 4)
     assert len(attempts_for(conn, 1)) == 16 and catalogue.user_submajor(conn, 1)["code"] == "SMJ10156"
+    assert catalogue.user_major(conn, 1)["code"] == "MAJ03519"
 
 
 def test_switching_back_and_forth_is_reliable_after_several_semesters(conn):

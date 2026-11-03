@@ -83,10 +83,33 @@ def test_a_first_year_students_results_page_is_empty(real):
     assert "No results yet" in html(client, "/transcript")
 
 
-def test_the_subjects_page_prompts_for_a_sub_major_or_electives(real):
+def test_the_subjects_page_prompts_for_a_major_and_then_a_sub_major_or_electives(real):
     _, client = real
     sign_in(client)
-    assert "chosen a sub-major or general electives yet" in html(client, "/subjects")
+    page = html(client, "/subjects")
+    assert "You haven't chosen a major yet" in page and "chosen a sub-major or general electives yet" in page
+    assert "Major core" not in page and "Choose major" in page
+
+
+def test_a_first_year_can_choose_a_major_from_the_page(real):
+    _, client = real
+    sign_in(client)
+    client.post("/major/MAJ03519/choose", data={"csrf_token": token(client, "/subjects")})
+    page = html(client, "/subjects")
+    assert "Enterprise Software Development major" in page and "You haven't chosen a major yet" not in page
+    assert "chosen a sub-major or general electives yet" in page  # the sub-major is still to choose
+
+
+def test_the_planner_asks_a_first_year_to_choose_a_major(real):
+    _, client = real
+    sign_in(client)
+    assert "haven't chosen a major" in html(client, "/planner")
+
+
+def test_the_guide_tells_a_first_year_to_choose_a_major_first(real):
+    _, client = real
+    page = html(client, "/help")
+    assert "no major and no" in page and "sub-major chosen yet" in page
 
 
 # --- the help page ----------------------------------------------------------------------------------------------------------------------
