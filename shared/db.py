@@ -47,7 +47,7 @@ def init_schema(conn):
     conn.commit()
 
 
-def seed_db(conn):
+def seed_db(conn, demo_profile="fresh"):
     # Imported here so each feature can add its own seeder in later chunks.
     from accounts.seed import seed_accounts
     from enrolment.seed import seed_enrolment
@@ -55,15 +55,15 @@ def seed_db(conn):
     from timetable.seed import seed_timetable
 
     seed_catalogue(conn)
-    seed_accounts(conn)
-    seed_enrolment(conn)
+    seed_accounts(conn, demo_profile)
+    seed_enrolment(conn, demo_profile)
     seed_timetable(conn)
     conn.commit()
 
 
-def build_database(path):
-    """Create a fresh, seeded database file."""
+def build_database(path, demo_profile="fresh"):
+    """Create a fresh, seeded database file. The demo student starts as a first-year ("fresh") or two years in ("sample")."""
     conn = connect(path)
     init_schema(conn)
-    seed_db(conn)
+    seed_db(conn, demo_profile)
     conn.close()

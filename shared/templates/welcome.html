@@ -9,11 +9,12 @@
   </p>
   <p class="actions">
     <a class="button" href="{{ url_for('accounts.login') }}">Log in</a>
-    <a class="button secondary" href="{{ url_for('accounts.register') }}">Create account</a>
+    {% if config.ALLOW_REGISTRATION %}<a class="button secondary" href="{{ url_for('accounts.register') }}">Create account</a>{% endif %}
+    <a class="button secondary" href="{{ url_for('guide.page') }}">How to try the demo</a>
   </p>
   {% if show_demo %}
     <p class="demo-note">
-      Just looking? Log in with the demo student (two years into the degree):
+      Just looking? Log in with the simulated demo student (a first-year student):
       <code>{{ demo_email }}</code> / <code>{{ demo_password }}</code>
     </p>
   {% endif %}

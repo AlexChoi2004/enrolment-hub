@@ -3,11 +3,14 @@
 {% block content %}
 <p><a href="{{ url_for('simulator.index') }}">&larr; Semester simulator</a></p>
 <h1>Reset the simulation</h1>
-<p>This puts the simulated demo student back exactly as originally seeded: the starting session, major and sub-major, the
-  original results, and the original enrolments. It removes every result, retake, plan and class choice created while testing.
-  It does not touch any other account.</p>
+<p>This removes every result, retake, plan and class choice created while testing, and starts the simulated demo
+  student again. It does not touch any other account. Choose how to start:</p>
 <form method="post" action="{{ url_for('simulator.reset') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <p><label><input type="radio" name="profile" value="fresh" checked> <strong>Start as a first-year student</strong>
+    (Year 1, Semester 1, no results, no enrolments)</label><br>
+    <label><input type="radio" name="profile" value="sample"> <strong>Load the sample two-year history</strong>
+    (Year 3, Semester 1, sixteen completed subjects and four in progress)</label></p>
   <p><label><input type="checkbox" name="confirm" value="yes"> I understand this removes everything I have simulated.</label></p>
   <button type="submit" class="btn btn-danger">Reset the simulation</button>
   <a class="btn btn-secondary" href="{{ url_for('simulator.index') }}">Cancel</a>

@@ -143,3 +143,31 @@ def test_the_navigation_lists_results_after_record_only_when_logged_in(client, l
     log_in()
     page = client.get("/subjects").get_data(as_text=True)
     assert page.index(">Record<") < page.index(">Results<") < page.index(">Profile<")
+
+
+# --- newest first ----------------------------------------------------------------------------------------------------------------------
+
+def test_the_service_can_list_newest_first(conn):
+    oldest = [g["label"] for g in transcript(conn, 1)["groups"]]
+    newest = [g["label"] for g in transcript(conn, 1, newest_first=True)["groups"]]
+    assert newest == list(reversed(oldest)) and newest[0] == "Autumn 2027"
+
+
+def test_the_page_shows_the_latest_session_at_the_top_by_default(client, log_in):
+    log_in()
+    page = client.get("/transcript").get_data(as_text=True)
+    assert page.index("Autumn 2027") < page.index("Spring 2026") < page.index("Autumn 2025")
+    assert "Newest session first" in page and "Show oldest first" in page
+
+
+def test_the_page_can_show_oldest_first(client, log_in):
+    log_in()
+    page = client.get("/transcript?order=oldest").get_data(as_text=True)
+    assert page.index("Autumn 2025") < page.index("Spring 2026") < page.index("Autumn 2027")
+    assert "Oldest session first" in page and "Show newest first" in page
+
+
+def test_an_unknown_order_falls_back_to_newest_first(client, log_in):
+    log_in()
+    page = client.get("/transcript?order=sideways").get_data(as_text=True)
+    assert page.index("Autumn 2027") < page.index("Autumn 2025")

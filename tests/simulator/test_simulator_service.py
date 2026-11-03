@@ -322,21 +322,21 @@ def test_reset_restores_the_original_state_after_several_semesters(conn):
     complete_semester(conn, 1, f("31265"))
     add_to_plan(conn, 1, "41052", "Spring 2028")
     assert snapshot(conn) != original
-    reset_demo_student(conn)
+    reset_demo_student(conn, "sample")
     assert snapshot(conn) == original
 
 
 def test_reset_is_repeatable_and_works_straight_away(conn):
     original = snapshot(conn)
-    reset_demo_student(conn)
-    reset_demo_student(conn)
+    reset_demo_student(conn, "sample")
+    reset_demo_student(conn, "sample")
     assert snapshot(conn) == original
 
 
 def test_reset_puts_the_swapped_major_and_sub_major_back(conn):
     choose_major(conn, 1, "MAJ10053")
     choose_submajor(conn, 1, "SMJ10157")
-    reset_demo_student(conn)
+    reset_demo_student(conn, "sample")
     assert tuple(conn.execute("SELECT major_code, submajor_code FROM users WHERE id = 1").fetchone()) == ("MAJ03519", "SMJ10156")
 
 
@@ -345,14 +345,14 @@ def test_reset_never_touches_other_accounts(conn, student):
     complete_semester(conn, student, f("33130"))
     other = snapshot(conn, student)
     complete_semester(conn, 1, {})
-    reset_demo_student(conn)
+    reset_demo_student(conn, "sample")
     assert snapshot(conn, student) == other and current_session_of(conn, student) == SPRING
 
 
 def test_the_transcript_matches_the_original_again_after_a_reset(conn):
     before = transcript(conn, 1)
     complete_semester(conn, 1, {**f("41026"), **f("31272"), **f("32144"), **f("41040")})
-    reset_demo_student(conn)
+    reset_demo_student(conn, "sample")
     assert transcript(conn, 1) == before
 
 

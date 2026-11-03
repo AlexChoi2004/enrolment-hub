@@ -9,6 +9,10 @@
   {{ result.failed_attempts }} failed attempt{{ '' if result.failed_attempts == 1 else 's' }} ·
   {{ result.in_progress }} in progress
 </p>
+<p class="muted">
+  {% if result.newest_first %}Newest session first. <a href="{{ url_for('transcript.page', order='oldest') }}">Show oldest first</a>
+  {% else %}Oldest session first. <a href="{{ url_for('transcript.page') }}">Show newest first</a>{% endif %}
+</p>
 {% if result.retakes %}
   <p class="notice">Retake needed: {{ result.retakes|join(', ') }}. Open the <a href="{{ url_for('planner.page') }}">Degree planner</a> to add a retake.</p>
 {% endif %}

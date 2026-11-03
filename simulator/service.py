@@ -10,7 +10,7 @@ Choices for each subject the student is enrolled in this session:
                     goes back to being an outstanding requirement.
 Advancing the calendar never makes up passes or fails. All results are simulated demonstration data.
 """
-from accounts.seed import DEMO_MAJOR_CODE, DEMO_STUDENT_NUMBER, DEMO_SUBMAJOR_CODE
+from accounts.seed import DEMO_PROFILES, DEMO_STUDENT_NUMBER, demo_profile_state
 from enrolment.results import ResultError, check_mark, record_result
 from enrolment.seed import seed_enrolment
 from enrolment.service import (
@@ -131,8 +131,14 @@ def complete_semester(conn, user_id, choices):
     }
 
 
-def reset_demo_student(conn):
-    """Put the simulated demo student back exactly as seeded. Touches only the demo student's own records."""
+def reset_demo_student(conn, profile="fresh"):
+    """Put the simulated demo student back exactly as seeded. Touches only the demo student's own records.
+
+    profile "fresh" starts a first-year student in Year 1, Semester 1 with nothing done; "sample" loads the
+    two-year history (Year 3, Semester 1) so there is a record to explore.
+    """
+    if profile not in DEMO_PROFILES:
+        raise SimulatorError("Choose how to start again: as a first-year student, or with the sample history.")
     user = conn.execute("SELECT id FROM users WHERE student_number = ?", (DEMO_STUDENT_NUMBER,)).fetchone()
     if user is None:
         raise SimulatorError("There is no demo student to reset.")
@@ -142,12 +148,13 @@ def reset_demo_student(conn):
             table: conn.execute(f"DELETE FROM {table} WHERE user_id = ?", (uid,)).rowcount  # noqa: S608 (fixed table names)
             for table in ("subject_attempts", "class_choices", "planned_subjects", "enrolments")
         }
+        commencement, major, submajor = demo_profile_state(profile)
         conn.execute(
-            "UPDATE users SET current_session = ?, major_code = ?, submajor_code = ?, submajor_language = NULL,"
-            " general_electives = 0 WHERE id = ?",
-            (CURRENT_SESSION, DEMO_MAJOR_CODE, DEMO_SUBMAJOR_CODE, uid),
+            "UPDATE users SET current_session = ?, commencement_session = ?, major_code = ?, submajor_code = ?,"
+            " submajor_language = NULL, general_electives = 0 WHERE id = ?",
+            (CURRENT_SESSION, commencement, major, submajor, uid),
         )
-        seed_enrolment(conn)  # the original history again, and the attempts behind it
+        seed_enrolment(conn, profile)  # the sample history and the attempts behind it (nothing for a fresh start)
         conn.commit()
     except Exception:
         conn.rollback()

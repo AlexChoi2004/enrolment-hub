@@ -14,6 +14,7 @@ from majors.routes import bp as majors_bp
 from transcript.routes import bp as transcript_bp
 from submajors.routes import bp as submajors_bp
 from simulator.routes import bp as simulator_bp
+from guide.routes import bp as guide_bp
 from timetable.routes import bp as timetable_bp
 from enrolment.routes import bp as enrolment_bp
 from shared import db, security
@@ -38,12 +39,17 @@ def create_app(test_config=None):
         PERMANENT_SESSION_LIFETIME=timedelta(hours=2),
         SHOW_DEMO_CREDENTIALS=True,
         MAX_ACCOUNTS=200,  # stops anyone filling the database with sign-ups
+        # Real students receive their credentials from the university, so public sign-up is off. Set ALLOW_REGISTRATION=1
+        # to turn it back on for development.
+        ALLOW_REGISTRATION=os.getenv("ALLOW_REGISTRATION") == "1",
+        # "fresh": the demo student starts in Year 1, Semester 1. "sample": two years in, with a history to explore.
+        DEMO_PROFILE=os.getenv("DEMO_PROFILE", "fresh"),
     )
     if test_config:
         app.config.update(test_config)
 
     if not os.path.exists(app.config["DATABASE"]):
-        db.build_database(app.config["DATABASE"])
+        db.build_database(app.config["DATABASE"], app.config["DEMO_PROFILE"])
 
     app.teardown_appcontext(db.close_db)
     app.after_request(security.apply_security_headers)
@@ -57,6 +63,7 @@ def create_app(test_config=None):
     app.register_blueprint(transcript_bp)
     app.register_blueprint(submajors_bp)
     app.register_blueprint(simulator_bp)
+    app.register_blueprint(guide_bp)
     app.register_blueprint(enrolment_bp)
 
     @app.get("/")
@@ -81,7 +88,7 @@ def create_app(test_config=None):
         path = app.config["DATABASE"]
         if os.path.exists(path):
             os.remove(path)
-        db.build_database(path)
+        db.build_database(path, app.config["DEMO_PROFILE"])
         click.echo("Demo data reset.")
 
     return app

@@ -111,7 +111,7 @@ def test_rebuilding_the_database_gives_identical_demo_history(tmp_path):
 
     def snapshot(name):
         path = tmp_path / name
-        db.build_database(str(path))
+        db.build_database(str(path), demo_profile="sample")
         conn = db.connect(str(path))
         rows = conn.execute(
             "SELECT subject_code, status, session_label FROM enrolments ORDER BY subject_code"

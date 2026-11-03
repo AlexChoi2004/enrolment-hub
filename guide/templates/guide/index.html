@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}Help and demo guide · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>Help and demo guide</h1>
+<p class="notice"><strong>This is a demonstration.</strong> Everything about the student, their results, sessions, class times
+  and due weeks is simulated. Nothing here is a genuine UTS academic record. Subject details and prerequisites come from the
+  public UTS Handbook, which is itself indicative.</p>
+
+<h2>Getting started</h2>
+<ol>
+  <li>Log in as the simulated student: <strong>john.doe@student.uni.edu.au</strong> with the password <strong>Johndoe#1</strong>.
+    There is no public sign-up, because at a real university your login comes from admissions.</li>
+  <li>John starts as a <strong>first-year student</strong> in <strong>Year 1, Semester 1</strong> (Autumn 2027), with the
+    Enterprise Software Development major chosen. Choose a sub-major or general electives from the Subjects page to fill the last 24 credit points.</li>
+  <li>Use <strong>Subjects</strong> to enrol, <strong>Degree planner</strong> to plan future sessions, <strong>Timetable</strong> to pick classes,
+    <strong>Results</strong> to see grades, and <strong>Simulator</strong> to finish a semester.</li>
+</ol>
+
+<h2>What each tab does</h2>
+<dl>
+  <dt>Subjects</dt><dd>Every subject in your degree with whether you can enrol, and why or why not. Failed subjects show "Failed: retake needed".</dd>
+  <dt>Degree planner</dt><dd>Plans future sessions. It shows completed, in progress, planned, failed and blocked subjects, and a workload verdict for each session.</dd>
+  <dt>Timetable</dt><dd>Your classes for a session. Clashes are allowed but drawn in red.</dd>
+  <dt>Record</dt><dd>Your degree progress, oldest session first.</dd>
+  <dt>Results</dt><dd>Every attempt with mark, grade and outcome, newest session first (you can switch the order).</dd>
+  <dt>Simulator</dt><dd>Finish a semester by choosing Passed, Failed or No result yet for each subject. Only the simulated student has this.</dd>
+</dl>
+
+<h2 id="scenarios">Try these scenarios</h2>
+<p>Start each one from a fresh student: <strong>Simulator</strong>, then <strong>Reset the simulation</strong>, choose
+  <em>Start as a first-year student</em>, tick the box and press Reset.</p>
+
+<section class="card">
+  <h3>Try this: fail a prerequisite subject</h3>
+  <ol>
+    <li>Open <strong>Subjects</strong> and enrol in <strong>Programming 1</strong>, <strong>Mathematics 1</strong>,
+      <strong>Communication for IT Professionals</strong> and <strong>Discrete Mathematics</strong> for Autumn 2027.</li>
+    <li>Open the <strong>Degree planner</strong>, find <strong>Programming 2</strong> (it needs Programming 1) and add it to Spring 2027.</li>
+    <li>In the Degree planner press <strong>Complete semester</strong>. Set Programming 1 to <strong>Failed</strong> and leave the others on Passed. Press <strong>Review</strong>, then <strong>Confirm and save</strong>.</li>
+  </ol>
+  <p><strong>What you should see:</strong> you are now in Year 1, Semester 2 (Spring 2027). <strong>Results</strong> shows Programming 1 as Failed (FL)
+    and the other three as Passed. The <strong>Degree planner</strong> lists Programming 1 under "Failed subjects" with an
+    <em>Add retake to plan</em> button, and Programming 2 is still planned but flagged with the reason "Needs 41039 Programming 1
+    (failed: retake it first)". In <strong>Subjects</strong>, Programming 1 has a "Failed: retake needed" badge, Programming 2 says
+    Can't enrol, and trying to enrol in Programming 2 is refused.</p>
+</section>
+
+<section class="card">
+  <h3>Try this: retake and pass</h3>
+  <ol>
+    <li>Continue from the scenario above. In <strong>Subjects</strong>, enrol in Programming 1 again (Spring 2027 is the open session).</li>
+    <li>Open the <strong>Timetable</strong> and choose a class for it.</li>
+    <li>Press <strong>Complete semester</strong> in the Degree planner, set Programming 1 to <strong>Passed</strong>, review and confirm.</li>
+  </ol>
+  <p><strong>What you should see:</strong> <strong>Results</strong> shows both attempts for Programming 1: Failed (attempt 1) and Passed (attempt 2),
+    and its credit points are counted once. Programming 2 is no longer blocked. It was planned for Spring 2027, which has passed, so the
+    planner lists it under <strong>Needs rescheduling</strong>: move it to a future session, then enrol when that session is current.</p>
+</section>
+
+<section class="card">
+  <h3>Try this: skip a semester without making up results</h3>
+  <ol>
+    <li>Enrol in a subject, then press <strong>Skip to next semester</strong>.</li>
+    <li>Leave every subject on <strong>No result yet</strong>, review and confirm.</li>
+  </ol>
+  <p><strong>What you should see:</strong> the session moves on, but <strong>Results</strong> is unchanged: no pass and no fail was invented.
+    The subject is an outstanding requirement again.</p>
+</section>
+
+<section class="card">
+  <h3>Try this: change major or sub-major</h3>
+  <ol>
+    <li>Complete a semester or two, then open <strong>Subjects</strong> and press <strong>Swap major</strong> (or <strong>Swap sub-major</strong>).</li>
+    <li>Open a different one and read the preview, then confirm. If you have subjects in progress that would stop counting, a tick box offers to withdraw you from them.</li>
+  </ol>
+  <p><strong>What you should see:</strong> completed subjects that are in the new major still count, and the rest stay on your <strong>Results</strong> but
+    are labelled "Doesn't count towards your degree". Nothing is deleted, and the credit points still to do are recalculated. In real life
+    a change of major needs a request to UTS: this app is a planning tool and shows the consequences first.</p>
+</section>
+
+<section class="card">
+  <h3>Try this: explore a student two years in</h3>
+  <p><strong>Simulator</strong>, <strong>Reset the simulation</strong>, choose <em>Load the sample two-year history</em>. You get sixteen completed
+    subjects and four in progress (Year 3, Semester 1), which is a good starting point for exploring blocked subjects and sub-majors.</p>
+</section>
+
+<h2>Questions</h2>
+<dl>
+  <dt>Is this a real UTS system?</dt><dd>No. It is an independent student prototype using simulated students and results.</dd>
+  <dt>Why can't I create an account?</dt><dd>Public sign-up is off: real students are given their login by the university. One simulated student keeps the demo simple and lets you test any scenario.</dd>
+  <dt>How do marks become grades?</dt><dd>HD is 85 or more, D 75 to 84, C 65 to 74, P 50 to 64, and FL is below 50. If you leave the mark blank, a plausible one is filled in.</dd>
+  <dt>What does "No result yet" do?</dt><dd>It records nothing for that subject (no pass, no fail), ends the enrolment, and the subject goes back to your outstanding requirements.</dd>
+  <dt>A planned subject vanished. Where did it go?</dt><dd>Nothing is deleted. If its session has passed it appears under "Needs rescheduling", and if it depends on a failed subject it is flagged with the reason.</dd>
+  <dt>Are credit points ever counted twice?</dt><dd>No. A subject can be passed only once, so its credit points count once however many attempts it took.</dd>
+  <dt>How do I start again?</dt><dd>Simulator, then Reset the simulation, then choose a fresh first-year student or the sample history.</dd>
+</dl>
+{% endblock %}

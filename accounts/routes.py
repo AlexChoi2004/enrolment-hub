@@ -1,6 +1,7 @@
 """Login, registration and logout pages. Business rules live in service.py."""
 from flask import (
     Blueprint,
+    abort,
     current_app,
     g,
     make_response,
@@ -113,6 +114,8 @@ def login():
 
 @bp.route("/register", methods=["GET", "POST"])
 def register():
+    if not current_app.config["ALLOW_REGISTRATION"]:
+        abort(404)  # accounts are issued by the university, not created here
     if request.method == "GET":
         return _render_register()
 

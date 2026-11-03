@@ -3,7 +3,7 @@ from enrolment.results import attempts_for, failed_subjects
 from enrolment.service import get_record, session_sort_key
 
 
-def transcript(conn, user_id):
+def transcript(conn, user_id, newest_first=False):
     """Rows grouped by session (oldest first), plus totals. All of it is simulated demonstration data."""
     attempts = attempts_for(conn, user_id)
     per_subject = {}
@@ -33,7 +33,10 @@ def transcript(conn, user_id):
         year, season = label.split()[1], label.split()[0]
         groups.append({"label": label, "year": year, "season": season, "rows": sorted(by_session[label], key=lambda r: (r["code"], r["attempt"]))})
     record = get_record(conn, user_id)
+    if newest_first:
+        groups.reverse()
     return {
+        "newest_first": newest_first,
         "groups": groups,
         "attempt_count": len(attempts),
         "passed_cp": record["completed_cp"],  # each subject once, however many attempts it took

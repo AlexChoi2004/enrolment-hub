@@ -92,6 +92,11 @@ def reset():
     if request.form.get("confirm") != "yes":
         flash("Tick the box to confirm the reset.", "error")
         return redirect(url_for("simulator.reset_page"), code=303)
-    service.reset_demo_student(get_db())
-    flash("The demo student has been reset to the original seeded records.", "success")
+    profile = request.form.get("profile", "fresh")
+    try:
+        service.reset_demo_student(get_db(), profile)
+    except service.SimulatorError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("simulator.reset_page"), code=303)
+    flash("The demo student has been reset" + (" with the sample two-year history." if profile == "sample" else " to a first-year student."), "success")
     return redirect(url_for("simulator.index"), code=303)

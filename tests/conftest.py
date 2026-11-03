@@ -10,12 +10,21 @@ from shared import db
 TOKEN_PATTERN = re.compile(r'name="csrf_token" value="([^"]+)"')
 
 
+@pytest.fixture(autouse=True)
+def sample_demo_and_registration_for_tests(monkeypatch):
+    """The app now starts the demo student as a first-year with public sign-up off. Most tests were written around the
+    two-year sample history and registering extra students, so they run with those switched on (as an
+    environment setting, exactly how the real app is configured). Tests of the real defaults remove them."""
+    monkeypatch.setenv("DEMO_PROFILE", "sample")
+    monkeypatch.setenv("ALLOW_REGISTRATION", "1")
+
+
 @pytest.fixture(scope="session")
 def template_db(tmp_path_factory):
     """The seeded database, built ONCE for the whole run. Each test gets its own copy, so tests stay independent
     but do not each pay for creating the schema and seeding about 180 subjects and their classes."""
     path = tmp_path_factory.mktemp("template") / "template.db"
-    db.build_database(str(path))
+    db.build_database(str(path), demo_profile="sample")
     return path
 
 

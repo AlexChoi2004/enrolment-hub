@@ -21,7 +21,10 @@ DEMO_HISTORY = [
 ]
 
 
-def seed_enrolment(conn):
+def seed_enrolment(conn, profile="fresh"):
+    """The sample profile gets the two-year history; the fresh profile starts with nothing at all."""
+    if profile != "sample":
+        return
     user = conn.execute(
         "SELECT id FROM users WHERE student_number = ?", (DEMO_STUDENT_NUMBER,)
     ).fetchone()
