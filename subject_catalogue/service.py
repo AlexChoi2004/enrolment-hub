@@ -288,6 +288,16 @@ def load_prerequisites(conn):
     return {code: [by_group[g] for g in sorted(by_group)] for code, by_group in groups.items()}
 
 
+def prerequisite_lines(conn, code):
+    """One line per requirement: all lines must be met, and 'or' inside a line means any one will do."""
+    names = {r["code"]: r["name"] for r in conn.execute("SELECT code, name FROM subjects")}
+    lines = [group_text(names, g) for g in load_prerequisites(conn).get(code, [])]
+    for need in load_credit_requirements(conn).get(code, []):
+        where = need["major_name"] if need["major_code"] else "your degree"
+        lines.append(f"{need['min_cp']} credit points completed in {where}")
+    return lines
+
+
 def load_credit_requirements(conn):
     """{subject: [{"major_code", "major_name", "min_cp"}]}: completed credit points needed within a major,
     or within the whole degree (major_code None, shown as "your degree")."""

@@ -3,6 +3,7 @@
 {% block content %}
 <p><a href="{{ url_for('submajors.index') }}">&larr; All sub-majors</a></p>
 <h1>{{ sub.name }}</h1>
+{% include '_ask_panel.html' %}
 <p class="muted">{{ sub.code }} · 24 credit points</p>
 {% if sub.note %}<p class="notice">{{ sub.note }}</p>{% endif %}
 

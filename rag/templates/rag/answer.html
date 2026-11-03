@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}Answer · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>Your question</h1>
+<p>{{ question }}</p>
+{% include 'rag/_answer.html' %}
+<p><a href="{{ url_for('planner.page') }}">&larr; Back to the planner</a></p>
+{% endblock %}

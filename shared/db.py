@@ -17,6 +17,7 @@ SCHEMA_FILES = [
     ROOT / "enrolment" / "schema.sql",
     ROOT / "timetable" / "schema.sql",
     ROOT / "degree_planner" / "schema.sql",
+    ROOT / "rag" / "schema.sql",
 ]
 
 
@@ -51,6 +52,7 @@ def seed_db(conn, demo_profile="fresh"):
     # Imported here so each feature can add its own seeder in later chunks.
     from accounts.seed import seed_accounts
     from enrolment.seed import seed_enrolment
+    from rag.index import build_index
     from subject_catalogue.seed import seed_catalogue
     from timetable.seed import seed_timetable
 
@@ -59,6 +61,7 @@ def seed_db(conn, demo_profile="fresh"):
     seed_enrolment(conn, demo_profile)
     seed_timetable(conn)
     conn.commit()
+    build_index(conn)  # the AI's sources, built from the data seeded above
 
 
 def build_database(path, demo_profile="fresh"):
