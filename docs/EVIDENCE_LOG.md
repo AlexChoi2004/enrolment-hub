@@ -61,7 +61,14 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 |            |                              | electives swap page, with a confirmation tick the server enforces for any swap that is not a good one;    | Pushed to main  |
 |            |                              | added a prompt to count subjects that would stop counting as general electives when that block has room;  |        |        |
 |            |                              | built a shared read-only tool layer of ten tools for the AI features, scoped to the signed-in student;    |        |        |
-|            |                              | 130 new tests
+|            |                              | 130 new tests                                                                                             |        |        |
+| 2026-11-04 | 1 (ethics), 2 (security) and 3 (dev tools) | Built RAG: 212 cited sources (subjects, majors, sub-majors and written rules) with full-text| 2 HOUR | PR #21 |
+|            |                                            | search, "Not enough context" when nothing matches (the model is never asked), a code check  |        |        |
+|            |                                            | on every written answer (real citations, numbers only from the sources, no links, no leaked |        |        |
+|            |                                            | instructions), a local model adapter (Ollama qwen3:14b) with a fallback to the sources, an  |        |        |
+|            |                                            | AI mode switch that is off by default, and a question box on the planner, timetable and swap|        |        |
+|            |                                            | pages; 146 new tests                                                                        |        |        |
+
 
 ## Things that went wrong or changed
 
@@ -252,6 +259,19 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed my own mistake of pushing this work straight to main: my command to create a branch failed because that branch name already existed from an earlier attempt, and I did not check which branch I was on before committing
 - Checked main afterwards by running the whole suite (1303 passed) and the GitHub Actions run, and turned on branch protection (a pull request and passing checks are required, with no bypass for me as the owner), so a direct push to main is now refused
 - Changed my routine to print the current branch name before any commit and to stop if a "fatal" line appears
+
+### PR #21: RAG and AI mode
+- Decided the AI may only answer from numbered sources built from the app's own data, and that a question the sources cannot answer gets "Not enough context" without the model being asked at all, because a model that is never asked cannot guess
+- Decided every written answer is checked by code before it is shown (it must cite real sources, use only numbers that are in the sources, contain no web links and not repeat its instructions), and that a failed check shows the sources instead of the model's text, because the checks cannot be argued with by a prompt
+- Decided the sources hold no personal data and the model is never sent anything about the student, and wrote a test that searches every source for the demo student's name and email
+- Decided AI mode is off until the student turns it on, so nothing is sent to any model by default, and that the model runs on my own computer (Ollama, qwen3:14b), so questions never leave it
+- Wrote the rules the AI can quote from the same numbers the code uses and added tests that compare them, so the sources cannot say the grade bands or the swap thresholds are something the code no longer does
+- Decided to limit questions to 500 characters and 30 an hour per student, to escape everything the model or the student writes, and to take the model's address only from the server's settings, so a student cannot point the app at another address
+- Fixed my first retrieval, which ranked a major above Programming 2 for "What does Programming 2 require?" after I made the stemmer smarter, by making a matching title count for more and keeping a lone digit, so Programming 1 and Programming 2 are different questions
+- Fixed a gap my own prompt-injection test found: a model that answered with its own instructions passed the checks because the instructions contain a valid-looking [1], so I added a check for any six words in a row copied from the instructions
+- Fixed my first rules text, which named the demo student, when the test that checks the sources for personal data failed; the sources now say "one simulated student" without a name
+- Fixed my first stemmer, which turned "requires" into "requir" but left "require" alone so they never matched
+- Changed the demo database setup and the tests to switch the AI model off by default so no test ever contacts a real model
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
