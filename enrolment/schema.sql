@@ -36,3 +36,12 @@ CREATE TABLE IF NOT EXISTS elective_credits (
     subject_code TEXT NOT NULL REFERENCES subjects(code) ON DELETE CASCADE,
     PRIMARY KEY (user_id, subject_code)
 );
+
+-- One row per semester the demo student has completed in the simulator, holding exactly what that completion changed, so
+-- "Roll back a semester" can put it back. Most recent last. Cleared by the demo reset.
+CREATE TABLE IF NOT EXISTS semester_log (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    session_label TEXT NOT NULL,   -- the session that was completed
+    snapshot      TEXT NOT NULL    -- JSON: the enrolments, class choices and plan rows it changed, and the attempts it created
+);

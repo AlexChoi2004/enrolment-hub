@@ -19,7 +19,6 @@
         <a href="{{ url_for('timetable.page') }}"{% if request.blueprint == 'timetable' %} aria-current="page"{% endif %}>Timetable</a>
         <a href="{{ url_for('enrolment.me') }}"{% if request.blueprint == 'enrolment' %} aria-current="page"{% endif %}>Record</a>
         <a href="{{ url_for('transcript.page') }}"{% if request.blueprint == 'transcript' %} aria-current="page"{% endif %}>Results</a>
-        {% if g.user.is_demo %}<a href="{{ url_for('simulator.index') }}"{% if request.blueprint == 'simulator' %} aria-current="page"{% endif %}>Simulator</a>{% endif %}
       {% endif %}
     </nav>
     <nav class="nav-account">
@@ -39,6 +38,20 @@
       {% endif %}
     </nav>
   </header>
+  {% if demo_bar %}
+    <div class="demo-bar" role="region" aria-label="Simulation controls">
+      <span class="demo-bar-label">Simulation: <strong>{{ demo_bar.label }}</strong> (Year {{ demo_bar.year }}, Semester {{ demo_bar.semester }})</span>
+      <span class="demo-bar-actions">
+        <a class="btn" href="{{ url_for('simulator.results') }}">Complete semester</a>
+        {% if demo_bar.can_roll_back %}
+          <a class="btn btn-secondary" href="{{ url_for('simulator.rollback_page') }}">Roll back a semester</a>
+        {% else %}
+          <span class="btn btn-secondary is-disabled" aria-disabled="true" title="No completed semester to roll back">Roll back a semester</span>
+        {% endif %}
+        <a class="btn btn-secondary" href="{{ url_for('simulator.reset_page') }}">Reset</a>
+      </span>
+    </div>
+  {% endif %}
   <main class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}

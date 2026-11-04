@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Roll back a semester · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>Roll back a semester</h1>
+<p>You are in <strong>{{ preview['from'] }}</strong>. Rolling back undoes the last semester you completed, <strong>{{ preview.session }}</strong>, and puts you back in it.</p>
+<p class="notice">Simulated demonstration data, not genuine UTS academic records.</p>
+
+{% if preview.attempts %}
+  <h2>These results will be removed</h2>
+  <table class="table">
+    <thead><tr><th>Subject</th><th>Result</th><th>Mark</th></tr></thead>
+    <tbody>
+      {% for a in preview.attempts %}
+        <tr><td>{{ a.subject_code }} {{ a.name }}</td>
+          <td>{% if a.outcome == 'passed' %}<span class="badge st-completed">Passed</span>{% else %}<span class="badge st-retake">Failed</span>{% endif %}</td>
+          <td>{{ a.mark }} ({{ a.grade }})</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+{% if preview.no_result %}
+  <p class="muted">These had no result recorded and will simply be put back as enrolled: {% for s in preview.no_result %}{{ s.code }} {{ s.name }}{{ ', ' if not loop.last }}{% endfor %}.</p>
+{% endif %}
+<p>All {{ preview.subjects|length }} subject(s) go back to <strong>enrolled</strong> in {{ preview.session }}, with their class choices and plan entries as they were.
+  Anything you have done since to those subjects (for example enrolling in a retake) is replaced.</p>
+
+<form method="post" action="{{ url_for('simulator.rollback') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="btn btn-danger">Roll back to {{ preview.session }}</button>
+  <a class="btn btn-secondary" href="{{ url_for('planner.page') }}">Cancel</a>
+</form>
+{% endblock %}

@@ -30,9 +30,8 @@ def index():
 @security.login_required
 def results():
     _demo_only()
-    mode = "skip" if request.args.get("mode") == "skip" else "complete"
     state = service.current_state(get_db(), g.user["id"])
-    return _private(render_template("simulator/results.html", state=state, mode=mode, labels=service.LABELS, form={}, errors=[]))
+    return _private(render_template("simulator/results.html", state=state, labels=service.LABELS, form={}, errors=[]))
 
 
 @bp.post("/review")
@@ -41,14 +40,13 @@ def review():
     _demo_only()
     security.require_csrf()
     state = service.current_state(get_db(), g.user["id"])
-    mode = "skip" if request.form.get("mode") == "skip" else "complete"
     choices, errors = service.parse_choices(state["subjects"], request.form.get)
     errors += service.check_choices(state["subjects"], choices)
     if errors:
-        return _private(render_template("simulator/results.html", state=state, mode=mode, labels=service.LABELS,
+        return _private(render_template("simulator/results.html", state=state, labels=service.LABELS,
                                         form=request.form, errors=errors), 400)
     rows = [{**s, **choices[s["code"]], "label": service.LABELS[choices[s["code"]]["result"]]} for s in state["subjects"]]
-    return _private(render_template("simulator/review.html", state=state, mode=mode, rows=rows))
+    return _private(render_template("simulator/review.html", state=state, rows=rows))
 
 
 @bp.post("/finish")
@@ -74,7 +72,7 @@ def finish():
     if done["plans_to_reschedule"]:
         flash(f"{done['plans_to_reschedule']} planned subject(s) were planned for a session that has passed: "
               "reschedule them in the Degree planner.", "warning")
-    return redirect(url_for("simulator.index"), code=303)
+    return redirect(url_for("planner.page"), code=303)
 
 
 @bp.get("/reset")
@@ -99,4 +97,40 @@ def reset():
         flash(str(exc), "error")
         return redirect(url_for("simulator.reset_page"), code=303)
     flash("The demo student has been reset" + (" with the sample two-year history." if profile == "sample" else " to a first-year student."), "success")
-    return redirect(url_for("simulator.index"), code=303)
+    return redirect(url_for("planner.page"), code=303)
+
+
+@bp.get("/rollback")
+@security.login_required
+def rollback_page():
+    _demo_only()
+    preview = service.rollback_preview(get_db(), g.user["id"])
+    if preview is None:
+        flash("There is no completed semester to roll back.", "error")
+        return redirect(url_for("planner.page"), code=303)
+    return _private(render_template("simulator/rollback.html", preview=preview))
+
+
+@bp.post("/rollback")
+@security.login_required
+def rollback():
+    _demo_only()
+    security.require_csrf()
+    try:
+        done = service.roll_back_semester(get_db(), g.user["id"])
+    except service.SimulatorError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("planner.page"), code=303)
+    flash(f"Rolled back to {done['to']}: removed {done['removed_results']} result(s) and put {done['restored']} subject(s) back as enrolled.", "success")
+    if done["back_to_plan"]:
+        flash(f"{done['back_to_plan']} enrolment(s) for a later session went back into your plan.", "warning")
+    return redirect(url_for("planner.page"), code=303)
+
+
+@bp.app_context_processor
+def demo_bar():
+    """The simulation controls shown under the header of every page, for the simulated demo student only."""
+    if not getattr(g, "user", None) or not g.user["is_demo"]:
+        return {"demo_bar": None}
+    conn = get_db()
+    return {"demo_bar": {**service.period(conn, g.user["id"]), "can_roll_back": service.can_roll_back(conn, g.user["id"])}}

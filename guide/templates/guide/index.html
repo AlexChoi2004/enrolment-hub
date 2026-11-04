@@ -14,7 +14,7 @@
     sub-major chosen yet</strong>, like a real first-year. The Subjects page prompts you: choose a <strong>major</strong> (48 credit points),
     then a <strong>sub-major</strong> or general electives (24 credit points). You can enrol in core subjects straight away.</li>
   <li>Use <strong>Subjects</strong> to enrol, <strong>Degree planner</strong> to plan future sessions, <strong>Timetable</strong> to pick classes,
-    <strong>Results</strong> to see grades, and <strong>Simulator</strong> to finish a semester.</li>
+    <strong>Results</strong> to see grades. The <strong>simulation bar</strong> under the header finishes a semester.</li>
 </ol>
 
 <h2>What each tab does</h2>
@@ -24,11 +24,11 @@
   <dt>Timetable</dt><dd>Your classes for a session. Clashes are allowed but drawn in red.</dd>
   <dt>Record</dt><dd>Your degree progress, oldest session first.</dd>
   <dt>Results</dt><dd>Every attempt with mark, grade and outcome, newest session first (you can switch the order).</dd>
-  <dt>Simulator</dt><dd>Finish a semester by choosing Passed, Failed or No result yet for each subject. Only the simulated student has this.</dd>
+  <dt>Simulation bar</dt><dd>On every page, under the header: <strong>Complete semester</strong> (choose Passed, Failed or No result yet for each subject), <strong>Roll back a semester</strong> (undo the last one) and <strong>Reset</strong>. Only the simulated student has it.</dd>
 </dl>
 
 <h2 id="scenarios">Try these scenarios</h2>
-<p>Start each one from a fresh student (the guide assumes you have not chosen a major yet): <strong>Simulator</strong>, then <strong>Reset the simulation</strong>, choose
+<p>Start each one from a fresh student (the guide assumes you have not chosen a major yet): press <strong>Reset</strong> in the bar under the header, choose
   <em>Start as a first-year student</em>, tick the box and press Reset.</p>
 
 <section class="card">
@@ -37,7 +37,7 @@
     <li>Open <strong>Subjects</strong> and enrol in <strong>Programming 1</strong>, <strong>Mathematics 1</strong>,
       <strong>Communication for IT Professionals</strong> and <strong>Discrete Mathematics</strong> for Autumn 2027.</li>
     <li>Open the <strong>Degree planner</strong>, find <strong>Programming 2</strong> (it needs Programming 1) and add it to Spring 2027.</li>
-    <li>In the Degree planner press <strong>Complete semester</strong>. Set Programming 1 to <strong>Failed</strong> and leave the others on Passed. Press <strong>Review</strong>, then <strong>Confirm and save</strong>.</li>
+    <li>Press <strong>Complete semester</strong> in the bar under the header. Set Programming 1 to <strong>Failed</strong> and leave the others on Passed. Press <strong>Review</strong>, then <strong>Confirm and save</strong>.</li>
   </ol>
   <p><strong>What you should see:</strong> you are now in Year 1, Semester 2 (Spring 2027). <strong>Results</strong> shows Programming 1 as Failed (FL)
     and the other three as Passed. The <strong>Degree planner</strong> lists Programming 1 under "Failed subjects" with an
@@ -51,7 +51,7 @@
   <ol>
     <li>Continue from the scenario above. In <strong>Subjects</strong>, enrol in Programming 1 again (Spring 2027 is the open session).</li>
     <li>Open the <strong>Timetable</strong> and choose a class for it.</li>
-    <li>Press <strong>Complete semester</strong> in the Degree planner, set Programming 1 to <strong>Passed</strong>, review and confirm.</li>
+    <li>Press <strong>Complete semester</strong> in the bar under the header, set Programming 1 to <strong>Passed</strong>, review and confirm.</li>
   </ol>
   <p><strong>What you should see:</strong> <strong>Results</strong> shows both attempts for Programming 1: Failed (attempt 1) and Passed (attempt 2),
     and its credit points are counted once. Programming 2 is no longer blocked. It was planned for Spring 2027, which has passed, so the
@@ -59,13 +59,23 @@
 </section>
 
 <section class="card">
-  <h3>Try this: skip a semester without making up results</h3>
+  <h3>Try this: finish a semester without making up results</h3>
   <ol>
-    <li>Enrol in a subject, then press <strong>Skip to next semester</strong>.</li>
+    <li>Enrol in a subject, then press <strong>Complete semester</strong>.</li>
     <li>Leave every subject on <strong>No result yet</strong>, review and confirm.</li>
   </ol>
   <p><strong>What you should see:</strong> the session moves on, but <strong>Results</strong> is unchanged: no pass and no fail was invented.
     The subject is an outstanding requirement again.</p>
+</section>
+
+<section class="card">
+  <h3>Try this: undo a semester</h3>
+  <ol>
+    <li>Press <strong>Complete semester</strong> in the bar under the header and finish a semester with some results.</li>
+    <li>Press <strong>Roll back a semester</strong>, read what will be undone, and confirm.</li>
+  </ol>
+  <p><strong>What you should see:</strong> you are back in the earlier session, the results it recorded are gone, and the subjects are enrolled again with
+    their class choices and plan entries as they were. You can roll back as many completed semesters as you have finished, one at a time.</p>
 </section>
 
 <section class="card">
@@ -82,7 +92,7 @@
 
 <section class="card">
   <h3>Try this: explore a student two years in</h3>
-  <p><strong>Simulator</strong>, <strong>Reset the simulation</strong>, choose <em>Load the sample two-year history</em>. You get sixteen completed
+  <p>Press <strong>Reset</strong> in the bar under the header and choose <em>Load the sample two-year history</em>. You get sixteen completed
     subjects and four in progress (Year 3, Semester 1), which is a good starting point for exploring blocked subjects and sub-majors.</p>
 </section>
 
@@ -105,6 +115,6 @@
   <dt>What does "No result yet" do?</dt><dd>It records nothing for that subject (no pass, no fail), ends the enrolment, and the subject goes back to your outstanding requirements.</dd>
   <dt>A planned subject vanished. Where did it go?</dt><dd>Nothing is deleted. If its session has passed it appears under "Needs rescheduling", and if it depends on a failed subject it is flagged with the reason.</dd>
   <dt>Are credit points ever counted twice?</dt><dd>No. A subject can be passed only once, so its credit points count once however many attempts it took.</dd>
-  <dt>How do I start again?</dt><dd>Simulator, then Reset the simulation, then choose a fresh first-year student or the sample history.</dd>
+  <dt>How do I start again?</dt><dd>Press Reset in the bar under the header, then choose a fresh first-year student or the sample history.</dd>
 </dl>
 {% endblock %}

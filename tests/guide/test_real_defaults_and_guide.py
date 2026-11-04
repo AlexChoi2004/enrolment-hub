@@ -128,7 +128,7 @@ def test_the_help_page_says_it_is_simulated_and_gives_the_demo_login(real):
 
 
 @pytest.mark.parametrize("title", [
-    "Try this: fail a prerequisite subject", "Try this: retake and pass", "Try this: skip a semester without making up results",
+    "Try this: fail a prerequisite subject", "Try this: retake and pass", "Try this: finish a semester without making up results",
     "Try this: change major or sub-major", "Try this: explore a student two years in",
 ])
 def test_every_scenario_is_on_the_help_page(real, title):
@@ -191,7 +191,7 @@ def test_the_retake_and_pass_scenario_does_what_the_guide_says(real):
     assert "Needs rescheduling" in planner and "48024" in planner and "Spring 2027, which has passed" in planner
 
 
-def test_the_skip_scenario_does_what_the_guide_says(app, real):
+def test_the_no_result_scenario_does_what_the_guide_says(app, real):
     _, client = real
     sign_in(client)
     client.post("/students/me/enrol", data={"subject_code": "41039", "session_label": "Autumn 2027", "csrf_token": token(client, "/subjects")})

@@ -155,19 +155,19 @@ def test_the_service_can_list_newest_first(conn):
 
 def test_the_page_shows_the_latest_session_at_the_top_by_default(client, log_in):
     log_in()
-    page = client.get("/transcript").get_data(as_text=True)
+    page = client.get("/transcript").get_data(as_text=True).split("<main", 1)[1]  # the page body, below the header and simulation bar
     assert page.index("Autumn 2027") < page.index("Spring 2026") < page.index("Autumn 2025")
     assert "Newest session first" in page and "Show oldest first" in page
 
 
 def test_the_page_can_show_oldest_first(client, log_in):
     log_in()
-    page = client.get("/transcript?order=oldest").get_data(as_text=True)
+    page = client.get("/transcript?order=oldest").get_data(as_text=True).split("<main", 1)[1]
     assert page.index("Autumn 2025") < page.index("Spring 2026") < page.index("Autumn 2027")
     assert "Oldest session first" in page and "Show newest first" in page
 
 
 def test_an_unknown_order_falls_back_to_newest_first(client, log_in):
     log_in()
-    page = client.get("/transcript?order=sideways").get_data(as_text=True)
+    page = client.get("/transcript?order=sideways").get_data(as_text=True).split("<main", 1)[1]
     assert page.index("Autumn 2027") < page.index("Autumn 2025")

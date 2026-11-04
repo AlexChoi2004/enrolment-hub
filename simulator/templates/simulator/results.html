@@ -1,8 +1,7 @@
 {% extends 'base.html' %}
-{% block title %}{{ 'Skip to next semester' if mode == 'skip' else 'Complete semester' }} · Enrolment Hub{% endblock %}
+{% block title %}Complete semester · Enrolment Hub{% endblock %}
 {% block content %}
-<p><a href="{{ url_for('simulator.index') }}">&larr; Semester simulator</a></p>
-<h1>{{ 'Skip to next semester' if mode == 'skip' else 'Complete semester' }}</h1>
+<h1>Complete semester</h1>
 <p><strong>Year {{ state.year }}, Semester {{ state.semester }}</strong> ({{ state.label }}). Choose what happens to each subject, then check it on the next screen.</p>
 <p class="notice">Simulated demonstration data, not genuine UTS academic records.</p>
 
@@ -14,13 +13,12 @@
 
 <form method="post" action="{{ url_for('simulator.review') }}">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <input type="hidden" name="mode" value="{{ mode }}">
   {% if state.subjects %}
   <table class="table">
     <thead><tr><th>Subject</th><th>Result</th><th>Mark (optional)</th></tr></thead>
     <tbody>
       {% for s in state.subjects %}
-        {% set chosen = form.get('result_' ~ s.code) or ('none' if mode == 'skip' else 'passed') %}
+        {% set chosen = form.get('result_' ~ s.code) or 'passed' %}
         <tr>
           <td>{{ s.code }} {{ s.name }}<br><span class="muted">{{ s.credit_points }} cp</span></td>
           <td>

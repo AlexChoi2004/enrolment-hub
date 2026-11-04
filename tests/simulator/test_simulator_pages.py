@@ -66,11 +66,11 @@ def test_the_nav_and_planner_buttons_appear_only_for_the_demo_student(client, re
     assert ">Simulator<" not in html(client, "/subjects") and "Complete semester" not in html(client, "/planner")
 
 
-def test_the_demo_student_sees_the_nav_link_and_the_planner_buttons(client, log_in):
+def test_the_demo_student_sees_the_simulation_bar_instead_of_a_nav_link(client, log_in):
     log_in()
-    assert ">Simulator<" in html(client, "/subjects")
+    assert ">Simulator<" not in html(client, "/subjects")
     page = html(client, "/planner")
-    assert "Year 3, Semester 1" in page and "Complete semester" in page and "Skip to next semester" in page
+    assert "Year 3, Semester 1" in page and "Complete semester" in page and "Skip to next semester" not in page
 
 
 def test_posts_need_a_csrf_token(app, client, log_in):
@@ -95,16 +95,15 @@ def test_the_dashboard_shows_the_period_and_the_subjects(client, log_in):
     assert "Complete semester" in page and "Skip to next semester" in page and "Simulated" in page or "simulated" in page
 
 
-def test_complete_defaults_every_subject_to_passed_and_skip_to_no_result(client, log_in):
+def test_complete_defaults_every_subject_to_passed(client, log_in):
     log_in()
-    complete = html(client, "/simulator/results?mode=complete")
-    skip = html(client, "/simulator/results?mode=skip")
-    assert complete.count('<option value="passed" selected>') == 4 and skip.count('<option value="none" selected>') == 4
+    assert html(client, "/simulator/results").count('<option value="passed" selected>') == 4
+    assert html(client, "/simulator/results?mode=skip").count('<option value="passed" selected>') == 4  # an old Skip link is just Complete
 
 
-def test_both_screens_offer_passed_failed_and_no_result_for_every_subject(client, log_in):
+def test_the_results_screen_offers_passed_failed_and_no_result_for_every_subject(client, log_in):
     log_in()
-    page = html(client, "/simulator/results?mode=skip")
+    page = html(client, "/simulator/results")
     for label in ("Passed", "Failed", "No result yet"):
         assert page.count(f">{label}</option>") == 4
     assert 'name="mark_41026"' in page and "Review" in page
@@ -144,9 +143,9 @@ def test_the_screens_say_the_data_is_simulated(client, log_in):
 def test_confirming_saves_the_results_and_advances(app, client, log_in):
     log_in()
     res = finish(client, **ONE_FAILED)
-    assert res.status_code == 303 and res.headers["Location"].endswith("/simulator")
+    assert res.status_code == 303 and res.headers["Location"].endswith("/planner")  # back to where the student works
     assert state(app) == ("Spring 2027", 20)
-    page = html(client, "/simulator")
+    page = html(client, "/planner")
     assert "Autumn 2027 finished: 3 passed, 1 failed, 0 with no result." in page and "Year 3, Semester 2" in page
 
 
@@ -160,11 +159,11 @@ def test_the_whole_app_reacts_to_a_failed_subject(client, log_in):
     assert "Spring 2027" in html(client, "/timetable") and "Autumn 2027" not in html(client, "/timetable").split("tt-tabs")[1][:400] if "tt-tabs" in html(client, "/timetable") else True
 
 
-def test_skip_with_no_result_records_nothing(app, client, log_in):
+def test_choosing_no_result_for_everything_records_nothing(app, client, log_in):
     log_in()
     finish(client, **NONE)
     assert state(app) == ("Spring 2027", 16)  # the session moved on; no attempts were invented
-    assert "0 passed, 0 failed, 4 with no result" in html(client, "/simulator")
+    assert "0 passed, 0 failed, 4 with no result" in html(client, "/planner")
 
 
 def test_the_record_and_profile_show_the_new_period(client, log_in):

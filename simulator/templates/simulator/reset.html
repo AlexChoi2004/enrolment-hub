@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}Reset the simulation · Enrolment Hub{% endblock %}
 {% block content %}
-<p><a href="{{ url_for('simulator.index') }}">&larr; Semester simulator</a></p>
 <h1>Reset the simulation</h1>
 <p>This removes every result, retake, plan and class choice created while testing, and starts the simulated demo
   student again. It does not touch any other account. Choose how to start:</p>
@@ -13,6 +12,6 @@
     (Year 3, Semester 1, sixteen completed subjects and four in progress)</label></p>
   <p><label><input type="checkbox" name="confirm" value="yes"> I understand this removes everything I have simulated.</label></p>
   <button type="submit" class="btn btn-danger">Reset the simulation</button>
-  <a class="btn btn-secondary" href="{{ url_for('simulator.index') }}">Cancel</a>
+  <a class="btn btn-secondary" href="{{ url_for('planner.page') }}">Cancel</a>
 </form>
 {% endblock %}

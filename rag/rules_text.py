@@ -33,11 +33,13 @@ RULES = [
      "failed subject as a prerequisite is blocked until the failed subject is passed. A planned subject that depends on it stays in "
      "the plan, flagged with the reason, and can be rescheduled."),
     ("rule:simulator", "The semester simulator",
-     "The simulated demo student can finish a semester with Complete semester or Skip to next semester. Both show a choice for every "
+     "The simulated demo student has simulation controls under the header of every page. Complete semester shows a choice for every "
      "enrolled subject: Passed, Failed or No result yet, with an optional mark. No result yet records no pass and no fail, ends the "
      "enrolment, and the subject goes back to the outstanding requirements. Saving is all or nothing, and the student moves to the "
-     "next session. A subject planned for a session that has passed is listed under Needs rescheduling, not deleted. The reset "
-     "returns the demo student to a first-year student or to the sample two-year history."),
+     "next session. Roll back a semester undoes the most recent completed semester: its results are removed, the subjects are enrolled "
+     "again with their class choices and plan entries, and the student returns to that session. A subject planned for a session that "
+     "has passed is listed under Needs rescheduling, not deleted. Reset returns the demo student to a first-year student or to the "
+     "sample two-year history."),
     ("rule:swapping", "Changing major, sub-major or electives",
      "A change of major, sub-major or the choice of electives is never blocked in the app. Before confirming, the swap page shows "
      "what would carry over and what would stop counting; nothing done is deleted from the record, and subjects that stop counting "

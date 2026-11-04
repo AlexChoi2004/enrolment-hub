@@ -13,13 +13,9 @@
     <p>You are not enrolled in anything this session.</p>
   {% endif %}
   {% if state.enrolled_later %}<p class="muted">{{ state.enrolled_later }} subject(s) are enrolled for a later session and stay as they are.</p>{% endif %}
-  <p>
-    <a class="btn" href="{{ url_for('simulator.results', mode='complete') }}">Complete semester</a>
-    <a class="btn btn-secondary" href="{{ url_for('simulator.results', mode='skip') }}">Skip to next semester</a>
-  </p>
-  <p class="muted">Both let you choose, subject by subject, Passed, Failed or No result yet. A subject with no result
-    gets no pass or fail: nothing is invented, and it goes back to your outstanding requirements. Next is
-    {{ state.next }} (Year {{ state.next_year }}, Semester {{ state.next_semester }}).</p>
+  <p class="muted">Use the buttons under the page header: Complete semester lets you choose, subject by subject, Passed, Failed or
+    No result yet. A subject with no result gets no pass or fail: nothing is invented, and it goes back to your outstanding
+    requirements. Next is {{ state.next }} (Year {{ state.next_year }}, Semester {{ state.next_semester }}).</p>
 </div>
 
 <h2>Start again</h2>

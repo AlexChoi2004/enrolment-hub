@@ -302,3 +302,11 @@ a.btn.btn-danger, a.btn.btn-danger:visited { color: var(--bad); }
                padding: .7rem 1rem; background: #f5f8ff; border: 1px dashed #b9c8ee; border-left: 5px solid var(--accent); }
 .prompt-card p { margin: 0; }
 .prompt-card .btn { white-space: nowrap; }
+
+/* Simulation controls under the header of every page (demo student only) */
+.demo-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem 1rem; padding: .45rem 1.5rem;
+            background: #fff8e6; border-bottom: 1px solid #ecd9a8; font-size: .9rem; }
+.demo-bar-label { color: var(--warn); }
+.demo-bar-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-left: auto; }
+.demo-bar .btn { padding: .3rem .75rem; font-size: .85rem; }
+.btn.is-disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }

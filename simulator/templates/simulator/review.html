@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% block title %}Check results · Enrolment Hub{% endblock %}
 {% block content %}
-<p><a href="{{ url_for('simulator.results', mode=mode) }}">&larr; Change</a></p>
+<p><a href="{{ url_for('simulator.results') }}">&larr; Change</a></p>
 <h1>Check before saving</h1>
-<p>{{ state.label }} will be finished and you will move to <strong>{{ state.next }}</strong> (Year {{ state.next_year }}, Semester {{ state.next_semester }}). This can only be undone by resetting the simulation.</p>
+<p>{{ state.label }} will be finished and you will move to <strong>{{ state.next }}</strong> (Year {{ state.next_year }}, Semester {{ state.next_semester }}). You can undo it afterwards with Roll back a semester.</p>
 <p class="notice">Simulated demonstration data, not genuine UTS academic records.</p>
 
 {% if rows %}

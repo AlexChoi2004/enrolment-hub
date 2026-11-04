@@ -75,7 +75,9 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 |            |                                            | 149 new tests                                                                               |        |        |
 | 2026-11-04 | 3 (dev tools) | Polished the interface: consistent buttons and navigation, one-fact-per-line headers, a single setup card on the         | 30 MIN | PR #23 |
 |            |               | planner, and calmer AI answers (plain text and lists with the sources and tool details collapsed); 21 new tests          |        |        |
-
+| 2026-11-04 | 3 (dev tools) | Moved the simulation controls into a bar under the header of every page (Complete semester, Roll back a semester and     | 1 HOUR | PR #24 |
+|            |               | Reset), removed the redundant Skip button and Simulator tab, and built a rollback that undoes the last completed         |        |        |
+|            |               | semester from a saved snapshot, one at a time, all or nothing; 37 new tests                                              |        |        |
 
 
 ## Things that went wrong or changed
@@ -299,6 +301,16 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed a bug I found while formatting lists: my cleaning step collapsed every line break, so a list from the model would have been squashed into one line
 - Changed the prompts to ask for short lists when listing several items, after seeing a long sentence listing six subjects in my own screenshot
 - Fixed the "choose a major" and "choose a sub-major" prompts on the Subjects page, which used two different colours and a tall stacked layout, by giving both one compact row and one colour
+
+### PR #24: Simulation controls on every page and rolling back a semester
+- Decided to remove the Skip button because it did exactly what Complete semester does with every subject set to "No result yet", so it was a second way to do the same thing; the idea came from my own review of the interface
+- Decided to move the controls into a bar on every page instead of a separate simulator page, because a tester should not have to leave the page they are looking at to move the semester on, and the bar only appears for the simulated demo student, which the server enforces
+- Decided rolling back works from a snapshot saved when each semester is completed (the enrolments, class choices, plan entries and the attempts it created), instead of trying to work out the old state afterwards, because that is the only way to restore it exactly, and wrote a test that compares the data before and after with a mix of results
+- Decided a rollback is all or nothing and goes back one semester at a time in reverse order, and wrote a test that forces a failure part-way and checks nothing changed and the log is still there
+- Decided anything done since to those subjects is replaced and enrolments that would be too far ahead go back into the plan, and the confirmation page says so before anything happens
+- Fixed my first retake test, which assumed a subject could be retaken in the next session, when the app only opens the current session and the Spring after an Autumn; the code was right and the test was wrong
+- Fixed three transcript tests that started finding the current session in the new simulation bar instead of in the page body
+- Fixed a lint finding on the query that lists the results to undo by building the placeholders separately
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
