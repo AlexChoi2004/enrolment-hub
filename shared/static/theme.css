@@ -295,3 +295,10 @@ a.btn.btn-danger, a.btn.btn-danger:visited { color: var(--bad); }
 .ask-answer .more h4 { margin: .6rem 0 .2rem; }
 .ask-answer .more pre { white-space: pre-wrap; background: #f1f3f7; padding: .5rem; border-radius: 6px; font-size: .8rem; max-height: 14rem; overflow: auto; }
 .answer-foot { color: var(--muted); font-size: .78rem; margin: .5rem 0 0; }
+
+/* "You haven't chosen a major / sub-major yet" on the Subjects page: one calm row, the same for both */
+.cat-major_prompt, .cat-submajor_prompt { --c: var(--accent); }
+.prompt-card { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+               padding: .7rem 1rem; background: #f5f8ff; border: 1px dashed #b9c8ee; border-left: 5px solid var(--accent); }
+.prompt-card p { margin: 0; }
+.prompt-card .btn { white-space: nowrap; }
