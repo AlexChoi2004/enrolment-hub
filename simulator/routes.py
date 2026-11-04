@@ -1,6 +1,7 @@
 """The semester simulator pages. Only the simulated demo student can use them."""
 from flask import Blueprint, abort, flash, g, make_response, redirect, render_template, request, url_for
 
+from enrolment.presets import DEFAULT_PRESET, PRESETS
 from shared import security
 from shared.db import get_db
 from simulator import service
@@ -79,7 +80,7 @@ def finish():
 @security.login_required
 def reset_page():
     _demo_only()
-    return _private(render_template("simulator/reset.html"))
+    return _private(render_template("simulator/reset.html", presets=PRESETS, default=DEFAULT_PRESET))
 
 
 @bp.post("/reset")
@@ -96,7 +97,7 @@ def reset():
     except service.SimulatorError as exc:
         flash(str(exc), "error")
         return redirect(url_for("simulator.reset_page"), code=303)
-    flash("The demo student has been reset" + (" with the sample two-year history." if profile == "sample" else " to a first-year student."), "success")
+    flash(f"Simulation reset: {PRESETS[profile]['title']}.", "success")
     return redirect(url_for("planner.page"), code=303)
 
 

@@ -38,8 +38,7 @@ RULES = [
      "enrolment, and the subject goes back to the outstanding requirements. Saving is all or nothing, and the student moves to the "
      "next session. Roll back a semester undoes the most recent completed semester: its results are removed, the subjects are enrolled "
      "again with their class choices and plan entries, and the student returns to that session. A subject planned for a session that "
-     "has passed is listed under Needs rescheduling, not deleted. Reset returns the demo student to a first-year student or to the "
-     "sample two-year history."),
+     "has passed is listed under Needs rescheduling, not deleted. Reset loads one of the demo starting points."),
     ("rule:swapping", "Changing major, sub-major or electives",
      "A change of major, sub-major or the choice of electives is never blocked in the app. Before confirming, the swap page shows "
      "what would carry over and what would stop counting; nothing done is deleted from the record, and subjects that stop counting "
@@ -97,6 +96,13 @@ RULES = [
      "The ten read-only tools can also be offered to another AI application, such as Claude Desktop, through a local Model Context Protocol "
      "server. It is read-only, bound to one simulated student, works on a snapshot of the database that it cannot write back, talks only over "
      "standard input and output and opens no network port."),
+    ("rule:presets", "Demo starting points for quick testing",
+     "The Reset button under the page header loads one of four starting points for the simulated demo student, so nobody has to pass "
+     "semester after semester to reach a situation. A first-year student has no major, sub-major or results. Two years in, halfway "
+     "through the major is Year 3, Semester 1 with the Enterprise Software Development major 62 percent done, good for swap advice that "
+     "costs time and for counting a sub-major's subjects as electives. Late in the major is Year 3, Semester 2 with the major 88 percent "
+     "done, good for Think carefully swap advice and the confirmation tick. A failed prerequisite is Year 2, Semester 1 with Programming 2 "
+     "failed and not yet retaken, and Data Structures and Algorithms planned but blocked by it, good for retakes and blocked plans."),
     ("rule:timetable", "The timetable",
      "The timetable shows the classes for a session. Each subject has a weekly lecture and, depending on the subject, tutorials or "
      "workshops with several time options. A student chooses a class for each tutorial or workshop. Clashes are allowed but drawn in red "

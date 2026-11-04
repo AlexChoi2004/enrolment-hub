@@ -213,5 +213,5 @@ def test_reset_with_the_tick_restores_the_seeded_records(app, client, log_in):
     finish(client, **ONE_FAILED)
     client.post("/simulator/reset", data={"csrf_token": token(client), "confirm": "yes", "profile": "sample"})
     assert state(app) == ("Autumn 2027", 16)
-    assert "The demo student has been reset with the sample two-year history." in html(client, "/simulator")
+    assert "Simulation reset: Two years in, halfway through the major." in html(client, "/planner")
     assert "Year 3, Semester 1" in html(client, "/simulator")

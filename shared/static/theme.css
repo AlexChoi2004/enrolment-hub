@@ -310,3 +310,14 @@ a.btn.btn-danger, a.btn.btn-danger:visited { color: var(--bad); }
 .demo-bar-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-left: auto; }
 .demo-bar .btn { padding: .3rem .75rem; font-size: .85rem; }
 .btn.is-disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
+
+/* Choosing a starting point on the reset page */
+.preset-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: .8rem; margin: 1rem 0; }
+.preset { display: flex; flex-direction: column; gap: .3rem; padding: .8rem 1rem; border: 1px solid var(--border); border-radius: 8px;
+          background: var(--card); cursor: pointer; position: relative; }
+.preset input[type="radio"] { position: absolute; top: .9rem; right: .9rem; }
+.preset:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 2px #cdd9f7; background: #f5f8ff; }
+.preset-title { font-weight: 600; padding-right: 1.6rem; }
+.preset-summary { color: var(--muted); font-size: .9rem; }
+.preset-good-label { font-size: .8rem; font-weight: 600; margin-top: .3rem; }
+.preset-good { margin: 0; padding-left: 1.1rem; font-size: .88rem; }

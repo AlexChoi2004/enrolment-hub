@@ -123,7 +123,7 @@ def test_switching_back_and_forth_is_reliable_after_several_semesters(conn):
 
 def test_an_unknown_profile_is_refused_and_nothing_changes(conn):
     before = attempts_for(conn, 1)
-    with pytest.raises(SimulatorError, match="Choose how to start again"):
+    with pytest.raises(SimulatorError, match="Choose a starting point from the list"):
         reset_demo_student(conn, "nonsense")
     assert attempts_for(conn, 1) == before
 
@@ -131,8 +131,8 @@ def test_an_unknown_profile_is_refused_and_nothing_changes(conn):
 def test_the_reset_page_offers_both_starts(client, log_in):
     log_in()
     page = client.get("/simulator/reset").get_data(as_text=True)
-    assert 'value="fresh" checked' in page and 'value="sample"' in page
-    assert "Start as a first-year student" in page and "Load the sample two-year history" in page
+    assert 'value="fresh" checked' in page and 'value="sample"' in page and 'value="late"' in page and 'value="failed"' in page
+    assert "A first-year student" in page and "Two years in, halfway through the major" in page and "Good for testing:" in page
 
 
 def test_the_reset_page_defaults_to_a_first_year_student(app, client, log_in):

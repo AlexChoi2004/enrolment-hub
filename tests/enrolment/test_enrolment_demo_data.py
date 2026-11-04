@@ -3,7 +3,7 @@ import sqlite3
 import pytest
 
 from accounts.seed import DEMO_STUDENT_NUMBER
-from enrolment.seed import CURRENT_SESSION
+from enrolment.service import CURRENT_SESSION
 from enrolment.service import session_sort_key
 
 

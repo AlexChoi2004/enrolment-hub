@@ -12,16 +12,14 @@ DEMO_COURSE_CODE = "C09119"
 DEMO_MAJOR_CODE = "MAJ03519"  # Enterprise Software Development; new accounts choose theirs
 DEMO_SUBMAJOR_CODE = "SMJ10156"  # Innovation and Entrepreneurship (four core subjects, completed)
 DEMO_COMMENCEMENT_SESSION = "Autumn 2025"  # the sample history: two years before the app's current session
-DEMO_PROFILES = ("fresh", "sample")  # fresh = a first-year student; sample = about two years into the degree
+DEMO_PROFILES = ("fresh", "sample", "late", "failed")  # the starting points; their data is in enrolment/presets.py
 
 
 def demo_profile_state(profile):
-    """(commencement session, major, sub-major) the demo student has under a profile. A fresh student has neither yet."""
-    from enrolment.service import CURRENT_SESSION
+    """(commencement session, current session, major, sub-major) the demo student has under a profile."""
+    from enrolment.presets import preset_state
 
-    if profile == "sample":
-        return DEMO_COMMENCEMENT_SESSION, DEMO_MAJOR_CODE, DEMO_SUBMAJOR_CODE
-    return CURRENT_SESSION, None, None  # a first-year student: no major and no sub-major chosen yet
+    return preset_state(profile)
 
 
 @lru_cache(maxsize=1)
@@ -31,13 +29,13 @@ def _demo_password_hash():
 
 
 def seed_accounts(conn, profile="fresh"):
-    commencement, major, submajor = demo_profile_state(profile)
+    commencement, current, major, submajor = demo_profile_state(profile)
     exists = conn.execute("SELECT 1 FROM users WHERE email = ?", (DEMO_EMAIL,)).fetchone()
     if exists:
         return
     conn.execute(
         "INSERT INTO users (email, student_number, display_name, password_hash,"
-        " course_code, commencement_session, major_code, submajor_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        " course_code, commencement_session, current_session, major_code, submajor_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             DEMO_EMAIL,
             DEMO_STUDENT_NUMBER,
@@ -45,6 +43,7 @@ def seed_accounts(conn, profile="fresh"):
             _demo_password_hash(),
             DEMO_COURSE_CODE,
             commencement,
+            current,
             major,
             submajor,
         ),
