@@ -233,7 +233,7 @@ def reset_demo_student(conn, profile="fresh"):
     two-year history (Year 3, Semester 1) so there is a record to explore.
     """
     if profile not in DEMO_PROFILES:
-        raise SimulatorError("Choose how to start again: as a first-year student, or with the sample history.")
+        raise SimulatorError("Choose a starting point from the list.")
     user = conn.execute("SELECT id FROM users WHERE student_number = ?", (DEMO_STUDENT_NUMBER,)).fetchone()
     if user is None:
         raise SimulatorError("There is no demo student to reset.")
@@ -243,11 +243,11 @@ def reset_demo_student(conn, profile="fresh"):
             table: conn.execute(f"DELETE FROM {table} WHERE user_id = ?", (uid,)).rowcount  # noqa: S608 (fixed table names)
             for table in ("semester_log", "elective_credits", "subject_attempts", "class_choices", "planned_subjects", "enrolments")
         }
-        commencement, major, submajor = demo_profile_state(profile)
+        commencement, current, major, submajor = demo_profile_state(profile)
         conn.execute(
             "UPDATE users SET current_session = ?, commencement_session = ?, major_code = ?, submajor_code = ?,"
             " submajor_language = NULL, general_electives = 0 WHERE id = ?",
-            (CURRENT_SESSION, commencement, major, submajor, uid),
+            (current, commencement, major, submajor, uid),
         )
         seed_enrolment(conn, profile)  # the sample history and the attempts behind it (nothing for a fresh start)
         conn.commit()

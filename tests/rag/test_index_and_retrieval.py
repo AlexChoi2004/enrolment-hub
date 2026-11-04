@@ -26,7 +26,7 @@ def refs(conn, question):
 
 def test_there_is_one_source_for_every_subject_major_sub_major_and_rule(conn):
     counts = {r["kind"]: r["n"] for r in conn.execute("SELECT kind, COUNT(*) AS n FROM rag_chunks GROUP BY kind")}
-    assert counts == {"subject": 181, "major": 8, "submajor": 8, "rule": len(RULES)} and len(RULES) == 17
+    assert counts == {"subject": 181, "major": 8, "submajor": 8, "rule": len(RULES)} and len(RULES) == 18
 
 
 def test_every_source_has_a_title_a_source_label_and_a_unique_reference(conn):
