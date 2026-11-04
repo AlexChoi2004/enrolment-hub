@@ -85,10 +85,6 @@
 {% endif %}
 <p class="period-line">
   <span class="notice">Current period: <strong>Year {{ plan.period.year }}, Semester {{ plan.period.semester }}</strong> ({{ plan.period.label }})</span>
-  {% if g.user.is_demo %}
-    <a class="btn" href="{{ url_for('simulator.results', mode='complete') }}">Complete semester</a>
-    <a class="btn btn-secondary" href="{{ url_for('simulator.results', mode='skip') }}">Skip to next semester</a>
-  {% endif %}
 </p>
 {% if plan.extra_cp %}
   <p class="notice">{{ plan.extra_cp }} cp you have done doesn't count towards this degree (for example after changing major). It stays on your record.</p>
