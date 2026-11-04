@@ -240,3 +240,65 @@ h3 { margin: 1rem 0 .3rem; font-size: 1rem; color: var(--muted); }
 .ask-answer { margin-top: .6rem; }
 .ask-answered { border-left: 5px solid #15803d; }
 .ask-insufficient, .ask-unverified, .ask-sources_only { border-left: 5px solid #c2570c; }
+
+/* ===== Polish pass: one consistent look for buttons, navigation, prompts and AI answers ===== */
+.container { max-width: 1000px; }
+.site-header { flex-wrap: wrap; row-gap: .4rem; gap: 1.5rem; }
+.site-header nav a, .nav-button { color: var(--accent); text-decoration: none; font: inherit; }
+.site-header nav a:hover, .nav-button:hover { text-decoration: underline; }
+.nav-button { background: none; border: 0; padding: 0; cursor: pointer; }
+.nav-account { align-items: center; }
+.nav-main { flex-wrap: wrap; row-gap: .2rem; }
+
+/* every button looks like a button, whether it is a <button> or a link */
+.btn, .button { display: inline-block; text-decoration: none; line-height: 1.25; font-family: inherit; }
+a.btn:hover, button.btn:hover { filter: brightness(.94); }
+.btn-secondary:hover { background: #eef3fd; filter: none; }
+.btn-danger:hover { background: #fdecea; filter: none; }
+a.btn, a.btn:visited { color: #fff; }
+a.btn.btn-secondary, a.btn.btn-secondary:visited { color: var(--accent); }
+a.btn.btn-danger, a.btn.btn-danger:visited { color: var(--bad); }
+
+/* the lines under a page heading: one fact per line */
+.degree-summary { margin: 0 0 1rem; }
+.degree-summary p { margin: .1rem 0; }
+.degree-summary .degree-name { font-weight: 600; }
+.degree-summary .dim { color: var(--muted); }
+
+/* "finish setting up" prompts: one card, one row each, button on the right */
+.setup-card { border-left-color: var(--accent); background: #f5f8ff; }
+.setup-card h2 { margin: 0 0 .3rem; font-size: 1.05rem; }
+.setup-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .55rem 0; border-top: 1px solid #dbe4f7; }
+.setup-row:first-of-type { border-top: 0; }
+.setup-row p { margin: 0; }
+.setup-row .btn { white-space: nowrap; }
+
+.period-line { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin: .6rem 0; }
+.page-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: 0 0 1rem; }
+.page-actions .enrol-form { margin: 0; }
+
+/* the AI question box and its answers: calm, and the detail is one click away */
+.ask-panel { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: .6rem 1rem; margin: .4rem 0 1.1rem; }
+.ask-panel summary { cursor: pointer; font-weight: 600; }
+.ask-panel .badge { margin-left: .4rem; font-weight: 400; }
+.ask-form { display: flex; gap: .5rem; margin: .6rem 0 .3rem; }
+.ask-form input[type="text"] { flex: 1; min-width: 0; padding: .55rem .7rem; font: inherit; border: 1px solid var(--border); border-radius: 6px; }
+.ask-panel .hint { color: var(--muted); font-size: .8rem; margin: .4rem 0 0; }
+.ask-answer { margin: .7rem 0 .2rem; padding: .7rem .9rem; border-radius: 8px; background: #f8faf9; border-left: 4px solid #15803d; }
+.ask-insufficient, .ask-unverified, .ask-sources_only, .ask-unavailable, .ask-no_tool { background: #fffaf2; border-left-color: #c2570c; }
+.ask-clarify { border-left-color: var(--accent); background: #f5f8ff; }
+.answer-text p { margin: 0 0 .5rem; }
+.answer-text ul { margin: .2rem 0 .5rem; padding-left: 1.2rem; }
+.answer-text li { margin: .15rem 0; }
+.ask-answer .more { margin-top: .5rem; font-size: .88rem; }
+.ask-answer .more summary { cursor: pointer; color: var(--muted); }
+.ask-answer .more h4 { margin: .6rem 0 .2rem; }
+.ask-answer .more pre { white-space: pre-wrap; background: #f1f3f7; padding: .5rem; border-radius: 6px; font-size: .8rem; max-height: 14rem; overflow: auto; }
+.answer-foot { color: var(--muted); font-size: .78rem; margin: .5rem 0 0; }
+
+/* "You haven't chosen a major / sub-major yet" on the Subjects page: one calm row, the same for both */
+.cat-major_prompt, .cat-submajor_prompt { --c: var(--accent); }
+.prompt-card { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+               padding: .7rem 1rem; background: #f5f8ff; border: 1px dashed #b9c8ee; border-left: 5px solid var(--accent); }
+.prompt-card p { margin: 0; }
+.prompt-card .btn { white-space: nowrap; }

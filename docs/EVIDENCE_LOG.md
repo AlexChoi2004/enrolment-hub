@@ -73,6 +73,11 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 |            |                                            | (an Analyst in code, an Advisor model and a Checker in code, with the student giving the    |        |        |
 |            |                                            | final yes) and a local MCP server over a read-only snapshot bound to one student;           |        |        |
 |            |                                            | 149 new tests                                                                               |        |        |
+| 2026-11-04 | 3 (dev tools) | Polished the interface: consistent buttons and navigation, one-fact-per-line headers, a single setup card on the         | 30 MIN | PR #23 |
+|            |               | planner, and calmer AI answers (plain text and lists with the sources and tool details collapsed); 21 new tests          |        |        |
+
+
+
 ## Things that went wrong or changed
 
 ### Before PR #1: repo setup
@@ -286,6 +291,14 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Wrote tests where a tool result or a subject name contains instructions and a model that obeys them, and checked the answer is still rejected, because the checks are code and cannot be argued with
 - Fixed my first page test for a refused tool call, where a model that made one refused call and then answered fell back to the written sources instead of showing the refusal, by scripting a second valid call
 - Fixed my first advisor page test, which expected an HTML-escaped apostrophe in text I had written myself
+
+### PR #23: Interface polish
+- Fixed the janky look by finding the causes instead of restyling everything: links used as buttons were underlined, the AI mode switch used a different style from the other links, and two stacked prompt boxes competed for attention
+- Decided AI answers show plain text and lists first and keep the sources and what the AI looked at one click away, because a reviewer needs to be able to check them but a student wants the answer, and removed the citation markers from the displayed text only after the code had checked them
+- Decided to keep the sources instead of removing them, because they are what shows the answers are not invented
+- Fixed a bug I found while formatting lists: my cleaning step collapsed every line break, so a list from the model would have been squashed into one line
+- Changed the prompts to ask for short lists when listing several items, after seeing a long sentence listing six subjects in my own screenshot
+- Fixed the "choose a major" and "choose a sub-major" prompts on the Subjects page, which used two different colours and a tall stacked layout, by giving both one compact row and one colour
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.

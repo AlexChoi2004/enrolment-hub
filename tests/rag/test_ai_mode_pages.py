@@ -7,6 +7,7 @@ from shared import db
 
 TOKEN = re.compile(r'name="csrf_token" value="([^"]+)"')
 GOOD = "Programming 2 needs Programming 1 completed first [1]."
+SHOWN = "Programming 2 needs Programming 1 completed first."  # the citation marker is taken out of the displayed text
 
 
 def token(client, path="/profile"):
@@ -55,7 +56,7 @@ def test_ai_mode_is_off_by_default_and_the_box_is_hidden(app, client, log_in):
     log_in()
     assert flag(app, 1) == 0
     for url in ("/planner", "/timetable", "/major/MAJ10053", "/submajor/SMJ10157", "/submajor/electives"):
-        assert "Ask about a rule or subject" not in html(client, url)
+        assert 'class="ask-panel"' not in html(client, url)
     assert "AI mode: Off" in html(client, "/planner")
 
 
@@ -78,7 +79,7 @@ def test_turning_ai_mode_on_and_off(app, client, log_in):
     turn_on(client)
     assert flag(app, 1) == 1
     page = html(client, "/planner")
-    assert "AI mode: On" in page and "Ask about a rule or subject" in page
+    assert "AI mode: On" in page and 'class="ask-panel"' in page
     turn_on(client)
     assert flag(app, 1) == 0 and "AI mode: Off" in html(client, "/planner")
 
@@ -114,15 +115,15 @@ def test_with_ai_mode_on_the_box_is_on_the_planner_timetable_and_swap_pages(clie
     log_in()
     turn_on(client)
     page = html(client, url)
-    assert "Ask about a rule or subject (AI mode)" in page and 'name="question"' in page and 'maxlength="500"' in page
-    assert "Not enough context" in page and "can be wrong" in page
+    assert 'class="ask-panel"' in page and 'name="question"' in page and 'maxlength="500"' in page
+    assert "Not enough context" in page and "can be wrong" in page and "Ask a question" in page
 
 
 @pytest.mark.parametrize("url", ["/subjects", "/transcript", "/students/me", "/profile"])
 def test_the_box_is_not_on_other_pages(client, log_in, url):
     log_in()
     turn_on(client)
-    assert "Ask about a rule or subject" not in html(client, url)
+    assert 'class="ask-panel"' not in html(client, url)
 
 
 # --- asking ------------------------------------------------------------------------------------------------------------------------------
@@ -131,8 +132,8 @@ def test_a_question_is_answered_with_sources(app, client, log_in, model):
     log_in()
     turn_on(client)
     page = ask(client, "What does Programming 2 require?").get_data(as_text=True)
-    assert GOOD in page and "Sources" in page and "48024 Programming 2" in page and "UTS Handbook (indicative)" in page
-    assert "Written by the AI model (fake)" in page and "check the sources" in page
+    assert SHOWN in page and "[1]" not in page and "Sources" in page and "48024 Programming 2" in page and "UTS Handbook (indicative)" in page
+    assert "Where this comes from (" in page and "AI-written from the app&#39;s sources and checked" in page.replace("app's", "app&#39;s") and "check the sources" in page
     assert usage(app) == 1
 
 
@@ -314,7 +315,7 @@ def test_a_personal_question_the_tools_cannot_answer_falls_back_to_the_sources(c
     turn_on(client)
     scripted(monkeypatch, "I don't know.", GOOD)  # no tool used, so the written sources are tried instead
     page = ask(client, "Tell me what Programming 2 requires for me").get_data(as_text=True)
-    assert GOOD in page and "48024 Programming 2" in page and "What I looked at" not in page
+    assert SHOWN in page and "48024 Programming 2" in page and "What I looked at" not in page
 
 
 def test_a_bad_agent_answer_shows_what_the_tools_returned(client, log_in, monkeypatch):

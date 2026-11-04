@@ -83,8 +83,8 @@
     </ul>
   </section>
 {% endif %}
-<p class="notice">
-  Current period: <strong>Year {{ plan.period.year }}, Semester {{ plan.period.semester }}</strong> ({{ plan.period.label }}).
+<p class="period-line">
+  <span class="notice">Current period: <strong>Year {{ plan.period.year }}, Semester {{ plan.period.semester }}</strong> ({{ plan.period.label }})</span>
   {% if g.user.is_demo %}
     <a class="btn" href="{{ url_for('simulator.results', mode='complete') }}">Complete semester</a>
     <a class="btn btn-secondary" href="{{ url_for('simulator.results', mode='skip') }}">Skip to next semester</a>
@@ -93,22 +93,24 @@
 {% if plan.extra_cp %}
   <p class="notice">{{ plan.extra_cp }} cp you have done doesn't count towards this degree (for example after changing major). It stays on your record.</p>
 {% endif %}
-{% if plan.needs_submajor %}
-  <div class="demo-note">
-    <p>You haven't chosen a sub-major or general electives, so those 24 credit points aren't in this plan yet.</p>
-    <a class="btn" href="{{ url_for('submajors.index') }}">Choose sub-major or electives</a>
-  </div>
-{% endif %}
+
 {% for note in plan.notes %}<p class="notice">{{ note }}</p>{% endfor %}
 
-{% if plan.needs_major %}
-  <div class="demo-note">
-    <p>You haven't chosen a major, so its 48 credit points aren't in this plan yet.</p>
-    <a class="btn" href="{{ url_for('majors.index') }}">Choose major</a>
-  </div>
+{% if plan.needs_major or plan.needs_submajor %}
+  <section class="card setup-card">
+    <h2>Finish setting up your degree</h2>
+    {% if plan.needs_major %}
+      <div class="setup-row"><p>You haven't chosen a major, so its 48 credit points aren't in this plan yet.</p>
+        <a class="btn" href="{{ url_for('majors.index') }}">Choose major</a></div>
+    {% endif %}
+    {% if plan.needs_submajor %}
+      <div class="setup-row"><p>You haven't chosen a sub-major or general electives, so those 24 credit points aren't in this plan yet.</p>
+        <a class="btn" href="{{ url_for('submajors.index') }}">Choose sub-major or electives</a></div>
+    {% endif %}
+  </section>
 {% endif %}
 
-<div class="plan-actions">
+<div class="page-actions">
   <form class="enrol-form" method="post" action="{{ url_for('planner.suggest') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button type="submit" class="btn">Suggest a plan</button>
