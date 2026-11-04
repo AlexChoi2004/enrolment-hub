@@ -3,6 +3,6 @@
 {% block content %}
 <h1>Your question</h1>
 <p>{{ question }}</p>
-{% include 'rag/_answer.html' %}
+{% if result.mode == 'tools' %}{% include 'rag/_agent_answer.html' %}{% else %}{% include 'rag/_answer.html' %}{% endif %}
 <p><a href="{{ url_for('planner.page') }}">&larr; Back to the planner</a></p>
 {% endblock %}

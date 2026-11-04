@@ -29,6 +29,7 @@
 {% endif %}
 
 {% include '_advice.html' %}
+{% set advisor_kind, advisor_code, advisor_language = 'major', major.code, '' %}{% include '_advisor_panel.html' %}
 {% if major.impact.carried %}
   <p class="notice">These subjects you have done count in this major:
     {% for c in major.impact.carried %}{{ c.subject_code }} {{ c.name }} ({{ c.status }}){{ ', ' if not loop.last }}{% endfor %}.

@@ -1,10 +1,16 @@
-"""AI mode: the on/off switch and the question box. Everything here is for the signed-in student only."""
+"""AI mode: the on/off switch, the question box and the swap advisor. Everything here is for the signed-in student only."""
+import re
+
 from flask import Blueprint, abort, current_app, flash, g, make_response, redirect, render_template, request, url_for
 
 from rag import llm
+from rag.agent import is_personal, run_agent
 from rag.answer import ask
+from rag.swap_agents import advise as run_advisor
 from rag.retrieve import MAX_QUESTION
+from advisor.service import KINDS
 from shared import security
+from tools.registry import LANGUAGE, MAJOR_OR_SUB
 from shared.db import get_db
 
 bp = Blueprint("ai", __name__, template_folder="templates", url_prefix="/ai")
@@ -58,6 +64,37 @@ def ask_question():
         model = llm.get_llm(current_app.config)
     except llm.LLMError:
         model = None
-    result = ask(conn, question, model)
-    template = "rag/_answer.html" if request.headers.get("HX-Request") else "rag/answer.html"
+    result = None
+    if is_personal(question):  # about the student themselves: let the model look things up with the read-only tools
+        result = run_agent(conn, g.user["id"], question, model)
+        if result["status"] == "no_tool":
+            result = None  # it could not use a tool: fall back to the written sources
+    if result is None:
+        result = ask(conn, question, model)
+    template = "rag/_result.html" if request.headers.get("HX-Request") else "rag/answer.html"
     return _private(render_template(template, result=result, question=question.strip()))
+
+
+@bp.post("/advise")
+@security.login_required
+def advise():
+    """Explain one possible swap with the three roles (Analyst, Advisor, Checker). It never makes the swap."""
+    security.require_csrf()
+    if not g.user["ai_mode"]:
+        abort(403)
+    kind = request.form.get("kind", "")
+    code = (request.form.get("code") or "").strip() or None
+    language = (request.form.get("language") or "").strip() or None
+    if kind not in KINDS or (code and not re.match(MAJOR_OR_SUB, code)) or (language and not re.match(LANGUAGE, language)):
+        abort(400)
+    conn = get_db()
+    if not _within_limit(conn, g.user["id"]):
+        return _private(render_template("rag/_message.html", message="You have asked a lot of questions in the last hour. Please try again later."), 429)
+    conn.execute("INSERT INTO ai_usage (user_id) VALUES (?)", (g.user["id"],))
+    conn.commit()
+    try:
+        model = llm.get_llm(current_app.config)
+    except llm.LLMError:
+        model = None
+    result = run_advisor(conn, g.user["id"], kind, code, language, model)
+    return _private(render_template("rag/_advisor.html", result=result))

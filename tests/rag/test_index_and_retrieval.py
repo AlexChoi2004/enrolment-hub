@@ -26,7 +26,7 @@ def refs(conn, question):
 
 def test_there_is_one_source_for_every_subject_major_sub_major_and_rule(conn):
     counts = {r["kind"]: r["n"] for r in conn.execute("SELECT kind, COUNT(*) AS n FROM rag_chunks GROUP BY kind")}
-    assert counts == {"subject": 181, "major": 8, "submajor": 8, "rule": len(RULES)} and len(RULES) == 15
+    assert counts == {"subject": 181, "major": 8, "submajor": 8, "rule": len(RULES)} and len(RULES) == 17
 
 
 def test_every_source_has_a_title_a_source_label_and_a_unique_reference(conn):
@@ -243,3 +243,11 @@ def test_searching_never_changes_the_data(conn):
     search(conn, "'; DELETE FROM rag_chunks; --")
     search(conn, "Programming 2")
     assert [tuple(r) for r in conn.execute("SELECT * FROM rag_chunks ORDER BY id")] == before
+
+
+def test_the_ai_rules_describe_what_the_ai_can_and_cannot_do(conn):
+    text = rule(conn, "rule:ai-mode")
+    assert "off until the student turns it on" in text and "ten read-only tools" in text and "can never enrol" in text
+    assert "Analyst" in text and "Advisor" in text and "Checker" in text and "the student always makes the decision" in text
+    assert refs(conn, "What can the AI do?")[0] == "rule:ai-mode"
+    assert "rule:mcp" in refs(conn, "What is the MCP server?")

@@ -82,6 +82,19 @@ RULES = [
      "There is no public sign-up or registration, because at a real university students are given their login by admissions. The demo "
      "has one simulated student, who starts as a first-year student in Year 1, Semester 1 with no major or sub-major chosen. Only the "
      "simulated demo student can use the semester simulator and its reset."),
+    ("rule:ai-mode", "AI mode: what the AI can and cannot do",
+     "AI mode is off until the student turns it on, and the AI model runs on the student's own computer. A question about the rules or a subject "
+     "is answered from the app's written sources, with the sources listed; if they do not cover it the answer is Not enough context. A question "
+     "about the student themselves is answered by the AI looking things up with ten read-only tools (plan, results, workload, prerequisites, "
+     "offerings, clash-free classes, plan placement, subject details and swap advice), and the page shows what it looked at. The AI can only "
+     "look things up: it can never enrol, withdraw, plan, move, swap or change anything. Every written answer is checked by code before it is "
+     "shown, and if the check fails the facts are shown instead. On a swap page the advisor has three roles: an Analyst (code) gets the facts, "
+     "an Advisor (the AI) explains them, and a Checker (code) rejects an explanation that does not match; the student always makes the "
+     "decision."),
+    ("rule:mcp", "The MCP server",
+     "The ten read-only tools can also be offered to another AI application, such as Claude Desktop, through a local Model Context Protocol "
+     "server. It is read-only, bound to one simulated student, works on a snapshot of the database that it cannot write back, talks only over "
+     "standard input and output and opens no network port."),
     ("rule:timetable", "The timetable",
      "The timetable shows the classes for a session. Each subject has a weekly lecture and, depending on the subject, tutorials or "
      "workshops with several time options. A student chooses a class for each tutorial or workshop. Clashes are allowed but drawn in red "
