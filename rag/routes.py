@@ -4,6 +4,7 @@ import re
 from flask import Blueprint, abort, current_app, flash, g, make_response, redirect, render_template, request, url_for
 
 from rag import llm
+from rag.format import answer_blocks, tool_label
 from rag.agent import is_personal, run_agent
 from rag.answer import ask
 from rag.swap_agents import advise as run_advisor
@@ -14,6 +15,8 @@ from tools.registry import LANGUAGE, MAJOR_OR_SUB
 from shared.db import get_db
 
 bp = Blueprint("ai", __name__, template_folder="templates", url_prefix="/ai")
+bp.add_app_template_filter(answer_blocks, "answer_blocks")
+bp.add_app_template_filter(tool_label, "tool_label")
 
 
 def _private(html, status=200):

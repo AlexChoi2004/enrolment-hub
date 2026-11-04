@@ -20,7 +20,7 @@ SYSTEM = (
     "You answer questions inside a student enrolment demonstration (a UTS-style prototype).\n"
     "Answer ONLY from the numbered sources in the user's message.\n"
     "Rules:\n"
-    "- Write one to five short sentences in plain English.\n"
+    "- Write one to five short sentences in plain English. When listing several items, use a short list with one item per line starting with '- '.\n"
     "- After every fact, cite the source number in square brackets, like [1] or [2][3].\n"
     "- If the sources do not contain the answer, reply exactly: Not enough context.\n"
     "- Never invent numbers, subject codes, dates, links or rules. Use only what the sources say.\n"
@@ -38,7 +38,8 @@ def build_prompt(question, hits):
 def clean(text):
     """Drop any reasoning block the model wrote, and tidy whitespace."""
     text = re.sub(r"<think>.*?</think>", "", text, flags=re.S | re.I)
-    return re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"[ \t]+", " ", text)  # tidy spaces but keep line breaks, so a list stays a list
+    return re.sub(r"\n\s*\n+", "\n\n", text.replace("\r", "")).strip()
 
 
 WINDOW = 6  # words in a row

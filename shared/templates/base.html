@@ -28,7 +28,7 @@
         <form method="post" action="{{ url_for('ai.mode') }}" class="ai-switch">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="next" value="{{ request.path }}">
-          <button type="submit" class="link-button" aria-pressed="{{ 'true' if g.user.ai_mode else 'false' }}">AI mode: {{ 'On' if g.user.ai_mode else 'Off' }}</button>
+          <button type="submit" class="nav-button" aria-pressed="{{ 'true' if g.user.ai_mode else 'false' }}">AI mode: {{ 'On' if g.user.ai_mode else 'Off' }}</button>
         </form>
       {% endif %}
       {% if current_user %}

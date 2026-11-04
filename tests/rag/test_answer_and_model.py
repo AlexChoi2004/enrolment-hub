@@ -101,7 +101,9 @@ def test_every_problem_is_listed():
 
 
 def test_clean_removes_reasoning_and_tidies_spaces():
-    assert clean("<think>a\nb</think>  Hello \n there ") == "Hello there"
+    assert clean("<think>a\nb</think>  Hello \n there ") == "Hello \n there"
+    assert clean("A   b\t c\r\n\n\n\nd") == "A b c\n\nd"
+    assert clean("- one\n- two") == "- one\n- two"  # a list keeps its lines
 
 
 # --- the model saying it does not know ----------------------------------------------------------------------------------------------------

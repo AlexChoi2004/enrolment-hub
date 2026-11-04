@@ -1,19 +1,24 @@
-<div class="card ask-answer ask-{{ result.status }}">
+<div class="ask-answer ask-{{ result.status }}">
   {% if result.status == 'answered' %}
-    <p>{{ result.answer }}</p>
+    <div class="answer-text">
+      {% for block in result.answer|answer_blocks %}
+        {% if block.kind == 'ul' %}<ul>{% for item in block['items'] %}<li>{{ item }}</li>{% endfor %}</ul>
+        {% else %}<p>{{ block.text }}</p>{% endif %}
+      {% endfor %}
+    </div>
   {% else %}
     <p class="notice">{{ result.message }}</p>
   {% endif %}
   {% if result.citations %}
-    <h4>Sources</h4>
-    <ol class="plain">
-      {% for c in result.citations %}
-        <li>[{{ c.n }}] <strong>{{ c.title }}</strong> <span class="muted">({{ c.source }})</span><br>
-          <span class="muted">{{ c.snippet }}</span></li>
-      {% endfor %}
-    </ol>
+    <details class="more">
+      <summary>{{ 'Where this comes from' if result.status == 'answered' else 'Most relevant sources' }} ({{ result.citations|length }})</summary>
+      <h4>Sources</h4>
+      <ol class="plain">
+        {% for c in result.citations %}
+          <li><strong>{{ c.title }}</strong> <span class="muted">({{ c.source }})</span><br><span class="muted">{{ c.snippet }}</span></li>
+        {% endfor %}
+      </ol>
+    </details>
   {% endif %}
-  {% if result.status == 'answered' %}
-    <p class="muted">Written by the AI model ({{ result.backend }}) from the sources above and checked before showing. It can still be wrong, so check the sources.</p>
-  {% endif %}
+  {% if result.status == 'answered' %}<p class="answer-foot">AI-written from the app's sources and checked. It can be wrong, so check the sources.</p>{% endif %}
 </div>

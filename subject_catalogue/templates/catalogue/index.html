@@ -2,15 +2,21 @@
 {% block title %}Subjects · Enrolment Hub{% endblock %}
 {% block content %}
 <h1>Subjects</h1>
-<p>
-  Bachelor of Computing Science (Honours){% if major %}, {{ major.name }} major ·
-    <a href="{{ url_for('majors.index') }}">Swap major</a>
-  {% else %} · You haven't chosen a major yet · <a href="{{ url_for('majors.index') }}">Choose major</a>{% endif %}
-  {% if submajor %} · {{ submajor.name }}{% if submajor.language_name %} ({{ submajor.language_name }}){% endif %} sub-major ·
-    <a href="{{ url_for('submajors.index') }}">Swap sub-major</a>
-  {% elif electives %} · General electives instead of a sub-major · <a href="{{ url_for('submajors.index') }}">Change</a>
-  {% else %} · No sub-major yet · <a href="{{ url_for('submajors.index') }}">Choose sub-major or electives</a>{% endif %}
-</p>
+<div class="degree-summary">
+  <p class="degree-name">Bachelor of Computing Science (Honours)</p>
+  {% if major %}
+    <p>{{ major.name }} major · <a href="{{ url_for('majors.index') }}">Swap major</a></p>
+  {% else %}
+    <p class="dim">You haven't chosen a major yet · <a href="{{ url_for('majors.index') }}">Choose major</a></p>
+  {% endif %}
+  {% if submajor %}
+    <p>{{ submajor.name }}{% if submajor.language_name %} ({{ submajor.language_name }}){% endif %} sub-major · <a href="{{ url_for('submajors.index') }}">Swap sub-major</a></p>
+  {% elif electives %}
+    <p>General electives instead of a sub-major · <a href="{{ url_for('submajors.index') }}">Change</a></p>
+  {% else %}
+    <p class="dim">No sub-major yet · <a href="{{ url_for('submajors.index') }}">Choose sub-major or electives</a></p>
+  {% endif %}
+</div>
 
 <form class="filters" method="get" action="{{ url_for('catalogue.list_page') }}"
       hx-get="{{ url_for('catalogue.list_page') }}" hx-target="#results"
