@@ -68,8 +68,11 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 |            |                                            | instructions), a local model adapter (Ollama qwen3:14b) with a fallback to the sources, an  |        |        |
 |            |                                            | AI mode switch that is off by default, and a question box on the planner, timetable and swap|        |        |
 |            |                                            | pages; 146 new tests                                                                        |        |        |
-
-
+| 2026-11-04 | 1 (ethics), 2 (security) and 3 (dev tools) | Built a tool-calling AI mode (the model asks for read-only tools, with a step limit, a      | 2 HOUR | PR #22 |
+|            |                                            | student chosen by the server and a code check on every answer), a three-role swap advisor   |        |        |
+|            |                                            | (an Analyst in code, an Advisor model and a Checker in code, with the student giving the    |        |        |
+|            |                                            | final yes) and a local MCP server over a read-only snapshot bound to one student;           |        |        |
+|            |                                            | 149 new tests                                                                               |        |        |
 ## Things that went wrong or changed
 
 ### Before PR #1: repo setup
@@ -272,6 +275,17 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed my first rules text, which named the demo student, when the test that checks the sources for personal data failed; the sources now say "one simulated student" without a name
 - Fixed my first stemmer, which turned "requires" into "requir" but left "require" alone so they never matched
 - Changed the demo database setup and the tests to switch the AI model off by default so no test ever contacts a real model
+
+### PR #22: Tool-calling AI mode, swap advisor roles and MCP server
+- Decided the model may only look things up through the same ten read-only tools, run by my code, so the student is chosen by the server, every argument is validated, nothing is ever changed, and a step limit stops loops
+- Decided every tool-based answer is checked in code (it must name a tool that ran, use only numbers a tool returned, and contain no links, no repeated instructions and no claim of an action), and that a failed check shows what the tools returned instead of the model's text
+- Decided the swap advisor has three roles, with the Analyst and the Checker as code and only the Advisor as the model, because a second model call is slower and less reliable than a check I can test, and kept the final yes with the student: the AI cannot make the swap
+- Decided the Advisor must open with the Analyst's exact verdict, so a model cannot soften a "Think carefully" into good news, and wrote tests for a serious swap described as a good one
+- Decided the MCP server runs only over standard input and output, reads an in-memory snapshot opened read-only from the file, and is bound to one student at start-up, so even a bug cannot change my data or reach another student, and wrote tests that check the database file's checksum does not change
+- Decided to write the small part of the MCP protocol I need myself instead of adding a dependency, because it keeps the project simpler to audit and the protocol is only four methods
+- Wrote tests where a tool result or a subject name contains instructions and a model that obeys them, and checked the answer is still rejected, because the checks are code and cannot be argued with
+- Fixed my first page test for a refused tool call, where a model that made one refused call and then answered fell back to the written sources instead of showing the refusal, by scripting a second valid call
+- Fixed my first advisor page test, which expected an HTML-escaped apostrophe in text I had written myself
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
