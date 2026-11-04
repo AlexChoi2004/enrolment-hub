@@ -78,7 +78,9 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 | 2026-11-04 | 3 (dev tools) | Moved the simulation controls into a bar under the header of every page (Complete semester, Roll back a semester and     | 1 HOUR | PR #24 |
 |            |               | Reset), removed the redundant Skip button and Simulator tab, and built a rollback that undoes the last completed         |        |        |
 |            |               | semester from a saved snapshot, one at a time, all or nothing; 37 new tests                                              |        |        |
-
+| 2026-11-05 | 3 (dev tools) | Built four demo starting points (a first-year student, two years in, late in the major, and a failed prerequisite) as    | 2 HOUR | PR #25 |
+|            |               | complete data chosen from Reset, so a reviewer can test swaps, failed subjects and retakes without passing semester by   |        |        |
+|            |               | semester, and wrote tests that validate each one against the prerequisite, offering and credit point rules; 72 new tests |        |        |
 
 ## Things that went wrong or changed
 
@@ -311,6 +313,15 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed my first retake test, which assumed a subject could be retaken in the next session, when the app only opens the current session and the Spring after an Autumn; the code was right and the test was wrong
 - Fixed three transcript tests that started finding the current session in the new simulation bar instead of in the page body
 - Fixed a lint finding on the query that lists the results to undo by building the placeholders separately
+
+### PR #25: Demo starting points
+- Decided to build the starting points as complete data (the start session, current session, major, every finished session with passes and fails, what is in progress and what is planned) instead of scripts that play through semesters, because data can be checked by tests and loaded instantly
+- Decided each starting point exists to test something specific, which the reset page says, after the idea that a reviewer should be able to reach a late-degree situation without passing semester after semester
+- Wrote tests that check every starting point against the prerequisite, session offering and 24 credit point rules instead of trusting my own data, and that play the failed starting point through to a pass and a rollback
+- Wrote a test for all sixteen combinations of resetting from one starting point to another, which must give exactly the data of a fresh build, so a reset can never leave anything behind
+- Decided to keep the earlier sample history exactly as it was so the existing tests and the swap examples still hold
+- Fixed my first reset page test, which compared text without allowing for the page escaping apostrophes and quotation marks
+- Fixed two weak assertions in my own page tests, one that could never fail
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
