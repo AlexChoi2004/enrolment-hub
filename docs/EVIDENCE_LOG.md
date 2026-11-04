@@ -81,10 +81,9 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 | 2026-11-05 | 3 (dev tools) | Built four demo starting points (a first-year student, two years in, late in the major, and a failed prerequisite) as    | 2 HOUR | PR #25 |
 |            |               | complete data chosen from Reset, so a reviewer can test swaps, failed subjects and retakes without passing semester by   |        |        |
 |            |               | semester, and wrote tests that validate each one against the prerequisite, offering and credit point rules; 72 new tests |        |        |
-| 2026-11-05 | 3 (dev tools) | Rebuilt the Help page into sections with a contents line, a starting points table generated from the presets, nine       | 1 HOUR | PR #26 |
+| 2026-11-05 | 3 (dev tools) | Rebuilt the Help page into sections with a contents line, a starting points table generated from the presets, nine       | 1 HOUR | 0da7d40|
 |            |               | collapsible walkthroughs that each name their starting point, and a showcase list, and wrote a test that follows each    |        |        |
-|            |               | walkthrough through the app; 19 new tests                                                                                |        |        |
-
+|            |               | walkthrough through the app; 19 new tests; pushed straight to main, not through a pull request (see the notes below)     |        |        |
 
 ## Things that went wrong or changed
 
@@ -327,7 +326,7 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed my first reset page test, which compared text without allowing for the page escaping apostrophes and quotation marks
 - Fixed two weak assertions in my own page tests, one that could never fail
 
-### PR #26: Help page
+### Help page (pushed directly to main)
 - Decided every walkthrough on the Help page is backed by a test that follows its steps through the real app and checks what the guide says you will see, so the guide cannot describe something the app no longer does
 - Decided the starting points table and the walkthrough labels are generated from the preset data instead of typed in, after my own test found a label that did not match the preset title
 - Decided each walkthrough names the starting point to reset to first, so a tester reaches the situation in one step, after the idea that the preloaded data should make testing more efficient
