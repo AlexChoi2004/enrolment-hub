@@ -1,0 +1,20 @@
+<div class="card ask-answer ask-{{ result.status }}">
+  {% if result.status in ('answered', 'clarify') %}
+    <p>{{ result.answer }}</p>
+  {% else %}
+    <p class="notice">{{ result.message }}</p>
+  {% endif %}
+  {% if result.tools %}
+    <h4>What I looked at</h4>
+    <ul class="plain">
+      {% for t in result.tools %}
+        <li><strong>{{ t.name }}</strong>{% if t.args %} <span class="muted">{{ t.args|tojson }}</span>{% endif %}
+          {% if t.ok %}<span class="muted">looked up</span>{% else %}<span class="unmet">refused</span>{% endif %}
+          <details><summary>Show what it returned</summary><pre>{{ t.result|tojson(indent=1) }}</pre></details></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% if result.status == 'answered' %}
+    <p class="muted">Written by the AI model from your own records and checked before showing. It can only look things up, never change anything, and it can still be wrong.</p>
+  {% endif %}
+</div>

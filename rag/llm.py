@@ -25,21 +25,29 @@ class OllamaClient:
             raise LLMError("The model address must be an http or https URL.")
         self.url, self.model, self.timeout = url.rstrip("/"), model, timeout
 
-    def generate(self, system, user):
-        body = json.dumps({
+    def chat(self, messages, tools=None):
+        """One chat turn. Returns the assistant message: {"content": text, "tool_calls": [...]} (tool_calls only if it wants one)."""
+        payload = {
             "model": self.model, "stream": False, "think": False,  # a plain answer, without the model's reasoning text
-            "options": {"temperature": 0.1, "num_ctx": 4096},
-            "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
-        }).encode()
+            "options": {"temperature": 0.1, "num_ctx": 8192},
+            "messages": messages,
+        }
+        if tools:
+            payload["tools"] = [{"type": "function", "function": {"name": t["name"], "description": t["description"],
+                                                                    "parameters": t["input_schema"]}} for t in tools]
         request = urllib.request.Request(  # noqa: S310 (only http or https, checked in __init__; the address is a server setting)
-            self.url + "/api/chat", data=body, headers={"Content-Type": "application/json"}
+            self.url + "/api/chat", data=json.dumps(payload).encode(), headers={"Content-Type": "application/json"}
         )
         try:
             with urllib.request.urlopen(request, timeout=self.timeout) as response:  # noqa: S310 (scheme checked in __init__)
                 data = json.loads(response.read().decode())
-            return data["message"]["content"]
+            message = data["message"]
+            return {"content": message.get("content") or "", "tool_calls": message.get("tool_calls") or []}
         except Exception as exc:  # not running, timed out, or an unexpected reply
             raise LLMError(f"The AI model could not be reached ({type(exc).__name__}).") from exc
+
+    def generate(self, system, user):
+        return self.chat([{"role": "system", "content": system}, {"role": "user", "content": user}])["content"]
 
 
 class FakeLLM:
@@ -64,3 +72,27 @@ def get_llm(config):
     if backend == "ollama":
         return OllamaClient(config.get("OLLAMA_URL", "http://127.0.0.1:11434"), config.get("OLLAMA_MODEL", "qwen3:14b"))
     raise LLMError(f"Unknown AI backend: {backend}")
+
+
+class ScriptedLLM:
+    """A stand-in model for tests of the tool-calling loop: each call to chat() returns the next scripted turn.
+
+    A turn is a string (a final answer) or a list of (tool name, arguments) pairs (the model asking for those tools)."""
+    name = "scripted"
+
+    def __init__(self, script):
+        self.script, self.calls = list(script), []
+
+    def chat(self, messages, tools=None):
+        self.calls.append({"messages": [dict(m) for m in messages], "tools": tools})
+        if not self.script:
+            raise LLMError("The scripted model ran out of replies.")
+        turn = self.script.pop(0)
+        if isinstance(turn, Exception):
+            raise turn
+        if isinstance(turn, str):
+            return {"content": turn, "tool_calls": []}
+        return {"content": "", "tool_calls": [{"function": {"name": n, "arguments": a}} for n, a in turn]}
+
+    def generate(self, system, user):
+        return self.chat([{"role": "system", "content": system}, {"role": "user", "content": user}])["content"]

@@ -1,0 +1,15 @@
+{% if g.user and g.user.ai_mode and advice %}
+<section class="card advisor-panel">
+  <h3>Ask the advisor about this swap</h3>
+  <form method="post" action="{{ url_for('ai.advise') }}" hx-post="{{ url_for('ai.advise') }}" hx-target="#advisor-result" hx-swap="innerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="kind" value="{{ advisor_kind }}">
+    <input type="hidden" name="code" value="{{ advisor_code or '' }}">
+    <input type="hidden" name="language" value="{{ advisor_language or '' }}">
+    <button type="submit" class="btn btn-secondary">Explain this swap</button>
+  </form>
+  <div id="advisor-result" aria-live="polite"></div>
+  <p class="muted">Three roles work on it: an Analyst (code) gets the facts, an Advisor (the AI) explains them, and a Checker (code) rejects anything
+    that doesn't match the facts. The decision stays with you.</p>
+</section>
+{% endif %}

@@ -280,3 +280,80 @@ def test_the_limit_is_per_student(app, client, log_in, model):
 def test_the_help_page_explains_ai_mode(client):
     page = html(client, "/help")
     assert "AI mode" in page and "off until you turn it on" in page and "Not enough context" in page
+    assert "what it looked at" in page and "Explain this swap" in page and "can never enrol, withdraw, plan" in page
+
+
+# --- questions about the student themselves use the tools ----------------------------------------------------------------------------------
+
+def scripted(monkeypatch, *script):
+    from rag.llm import ScriptedLLM
+
+    model = ScriptedLLM(script)
+    monkeypatch.setattr("rag.llm.get_llm", lambda config: model)
+    return model
+
+
+def test_a_personal_question_uses_the_tools_and_shows_what_was_looked_at(client, log_in, monkeypatch):
+    log_in()
+    turn_on(client)
+    scripted(monkeypatch, [("get_my_plan", {})], "Your Autumn 2027 session is Heavy because of crunch weeks 8 and 11 [get_my_plan].")
+    page = ask(client, "Why is my Autumn heavy?").get_data(as_text=True)
+    assert "Heavy because of crunch weeks 8 and 11" in page and "What I looked at" in page
+    assert "get_my_plan" in page and "Show what it returned" in page and "can only look things up, never change anything" in page
+
+
+def test_a_rules_question_uses_the_written_sources_not_the_tools(client, log_in, model):
+    log_in()
+    turn_on(client)
+    page = ask(client, "What does Programming 2 require?").get_data(as_text=True)
+    assert "What I looked at" not in page and "Sources" in page and "48024 Programming 2" in page
+
+
+def test_a_personal_question_the_tools_cannot_answer_falls_back_to_the_sources(client, log_in, monkeypatch):
+    log_in()
+    turn_on(client)
+    scripted(monkeypatch, "I don't know.", GOOD)  # no tool used, so the written sources are tried instead
+    page = ask(client, "Tell me what Programming 2 requires for me").get_data(as_text=True)
+    assert GOOD in page and "48024 Programming 2" in page and "What I looked at" not in page
+
+
+def test_a_bad_agent_answer_shows_what_the_tools_returned(client, log_in, monkeypatch):
+    log_in()
+    turn_on(client)
+    scripted(monkeypatch, [("get_my_plan", {})], "You have 99999 credit points [get_my_plan].")
+    page = ask(client, "What is my plan?").get_data(as_text=True)
+    assert "99999" not in page.replace("99999 credit", "") and "couldn&#39;t check a written answer against your records" in page
+    assert "get_my_plan" in page and "Show what it returned" in page
+
+
+def test_the_agents_text_is_escaped(client, log_in, monkeypatch):
+    log_in()
+    turn_on(client)
+    scripted(monkeypatch, [("get_my_plan", {})], "<script>alert(1)</script> You are in Autumn 2027 [get_my_plan].")
+    page = ask(client, "What is my plan?").get_data(as_text=True)
+    assert "<script>alert(1)</script>" not in page and "&lt;script&gt;" in page
+
+
+def test_the_agent_answer_comes_as_a_fragment_for_the_page_box(client, log_in, monkeypatch):
+    log_in()
+    turn_on(client)
+    scripted(monkeypatch, [("get_my_plan", {})], "You are in Autumn 2027 [get_my_plan].")
+    fragment = ask(client, "What is my plan?", hx=True).get_data(as_text=True)
+    assert "ask-answered" in fragment and "<html" not in fragment and "What I looked at" in fragment
+
+
+def test_a_clarifying_question_from_the_model_is_shown(client, log_in, monkeypatch):
+    log_in()
+    turn_on(client)
+    scripted(monkeypatch, "Which major do you want to swap to?")
+    assert "Which major do you want to swap to?" in ask(client, "Can I swap?").get_data(as_text=True)
+
+
+def test_the_tools_only_ever_see_the_signed_in_student(app, client, log_in, monkeypatch):
+    log_in()
+    turn_on(client)
+    scripted(monkeypatch, [("get_my_results", {"user_id": 2})], [("get_my_results", {})],
+             "You have passed 96 credit points [get_my_results].")
+    page = ask(client, "What are my results?").get_data(as_text=True)
+    assert "Unknown argument: user_id" in page and "refused" in page  # the attempt to name another student
+    assert "You have passed 96 credit points" in page  # the second, valid call used the signed-in student's own records
