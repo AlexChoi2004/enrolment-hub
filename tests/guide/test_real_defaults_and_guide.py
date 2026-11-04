@@ -117,7 +117,7 @@ def test_the_guide_tells_a_first_year_to_choose_a_major_first(real):
 def test_the_help_page_is_public(real):
     _, client = real
     page = client.get("/help")
-    assert page.status_code == 200 and "Try these scenarios" in page.get_data(as_text=True)
+    assert page.status_code == 200 and "Things to test" in page.get_data(as_text=True)
 
 
 def test_the_help_page_says_it_is_simulated_and_gives_the_demo_login(real):
@@ -128,8 +128,9 @@ def test_the_help_page_says_it_is_simulated_and_gives_the_demo_login(real):
 
 
 @pytest.mark.parametrize("title", [
-    "Try this: fail a prerequisite subject", "Try this: retake and pass", "Try this: finish a semester without making up results",
-    "Try this: change major or sub-major", "Try this: explore a student two years in",
+    "A failed prerequisite, then a retake", "Fail a subject and watch the plan react", "Finish a semester without making up results",
+    "Undo a semester", "A swap that costs time", "A risky swap needs your confirmation",
+    "Keep a sub-major's subjects as general electives", "A heavy semester", "Set up a degree from scratch",
 ])
 def test_every_scenario_is_on_the_help_page(real, title):
     _, client = real
@@ -140,7 +141,7 @@ def test_the_help_page_covers_the_questions_people_ask(real):
     _, client = real
     page = html(client, "/help")
     for text in ("Is this a real UTS system?", "Why can't I create an account?", "How do marks become grades?",
-                 "What does \"No result yet\" do?", "Are credit points ever counted twice?", "How do I start again?"):
+                 "What does \"No result yet\" do?", "Are credit points ever counted twice?", "How do I start again, or jump to a later point?"):
         assert text in page
 
 

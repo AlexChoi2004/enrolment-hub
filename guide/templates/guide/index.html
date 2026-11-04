@@ -6,115 +6,215 @@
   and due weeks is simulated. Nothing here is a genuine UTS academic record. Subject details and prerequisites come from the
   public UTS Handbook, which is itself indicative.</p>
 
-<h2>Getting started</h2>
-<ol>
-  <li>Log in as the simulated student: <strong>john.doe@student.uni.edu.au</strong> with the password <strong>Johndoe#1</strong>.
-    There is no public sign-up, because at a real university your login comes from admissions.</li>
-  <li>John starts as a <strong>first-year student</strong> in <strong>Year 1, Semester 1</strong> (Autumn 2027), with <strong>no major and no
-    sub-major chosen yet</strong>, like a real first-year. The Subjects page prompts you: choose a <strong>major</strong> (48 credit points),
-    then a <strong>sub-major</strong> or general electives (24 credit points). You can enrol in core subjects straight away.</li>
-  <li>Use <strong>Subjects</strong> to enrol, <strong>Degree planner</strong> to plan future sessions, <strong>Timetable</strong> to pick classes,
-    <strong>Results</strong> to see grades. The <strong>simulation bar</strong> under the header finishes a semester.</li>
-</ol>
+<nav class="toc" aria-label="On this page">
+  <strong>On this page:</strong>
+  <a href="#start">Quick start</a>
+  <a href="#presets">Starting points</a>
+  <a href="#tests">Things to test</a>
+  <a href="#ai">AI mode</a>
+  <a href="#showcase">Worth showing off</a>
+  <a href="#tabs">What each tab does</a>
+  <a href="#faq">Questions</a>
+</nav>
 
-<h2>What each tab does</h2>
-<dl>
-  <dt>Subjects</dt><dd>Every subject in your degree with whether you can enrol, and why or why not. Failed subjects show "Failed: retake needed".</dd>
-  <dt>Degree planner</dt><dd>Plans future sessions. It shows completed, in progress, planned, failed and blocked subjects, and a workload verdict for each session.</dd>
-  <dt>Timetable</dt><dd>Your classes for a session. Clashes are allowed but drawn in red.</dd>
-  <dt>Record</dt><dd>Your degree progress, oldest session first.</dd>
-  <dt>Results</dt><dd>Every attempt with mark, grade and outcome, newest session first (you can switch the order).</dd>
-  <dt>Simulation bar</dt><dd>On every page, under the header: <strong>Complete semester</strong> (choose Passed, Failed or No result yet for each subject), <strong>Roll back a semester</strong> (undo the last one) and <strong>Reset</strong>. Only the simulated student has it.</dd>
-</dl>
-
-<h2 id="scenarios">Try these scenarios</h2>
-<p>Start each one from a fresh student (the guide assumes you have not chosen a major yet): press <strong>Reset</strong> in the bar under the header, choose
-  <em>A first-year student</em>, tick the box and press Reset.</p>
-
-<section class="card">
-  <h3>Try this: fail a prerequisite subject</h3>
+<section class="guide-section" id="start">
+  <h2>Quick start</h2>
   <ol>
-    <li>Open <strong>Subjects</strong> and enrol in <strong>Programming 1</strong>, <strong>Mathematics 1</strong>,
-      <strong>Communication for IT Professionals</strong> and <strong>Discrete Mathematics</strong> for Autumn 2027.</li>
-    <li>Open the <strong>Degree planner</strong>, find <strong>Programming 2</strong> (it needs Programming 1) and add it to Spring 2027.</li>
-    <li>Press <strong>Complete semester</strong> in the bar under the header. Set Programming 1 to <strong>Failed</strong> and leave the others on Passed. Press <strong>Review</strong>, then <strong>Confirm and save</strong>.</li>
+    <li>Log in as the simulated student: <strong>john.doe@student.uni.edu.au</strong> with the password <strong>Johndoe#1</strong>.
+      There is no public sign-up, because at a real university your login comes from admissions.</li>
+    <li>John starts as a <strong>first-year student</strong> in <strong>Year 1, Semester 1</strong> (Autumn 2027), with <strong>no major and no
+      sub-major chosen yet</strong>, like a real first-year. Choose a <strong>major</strong> (48 credit points), then a <strong>sub-major</strong>
+      or general electives (24 credit points). You can enrol in core subjects straight away.</li>
+    <li>To reach a later situation quickly, press <strong>Reset</strong> in the bar under the header and pick a starting point (below).</li>
   </ol>
-  <p><strong>What you should see:</strong> you are now in Year 1, Semester 2 (Spring 2027). <strong>Results</strong> shows Programming 1 as Failed (FL)
-    and the other three as Passed. The <strong>Degree planner</strong> lists Programming 1 under "Failed subjects" with an
-    <em>Add retake to plan</em> button, and Programming 2 is still planned but flagged with the reason "Needs 41039 Programming 1
-    (failed: retake it first)". In <strong>Subjects</strong>, Programming 1 has a "Failed: retake needed" badge, Programming 2 says
-    Can't enrol, and trying to enrol in Programming 2 is refused.</p>
 </section>
 
-<section class="card">
-  <h3>Try this: retake and pass</h3>
-  <ol>
-    <li>Continue from the scenario above. In <strong>Subjects</strong>, enrol in Programming 1 again (Spring 2027 is the open session).</li>
-    <li>Open the <strong>Timetable</strong> and choose a class for it.</li>
-    <li>Press <strong>Complete semester</strong> in the bar under the header, set Programming 1 to <strong>Passed</strong>, review and confirm.</li>
-  </ol>
-  <p><strong>What you should see:</strong> <strong>Results</strong> shows both attempts for Programming 1: Failed (attempt 1) and Passed (attempt 2),
-    and its credit points are counted once. Programming 2 is no longer blocked. It was planned for Spring 2027, which has passed, so the
-    planner lists it under <strong>Needs rescheduling</strong>: move it to a future session, then enrol when that session is current.</p>
+<section class="guide-section" id="presets">
+  <h2>Starting points</h2>
+  <p>Press <strong>Reset</strong> in the bar under the header, choose one, tick the box and confirm. It replaces the demo student's simulated
+    records, so you never have to pass semester after semester to test something late in a degree.</p>
+  <table class="table">
+    <thead><tr><th>Starting point</th><th>Where the student is</th><th>Good for testing</th></tr></thead>
+    <tbody>
+      {% for key, p in presets.items() %}
+        <tr id="preset-{{ key }}">
+          <td><strong>{{ p.title }}</strong></td>
+          <td>{{ p.summary }}</td>
+          <td><ul class="plain">{% for item in p.good_for %}<li>{{ item }}</li>{% endfor %}</ul></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </section>
 
-<section class="card">
-  <h3>Try this: finish a semester without making up results</h3>
-  <ol>
-    <li>Enrol in a subject, then press <strong>Complete semester</strong>.</li>
-    <li>Leave every subject on <strong>No result yet</strong>, review and confirm.</li>
-  </ol>
-  <p><strong>What you should see:</strong> the session moves on, but <strong>Results</strong> is unchanged: no pass and no fail was invented.
-    The subject is an outstanding requirement again.</p>
+<section class="guide-section" id="tests">
+  <h2>Things to test</h2>
+  <p>Each one names the starting point to reset to first. Open any to see the steps and what you should see.</p>
+
+  <h3>Failed subjects and rollbacks</h3>
+  <details class="walkthrough" data-preset="failed">
+    <summary>A failed prerequisite, then a retake <span class="tag">Start from: {{ presets["failed"].title }}</span></summary>
+    <ol>
+      <li>Open the <strong>Degree planner</strong>. Programming 2 is under <strong>Failed subjects</strong> with an <em>Add retake to plan</em> button, and
+        Data Structures and Algorithms is flagged: "Needs 48024 Programming 2 (failed: retake it first)".</li>
+      <li>Open <strong>Subjects</strong> and enrol in <strong>Programming 2</strong> for Autumn 2027. There is room, because only 18 of 24 credit points are in use.</li>
+      <li>Press <strong>Complete semester</strong>, leave every subject on Passed, press <strong>Review</strong>, then <strong>Confirm and save</strong>.</li>
+      <li>Open <strong>Results</strong>.</li>
+    </ol>
+    <p class="see"><strong>You should see:</strong> Programming 2 twice, Failed in Spring 2026 and Passed in Autumn 2027, with its 6 credit points counted once.
+      Data Structures and Algorithms is no longer blocked. Press <strong>Roll back a semester</strong> to undo it all and try again.</p>
+  </details>
+
+  <details class="walkthrough" data-preset="fresh">
+    <summary>Fail a subject and watch the plan react <span class="tag">Start from: {{ presets["fresh"].title }}</span></summary>
+    <ol>
+      <li>Open <strong>Subjects</strong> and enrol in <strong>Programming 1</strong>, <strong>Mathematics 1</strong>,
+        <strong>Communication for IT Professionals</strong> and <strong>Discrete Mathematics</strong> for Autumn 2027.</li>
+      <li>In the <strong>Degree planner</strong>, find <strong>Programming 2</strong> (it needs Programming 1) and add it to Spring 2027.</li>
+      <li>Press <strong>Complete semester</strong>. Set Programming 1 to <strong>Failed</strong>, leave the others on Passed, press <strong>Review</strong>, then <strong>Confirm and save</strong>.</li>
+    </ol>
+    <p class="see"><strong>You should see:</strong> you are now in Year 1, Semester 2 (Spring 2027). <strong>Results</strong> shows Programming 1 as Failed (FL) and the other
+      three as Passed. The planner lists Programming 1 under "Failed subjects", and Programming 2 is still planned but flagged "Needs 41039 Programming 1
+      (failed: retake it first)". In <strong>Subjects</strong>, Programming 1 has a "Failed: retake needed" badge and enrolling in Programming 2 is refused.</p>
+  </details>
+
+  <details class="walkthrough" data-preset="fresh">
+    <summary>Finish a semester without making up results <span class="tag">Start from: {{ presets["fresh"].title }}</span></summary>
+    <ol>
+      <li>Enrol in a subject, then press <strong>Complete semester</strong>.</li>
+      <li>Leave every subject on <strong>No result yet</strong>, review and confirm.</li>
+    </ol>
+    <p class="see"><strong>You should see:</strong> the session moves on, but <strong>Results</strong> is unchanged: no pass and no fail was invented, and the subject is an
+      outstanding requirement again.</p>
+  </details>
+
+  <details class="walkthrough" data-preset="sample">
+    <summary>Undo a semester <span class="tag">Start from: any</span></summary>
+    <ol>
+      <li>Press <strong>Complete semester</strong> in the bar under the header and finish a semester with some results.</li>
+      <li>Press <strong>Roll back a semester</strong>, read what will be undone, and confirm.</li>
+    </ol>
+    <p class="see"><strong>You should see:</strong> you are back in the earlier session, the results it recorded are gone, and the subjects are enrolled again with their class
+      choices and plan entries as they were. You can roll back as many completed semesters as you have finished, one at a time.</p>
+  </details>
+
+  <h3>Changing major, sub-major or electives</h3>
+  <details class="walkthrough" data-preset="sample">
+    <summary>A swap that costs time <span class="tag">Start from: {{ presets["sample"].title }}</span></summary>
+    <ol>
+      <li>Open <strong>Subjects</strong>, press <strong>Swap major</strong>, and open <strong>Artificial Intelligence and Data Analytics</strong>.</li>
+      <li>Read the <strong>Swap advice</strong> box, then try pressing the swap button without ticking the box.</li>
+    </ol>
+    <p class="see"><strong>You should see:</strong> "Possible, but it costs time". Credit points would stop counting, graduation moves from Spring 2028 to Autumn 2029, and the
+      swap is refused until you tick that you understand the extra subjects and delay. Nothing is deleted from your record either way.</p>
+  </details>
+
+  <details class="walkthrough" data-preset="late">
+    <summary>A risky swap needs your confirmation <span class="tag">Start from: {{ presets["late"].title }}</span></summary>
+    <ol>
+      <li>Open <strong>Subjects</strong>, press <strong>Swap major</strong>, and open <strong>Networking and Cybersecurity</strong>.</li>
+      <li>Read the advice, press the swap without the tick (it is refused), then tick the box and confirm.</li>
+    </ol>
+    <p class="see"><strong>You should see:</strong> "Think carefully", because you are 88% through your current major and a lot would stop counting. The projected
+      graduation session moves later. The tick is the only way the swap goes ahead: the decision is always yours.</p>
+  </details>
+
+  <details class="walkthrough" data-preset="sample">
+    <summary>Keep a sub-major's subjects as general electives <span class="tag">Start from: {{ presets["sample"].title }}</span></summary>
+    <ol>
+      <li>Open <strong>Subjects</strong>, press <strong>Swap sub-major</strong>, then choose <strong>General electives</strong>.</li>
+      <li>Find the box <strong>Count these as general electives?</strong> and tick all four subjects.</li>
+      <li>Confirm the swap.</li>
+    </ol>
+    <p class="see"><strong>You should see:</strong> with all four ticked nothing is lost, so the swap is "Good to switch" and needs no cost tick. Afterwards the Subjects page shows
+      "Counted 4 subject(s) as general electives" and General electives with 4 of 4 chosen. Try again ticking only two, and the cost tick comes back.</p>
+  </details>
+
+  <h3>Planning and workload</h3>
+  <details class="walkthrough" data-preset="sample">
+    <summary>A heavy semester <span class="tag">Start from: {{ presets["sample"].title }}</span></summary>
+    <ol><li>Open the <strong>Degree planner</strong> and look at Autumn 2027.</li></ol>
+    <p class="see"><strong>You should see:</strong> the session marked <strong>Heavy</strong>, with the reasons (for example several high-load subjects). The rating comes from fixed
+      rules on each subject's assessments, not from the AI. Due weeks are illustrative.</p>
+  </details>
+
+  <details class="walkthrough" data-preset="fresh">
+    <summary>Set up a degree from scratch <span class="tag">Start from: {{ presets["fresh"].title }}</span></summary>
+    <ol>
+      <li>On <strong>Subjects</strong>, press <strong>Choose major</strong>, open one, and confirm. Then <strong>Choose sub-major or electives</strong>.</li>
+      <li>Enrol in some subjects, open the <strong>Timetable</strong> and pick a class for each. A clash is allowed but drawn in red.</li>
+      <li>Open the <strong>Degree planner</strong> and press <strong>Suggest a plan</strong>.</li>
+    </ol>
+    <p class="see"><strong>You should see:</strong> your choices appear on every page, and the planner lays out the remaining sessions within the 24 credit point limit.</p>
+  </details>
 </section>
 
-<section class="card">
-  <h3>Try this: undo a semester</h3>
-  <ol>
-    <li>Press <strong>Complete semester</strong> in the bar under the header and finish a semester with some results.</li>
-    <li>Press <strong>Roll back a semester</strong>, read what will be undone, and confirm.</li>
-  </ol>
-  <p><strong>What you should see:</strong> you are back in the earlier session, the results it recorded are gone, and the subjects are enrolled again with
-    their class choices and plan entries as they were. You can roll back as many completed semesters as you have finished, one at a time.</p>
+<section class="guide-section" id="ai">
+  <h2>AI mode</h2>
+  <p>AI mode is <strong>off until you turn it on</strong> (the switch is in the top right). With it on, the Degree planner, Timetable and the major, sub-major
+    and electives pages have a question box. The model runs on this computer, so your questions don't leave it. It can be wrong, so check what it shows you.</p>
+  <ul>
+    <li><strong>Rules and subjects:</strong> answered from the app's own sources. If they don't cover it you get <strong>"Not enough context"</strong>, not a guess.</li>
+    <li><strong>About you</strong> ("Why is my Autumn heavy?", "Can I enrol in Programming 2?"): the AI looks things up in your own records with read-only tools and shows you
+      <strong>what it looked at</strong>. It can only look things up: it can never enrol, withdraw, plan, move or swap anything.</li>
+    <li><strong>Swaps:</strong> <strong>Explain this swap</strong> runs three roles: an Analyst (code) gets the facts, an Advisor (the AI) explains them, and a Checker (code) rejects an
+      explanation that doesn't match. The decision always stays with you.</li>
+  </ul>
+  <details class="walkthrough" data-preset="sample">
+    <summary>Questions to try <span class="tag">Start from: {{ presets["sample"].title }}</span></summary>
+    <ol>
+      <li>Turn <strong>AI mode</strong> on, open the <strong>Degree planner</strong>, and ask <em>Which subjects are in the Information Security sub-major?</em></li>
+      <li>Ask <em>Why is my Autumn heavy?</em> and open "What I looked at".</li>
+      <li>Ask <em>Enrol me in Programming 2</em>. It should say it can only look things up.</li>
+      <li>Ask <em>What is the capital of France?</em> You should get "Not enough context".</li>
+    </ol>
+  </details>
+  <details class="walkthrough" data-preset="late">
+    <summary>Have a risky swap explained <span class="tag">Start from: {{ presets["late"].title }}</span></summary>
+    <ol><li>With AI mode on, open the <strong>Networking and Cybersecurity</strong> major page and press <strong>Explain this swap</strong>.</li></ol>
+    <p class="see"><strong>You should see:</strong> the Analyst's facts, the Advisor's explanation (opening with the same verdict, "Think carefully"), the Checker's result, and a reminder that only you can
+      make the swap.</p>
+  </details>
 </section>
 
-<section class="card">
-  <h3>Try this: change major or sub-major</h3>
-  <ol>
-    <li>Choose a major and a sub-major first (the Subjects page prompts you), enrol in some subjects and complete a semester or two.
-      Then open <strong>Subjects</strong> and press <strong>Swap major</strong> (or <strong>Swap sub-major</strong>).</li>
-    <li>Open a different one and read the preview, then confirm. If you have subjects in progress that would stop counting, a tick box offers to withdraw you from them.</li>
-  </ol>
-  <p><strong>What you should see:</strong> completed subjects that are in the new major still count, and the rest stay on your <strong>Results</strong> but
-    are labelled "Doesn't count towards your degree". Nothing is deleted, and the credit points still to do are recalculated. In real life
-    a change of major needs a request to UTS: this app is a planning tool and shows the consequences first.</p>
+<section class="guide-section" id="showcase">
+  <h2>Worth showing off</h2>
+  <ul>
+    <li><strong>The code decides and the AI explains.</strong> Prerequisites, workload, assessment load and swap verdicts are fixed rules you can read and test.</li>
+    <li><strong>You always decide.</strong> A risky swap needs your tick, checked on the server, and the AI can only look things up.</li>
+    <li><strong>Every AI answer is checked in code</strong> (real citations, numbers only from the sources, no links, no claims of action), and if a check fails you see the facts instead.</li>
+    <li><strong>"Not enough context"</strong> instead of guessing, and unconfirmed data is labelled as indicative, illustrative or unverified.</li>
+    <li><strong>Failed subjects are handled properly:</strong> every attempt is kept, credit points count once, and a failed prerequisite blocks what depends on it, with the reason.</li>
+    <li><strong>Swaps are never blocked</strong>, but you see what would stop counting first, and can keep subjects as electives when there is room.</li>
+    <li><strong>Roll back a semester</strong> and <strong>starting points</strong> make it quick to test anything.</li>
+    <li><strong>A read-only MCP server</strong> offers the same tools to another AI app on a snapshot it cannot write back (see docs/MCP.md in the project).</li>
+  </ul>
 </section>
 
-<section class="card">
-  <h3>Try this: explore a student two years in</h3>
-  <p>Press <strong>Reset</strong> in the bar under the header and choose <em>Two years in, halfway through the major</em>. You get sixteen completed
-    subjects and four in progress (Year 3, Semester 1), which is a good starting point for exploring blocked subjects and sub-majors.</p>
+<section class="guide-section" id="tabs">
+  <h2>What each tab does</h2>
+  <dl>
+    <dt>Subjects</dt><dd>Every subject in your degree with whether you can enrol, and why or why not. Failed subjects show "Failed: retake needed".</dd>
+    <dt>Degree planner</dt><dd>Plans future sessions. It shows completed, in progress, planned, failed and blocked subjects, and a workload verdict for each session.</dd>
+    <dt>Timetable</dt><dd>Your classes for a session. Clashes are allowed but drawn in red.</dd>
+    <dt>Record</dt><dd>Your degree progress, oldest session first.</dd>
+    <dt>Results</dt><dd>Every attempt with mark, grade and outcome, newest session first (you can switch the order).</dd>
+    <dt>Simulation bar</dt><dd>On every page, under the header: <strong>Complete semester</strong> (choose Passed, Failed or No result yet for each subject), <strong>Roll back a semester</strong> (undo the last one) and <strong>Reset</strong> (pick a starting point). Only the simulated student has it.</dd>
+  </dl>
 </section>
 
-<h2>AI mode</h2>
-<p>AI mode is <strong>off until you turn it on</strong> (the switch is in the top right). With it on, the Degree planner, Timetable and
-  the major, sub-major and electives pages have a box to ask about a rule or a subject. Answers come only from the app's own sources
-  (subject details, majors, and how the app works), are checked by code before they are shown, and always list their sources. If the sources
-  don't cover your question you get <strong>"Not enough context"</strong>, not a guess. The model runs on this computer, so your questions
-  don't leave it. It can still be wrong, so check the cited source.</p>
-<p>If you ask about <strong>yourself</strong> ("Why is my Autumn heavy?", "Can I enrol in Programming 2?"), the AI looks things up in your own
-  records with read-only tools and shows you <strong>what it looked at</strong>. It can only look things up: it can never enrol, withdraw, plan
-  or swap anything. On a major, sub-major or electives page, <strong>Explain this swap</strong> runs three roles: an Analyst (code) gets the facts,
-  an Advisor (the AI) explains them, and a Checker (code) rejects an explanation that doesn't match. The decision always stays with you.</p>
-
-<h2>Questions</h2>
-<dl>
-  <dt>Is this a real UTS system?</dt><dd>No. It is an independent student prototype using simulated students and results.</dd>
-  <dt>Why can't I create an account?</dt><dd>Public sign-up is off: real students are given their login by the university. One simulated student keeps the demo simple and lets you test any scenario.</dd>
-  <dt>How do marks become grades?</dt><dd>HD is 85 or more, D 75 to 84, C 65 to 74, P 50 to 64, and FL is below 50. If you leave the mark blank, a plausible one is filled in.</dd>
-  <dt>What does "No result yet" do?</dt><dd>It records nothing for that subject (no pass, no fail), ends the enrolment, and the subject goes back to your outstanding requirements.</dd>
-  <dt>A planned subject vanished. Where did it go?</dt><dd>Nothing is deleted. If its session has passed it appears under "Needs rescheduling", and if it depends on a failed subject it is flagged with the reason.</dd>
-  <dt>Are credit points ever counted twice?</dt><dd>No. A subject can be passed only once, so its credit points count once however many attempts it took.</dd>
-  <dt>How do I start again?</dt><dd>Press Reset in the bar under the header, then choose a fresh first-year student or the sample history.</dd>
-</dl>
+<section class="guide-section" id="faq">
+  <h2>Questions</h2>
+  <dl>
+    <dt>Is this a real UTS system?</dt><dd>No. It is an independent student prototype using simulated students and results.</dd>
+    <dt>Why can't I create an account?</dt><dd>Public sign-up is off: real students are given their login by the university. One simulated student keeps the demo simple and lets you test any scenario.</dd>
+    <dt>How do marks become grades?</dt><dd>HD is 85 or more, D 75 to 84, C 65 to 74, P 50 to 64, and FL is below 50. If you leave the mark blank, a plausible one is filled in.</dd>
+    <dt>What does "No result yet" do?</dt><dd>It records nothing for that subject (no pass, no fail), ends the enrolment, and the subject goes back to your outstanding requirements.</dd>
+    <dt>A planned subject vanished. Where did it go?</dt><dd>Nothing is deleted. If its session has passed it appears under "Needs rescheduling", and if it depends on a failed subject it is flagged with the reason.</dd>
+    <dt>Are credit points ever counted twice?</dt><dd>No. A subject can be passed only once, so its credit points count once however many attempts it took.</dd>
+    <dt>How do I start again, or jump to a later point?</dt><dd>Press Reset in the bar under the header, then choose a starting point.</dd>
+    <dt>Where did the Simulator tab go?</dt><dd>Its buttons are in the bar under the header of every page, so you never leave what you are looking at.</dd>
+    <dt>Why did the AI show sources or facts instead of an answer?</dt><dd>Every written answer is checked first. If a check fails (for example it used a number that isn't in the sources) the AI's text is dropped and you see what it found instead.</dd>
+  </dl>
+</section>
 {% endblock %}

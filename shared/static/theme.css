@@ -321,3 +321,19 @@ a.btn.btn-danger, a.btn.btn-danger:visited { color: var(--bad); }
 .preset-summary { color: var(--muted); font-size: .9rem; }
 .preset-good-label { font-size: .8rem; font-weight: 600; margin-top: .3rem; }
 .preset-good { margin: 0; padding-left: 1.1rem; font-size: .88rem; }
+
+/* Help page: sections, a contents line and collapsible walkthroughs */
+.toc { display: flex; flex-wrap: wrap; gap: .3rem 1rem; align-items: center; margin: 0 0 1.2rem; padding: .6rem .9rem; background: var(--card);
+       border: 1px solid var(--border); border-radius: 8px; font-size: .92rem; }
+.guide-section { margin: 0 0 1.8rem; scroll-margin-top: 1rem; }
+.guide-section h2 { margin: 0 0 .5rem; padding-bottom: .3rem; border-bottom: 2px solid var(--border); }
+.guide-section h3 { margin: 1.2rem 0 .4rem; font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+.guide-section dl dt { font-weight: 600; margin-top: .6rem; }
+.guide-section dl dd { margin: .1rem 0 0 0; }
+.walkthrough { background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin: .4rem 0; padding: .1rem 1rem; }
+.walkthrough summary { cursor: pointer; font-weight: 600; padding: .55rem 0; }
+.walkthrough[open] summary { border-bottom: 1px solid var(--border); margin-bottom: .5rem; }
+.walkthrough .tag { display: inline-block; margin-left: .5rem; padding: .05rem .5rem; border-radius: 999px; background: #eef3fd; color: var(--accent);
+                    font-size: .75rem; font-weight: 500; }
+.walkthrough ol { margin: .3rem 0 .5rem; padding-left: 1.3rem; }
+.walkthrough .see { background: #f5faf6; border-left: 4px solid #15803d; padding: .5rem .8rem; border-radius: 4px; margin: .4rem 0 .7rem; }
