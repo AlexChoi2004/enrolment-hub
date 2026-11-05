@@ -1,0 +1,150 @@
+import re
+
+import pytest
+
+from features.accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
+from app import create_app
+from shared import db
+
+
+def log_in_as_demo(test_client):
+    """The catalogue needs a login, so these tests sign in as the demo student first."""
+    page = test_client.get("/login").get_data(as_text=True)
+    token = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
+    test_client.post("/login", data={"email": DEMO_EMAIL, "password": DEMO_PASSWORD, "csrf_token": token})
+    return test_client
+
+
+@pytest.fixture()
+def client(tmp_path):
+    app = create_app({"DATABASE": str(tmp_path / "t.db"), "TESTING": True, "SECRET_KEY": "k"})
+    return log_in_as_demo(app.test_client())
+
+
+def test_subjects_page_lists_subjects(client):
+    res = client.get("/subjects")
+    assert res.status_code == 200
+    assert b"Programming 1" in res.data
+    assert b"<html" in res.data
+
+
+def test_htmx_request_returns_fragment_only(client):
+    res = client.get("/subjects?q=programming", headers={"HX-Request": "true"})
+    assert res.status_code == 200
+    assert b"<html" not in res.data
+    assert b"Programming 1" in res.data
+    assert "HX-Request" in res.headers["Vary"]
+
+
+def test_category_filter_through_the_page(client):
+    res = client.get("/subjects?category=honours_core")
+    assert b"Honours Project" in res.data
+    assert b"Programming 1" not in res.data
+
+
+def test_no_matches_shows_message(client):
+    res = client.get("/subjects?q=zzzzzz")
+    assert b"No subjects match these filters." in res.data
+
+
+def test_invalid_filter_returns_400(client):
+    assert client.get("/subjects?category=nonsense").status_code == 400
+    assert client.get("/subjects?session=Winter").status_code == 400
+    assert client.get("/subjects?q=" + "x" * 60).status_code == 400
+
+
+def test_detail_page_shows_prerequisite(client):
+    res = client.get("/subjects/41026")
+    assert res.status_code == 200
+    assert b"41025" in res.data
+    assert b"Introduction to Software Development" in res.data
+
+
+def test_subject_without_a_rule_says_no_prerequisites(client):
+    res = client.get("/subjects/33130")
+    assert b"No prerequisites listed in the supplied data." in res.data
+
+
+def test_unknown_status_is_not_shown_as_none(tmp_path):
+    path = tmp_path / "t.db"
+    app = create_app({"DATABASE": str(path), "TESTING": True})
+    conn = db.connect(str(path))
+    conn.execute("UPDATE subjects SET prereq_status = 'unknown' WHERE code = '33130'")
+    conn.commit()
+    conn.close()
+    res = log_in_as_demo(app.test_client()).get("/subjects/33130")
+    assert b"not in the supplied data" in res.data
+    assert b"No prerequisites listed" not in res.data
+
+
+def test_malformed_subject_code_returns_400(client):
+    assert client.get("/subjects/bad!code").status_code == 400
+
+
+def test_missing_subject_returns_404(client):
+    assert client.get("/subjects/NOPE99").status_code == 404
+
+
+def test_search_text_is_html_escaped(client):
+    res = client.get("/subjects?q=<script>alert(1)</script>")
+    assert res.status_code == 200
+    assert b"<script>alert(1)</script>" not in res.data
+    assert b"&lt;script&gt;" in res.data
+
+
+def test_static_theme_is_served(client):
+    assert client.get("/static/theme.css").status_code == 200
+
+
+def test_prerequisite_filter_options_work_through_the_page(client):
+    required = client.get("/subjects?prereqs=required")
+    none = client.get("/subjects?prereqs=none")
+    assert required.status_code == 200
+    assert none.status_code == 200
+    assert b"23 subjects" in required.data
+    assert b"10 subjects" in none.data  # the demo student has the Innovation sub-major (its four subjects are "unknown", not "none")
+    assert client.get("/subjects?prereqs=supplied").status_code == 400
+
+
+def test_cards_carry_category_and_prerequisite_classes(client):
+    with_rule = client.get("/subjects?q=41026")
+    assert b"cat-major_core" in with_rule.data
+    assert b"badge req" in with_rule.data
+    without_rule = client.get("/subjects?q=33130")
+    assert b"cat-core" in without_rule.data
+    assert b"badge none" in without_rule.data
+
+
+def test_page_has_a_heading_and_rule_for_each_category(client):
+    res = client.get("/subjects")
+    assert res.data.count(b'class="group-title"') == 5
+    assert b"All 16 required" in res.data
+    assert b"Choose 3 of 9" in res.data
+    assert b"All 4 required" in res.data  # the sub-major core
+
+
+def test_empty_categories_are_hidden_when_filtering(client):
+    res = client.get("/subjects?category=honours_core")
+    assert res.data.count(b'class="group-title"') == 1
+    assert b"Honours core" in res.data
+
+
+def test_filters_apply_only_when_the_apply_button_is_clicked(client):
+    page = client.get("/subjects").get_data(as_text=True)
+    start = page.index('<form class="filters"')
+    form = page[start: page.index("</form>", start)]
+    assert re.search(r'hx-trigger="([^"]*)"', form).group(1) == "submit"  # not on keystrokes or dropdown changes
+    assert '<button type="submit">Apply</button>' in form
+
+
+def test_there_is_a_reset_filters_button_that_clears_everything(client):
+    page = client.get("/subjects?q=web&session=Autumn&status=blocked").get_data(as_text=True)
+    assert 'href="/subjects">Reset filters</a>' in page
+    reset = client.get("/subjects").get_data(as_text=True)
+    assert 'value="web"' not in reset and "Reset filters" in reset
+
+
+def test_the_reset_button_is_styled_to_match_the_apply_button(client):
+    css = client.get("/static/theme.css").get_data(as_text=True)
+    assert ".filters .btn-secondary" in css and "text-decoration: none" in css
+    assert "align-self: flex-end" in css  # both sit on the same line as the inputs instead of stretching

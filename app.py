@@ -7,20 +7,20 @@ from pathlib import Path
 import click
 from flask import Flask, g, jsonify, redirect, render_template, url_for
 
-from accounts.routes import bp as accounts_bp
-from accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
-from degree_planner.routes import bp as planner_bp
-from majors.routes import bp as majors_bp
-from transcript.routes import bp as transcript_bp
-from submajors.routes import bp as submajors_bp
-from simulator.routes import bp as simulator_bp
-from guide.routes import bp as guide_bp
-from rag.routes import bp as ai_bp
-from timetable.routes import bp as timetable_bp
-from enrolment.routes import bp as enrolment_bp
+from features.accounts.routes import bp as accounts_bp
+from features.accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
+from features.degree_planner.routes import bp as planner_bp
+from features.majors.routes import bp as majors_bp
+from features.transcript.routes import bp as transcript_bp
+from features.submajors.routes import bp as submajors_bp
+from features.simulator.routes import bp as simulator_bp
+from features.guide.routes import bp as guide_bp
+from ai_services.web.routes import bp as ai_bp
+from features.timetable.routes import bp as timetable_bp
+from features.enrolment.routes import bp as enrolment_bp
 from shared import db, security
 from shared.web import shared_bp
-from subject_catalogue.routes import bp as catalogue_bp
+from features.subject_catalogue.routes import bp as catalogue_bp
 
 ROOT = Path(__file__).resolve().parent
 

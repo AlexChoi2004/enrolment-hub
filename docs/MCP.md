@@ -13,7 +13,7 @@ The app can offer its ten read-only tools to another AI application (for example
 
 ## Run it by hand
 ```bash
-python -m mcp_server --db enrolment_hub.db --student DEMO0001
+python -m ai_services.mcp_server --db enrolment_hub.db --student DEMO0001
 ```
 It prints one line to stderr when it is ready, then waits for newline-delimited JSON-RPC messages on stdin.
 
@@ -24,7 +24,7 @@ Add this to Claude Desktop's configuration (`claude_desktop_config.json`), chang
   "mcpServers": {
     "enrolment-hub": {
       "command": "C:\\Users\\camel\\PROJECTS\\enrolment-hub\\.venv\\Scripts\\python.exe",
-      "args": ["-m", "mcp_server", "--db", "enrolment_hub.db"],
+      "args": ["-m", "ai_services.mcp_server", "--db", "enrolment_hub.db"],
       "cwd": "C:\\Users\\camel\\PROJECTS\\enrolment-hub"
     }
   }

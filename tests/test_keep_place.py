@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
+from features.accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
 
 TOKEN = re.compile(r'name="csrf_token" value="([^"]+)"')
 ACTION_FORM = re.compile(r'<form class="([^"]*)" method="post" action="([^"]*)"')

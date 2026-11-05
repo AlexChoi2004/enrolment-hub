@@ -1,0 +1,413 @@
+"""Enrolment business logic: a student's record and which subjects they can take.
+
+`evaluate_subjects` is the single place the eligibility rules live, so the catalogue
+page and (next) the enrol endpoint can never disagree about what a student may do.
+"""
+from collections import defaultdict
+
+from features.enrolment.results import failed_subjects
+
+from features.subject_catalogue.service import (
+    DEGREE_CREDIT_POINTS,
+    degree_categories,
+    degree_subjects,
+    group_text,
+    is_choose_category,
+    load_credit_requirements,
+    load_prerequisites,
+    uses_general_electives,
+    user_major,
+    user_submajor,
+)
+
+CURRENT_SESSION = "Autumn 2027"  # the session the prototype treats as "now"
+MAX_CP_PER_SESSION = 24  # a full load: four 6 cp subjects
+
+
+class EnrolmentError(Exception):
+    """An enrolment change was refused. The message is safe to show to the student."""
+
+
+def open_sessions(current_session=CURRENT_SESSION):
+    """Sessions a student may enrol in: the current one and, from Autumn, the Spring after it."""
+    season, year = current_session.split()
+    return [current_session, f"Spring {year}"] if season == "Autumn" else [current_session]
+
+
+def next_session(label):
+    """The session after this one: Autumn then Spring of the same year, then Autumn of the next."""
+    season, year = label.split()
+    return f"Spring {year}" if season == "Autumn" else f"Autumn {int(year) + 1}"
+
+
+def semester_number(label):
+    """Autumn is Semester 1 and Spring is Semester 2."""
+    return 1 if label.split()[0] == "Autumn" else 2
+
+
+def current_session_of(conn, user_id):
+    """The session this student is in right now."""
+    row = conn.execute("SELECT current_session FROM users WHERE id = ?", (user_id,)).fetchone()
+    return row["current_session"] if row else CURRENT_SESSION
+
+
+def offered_in(sessions_offered, session_label):
+    return sessions_offered in (session_label.split()[0], "Both")
+
+
+def study_year(commencement_session, current_session=CURRENT_SESSION):
+    """Which year of study a student is in (the year they start is Year 1)."""
+    return int(current_session.split()[1]) - int(commencement_session.split()[1]) + 1
+
+
+def session_sort_key(label):
+    """Order session labels like 'Autumn 2025' chronologically (Autumn before Spring)."""
+    season, year = label.split()
+    return int(year), 0 if season == "Autumn" else 1
+
+
+def get_course(conn, course_code):
+    row = conn.execute(
+        "SELECT code, name, major_code, major_name FROM courses WHERE code = ?", (course_code,)
+    ).fetchone()
+    return dict(row) if row else None
+
+
+def get_record(conn, user_id):
+    """One student's academic record. Only ever queries the given user's rows."""
+    rows = conn.execute(
+        "SELECT e.status, e.session_label, s.code, s.name, s.credit_points"
+        " FROM enrolments e"
+        " JOIN subjects s ON s.code = e.subject_code"
+        " WHERE e.user_id = ?",
+        (user_id,),
+    ).fetchall()
+    labels = {c["category"]: c["label"] for c in degree_categories(conn, user_id)}
+    effective = {s["code"]: s["category"] for s in degree_subjects(conn, user_id)}
+    items = sorted(
+        (dict(r) for r in rows),
+        key=lambda r: (session_sort_key(r["session_label"]), r["code"]),
+    )
+    for item in items:
+        category = effective.get(item["code"])
+        item["counts"] = category is not None
+        item["category_label"] = labels[category] if category else "Doesn't count towards your degree"
+    completed = [i for i in items if i["status"] == "completed"]
+    enrolled = [i for i in items if i["status"] == "enrolled"]
+
+    by_session = {}
+    for item in completed:
+        by_session.setdefault(item["session_label"], []).append(item)
+
+    completed_cp = sum(i["credit_points"] for i in completed)
+    enrolled_cp = sum(i["credit_points"] for i in enrolled)
+    counted_cp = sum(i["credit_points"] for i in items if i["counts"])
+    return {
+        "completed_by_session": list(by_session.items()),
+        "enrolled": enrolled,
+        "completed_cp": completed_cp,
+        "enrolled_cp": enrolled_cp,
+        "counted_cp": counted_cp,  # one row per subject, and only what counts towards this degree
+        "not_counted_cp": completed_cp + enrolled_cp - counted_cp,
+        "degree_total_cp": DEGREE_CREDIT_POINTS,
+    }
+
+
+def _out_of_degree_reason(code, stored, major, submajor, uses_electives, in_major_lists, in_sub_lists):
+    """Why a subject is not part of this student's degree."""
+    in_major, in_sub = code in in_major_lists, code in in_sub_lists
+    if stored == "general_elective":  # the 24 cp block is either a sub-major or general electives
+        if submajor is not None:
+            return f"Not part of your degree: you chose the {submajor['name']} sub-major instead of general electives"
+        return "Choose general electives or a sub-major to take this subject"
+    if in_major and major is None:
+        return "Choose a major to take this subject"
+    if in_sub and not in_major and submajor is None:
+        if uses_electives:
+            return "Not part of your degree: you chose general electives instead of a sub-major"
+        return "Choose a sub-major to take this subject"
+    if in_major and in_sub and submajor is not None:
+        return f"Not part of your {major['name']} major or your {submajor['name']} sub-major"
+    if in_sub and not in_major:
+        return f"Not part of your {submajor['name']} sub-major"
+    if major is not None:
+        return f"Not part of your {major['name']} major"
+    return "Not part of your degree"
+
+
+def evaluate_subjects(conn, user_id):
+    """Work out, for one student, the status of every subject.
+
+    Statuses: completed, enrolled, available (can enrol now) or blocked (with reasons).
+    A subject is blocked if a prerequisite is not COMPLETED (in progress does not count)
+    or if its elective requirement is already full. Only this student's rows are read.
+
+    Returns {"subjects": {code: info}, "categories": {category: progress}, "records": {code: status}}.
+    """
+    records = {}
+    sessions = {}
+    for row in conn.execute(
+        "SELECT subject_code, status, session_label FROM enrolments WHERE user_id = ?", (user_id,)
+    ):
+        records[row["subject_code"]] = row["status"]
+        sessions[row["subject_code"]] = row["session_label"]
+
+    failed = failed_subjects(conn, user_id)  # failed and not yet passed: they need a retake
+    subjects = degree_subjects(conn, user_id)  # category is None for subjects outside this student's degree
+    major = user_major(conn, user_id)
+    submajor = user_submajor(conn, user_id)
+    uses_electives = uses_general_electives(conn, user_id)
+    in_major_lists = {r[0] for r in conn.execute("SELECT subject_code FROM major_subjects")}
+    in_sub_lists = {r[0] for r in conn.execute("SELECT subject_code FROM submajor_group_subjects")}
+    names = {s["code"]: s["name"] for s in subjects}
+    shown = {c: (f"{n} (failed: retake it first)" if c in failed else n) for c, n in names.items()}  # for messages
+    rules = load_prerequisites(conn)  # {subject: [group, ...]}: every group needed, any one code in a group
+    credit_rules = load_credit_requirements(conn)
+    # Completed credit points per major, for conditions such as "30 cp completed in MAJ03445".
+    members = defaultdict(set)
+    for row in conn.execute("SELECT major_code, subject_code FROM major_subjects"):
+        members[row["major_code"]].add(row["subject_code"])
+    cp_of = {s["code"]: s["credit_points"] for s in subjects}
+    major_credit = {
+        major: sum(cp_of[code] for code in codes if records.get(code) == "completed")
+        for major, codes in members.items()
+    }
+    major_credit[None] = sum(cp_of[code] for code, state in records.items() if state == "completed")  # whole degree
+
+    categories = {}
+    for row in degree_categories(conn, user_id):
+        categories[row["category"]] = {
+            "label": row["label"],
+            "required_cp": row["required_credit_points"],
+            "pool": 0,
+            "completed": 0,
+            "enrolled": 0,
+            "counted_cp": 0,
+        }
+    for s in subjects:
+        if s["category"] is None:
+            continue  # not part of this student's degree, so it counts towards nothing
+        progress = categories[s["category"]]
+        progress["pool"] += 1
+        state = records.get(s["code"])
+        if state in ("completed", "enrolled"):
+            progress[state] += 1
+            progress["counted_cp"] += s["credit_points"]  # one record per subject: no double counting
+
+    open_labels = open_sessions(current_session_of(conn, user_id))
+    loads = {label: 0 for label in open_labels}
+    for s in subjects:
+        if records.get(s["code"]) == "enrolled" and sessions[s["code"]] in loads:
+            loads[sessions[s["code"]]] += s["credit_points"]
+
+    def with_room(subject, labels):
+        return [
+            label for label in labels
+            if offered_in(subject["sessions_offered"], label)
+            and loads[label] + subject["credit_points"] <= MAX_CP_PER_SESSION
+        ]
+
+    result = {}
+    for s in subjects:
+        code = s["code"]
+        state = records.get(code)
+        reasons = []
+        roomy = []
+        moves = []
+        if state == "completed":
+            status, note = "completed", f"Completed in {sessions[code]}"
+        elif state == "enrolled":
+            status, note = "enrolled", f"In progress in {sessions[code]}"
+            if code in failed:
+                note += f" (retake, attempt {failed[code]['attempts'] + 1})"
+            moves = with_room(s, [label for label in open_labels if label != sessions[code]])
+        elif s["category"] is None:
+            status = "blocked"
+            reasons = [_out_of_degree_reason(code, s["stored_category"], major, submajor, uses_electives,
+                                             in_major_lists, in_sub_lists)]
+            note = reasons[0]
+        else:
+            missing = [
+                g for g in rules.get(code, [])
+                if not any(
+                    records.get(p) == "completed" or (g["concurrent"] and records.get(p) == "enrolled")
+                    for p in g["codes"]
+                )
+            ]
+            if missing:
+                reasons.append("Needs " + ", ".join(group_text(shown, g) for g in missing))
+            for req in credit_rules.get(code, []):
+                have = major_credit.get(req["major_code"], 0)
+                if have < req["min_cp"]:
+                    reasons.append(
+                        f"Needs {req['min_cp']} credit points completed in {req['major_name']} (you have {have})"
+                    )
+            progress = categories[s["category"]]
+            if is_choose_category(s["category"]) and progress["counted_cp"] >= progress["required_cp"]:
+                reasons.append(f"{progress['label']} requirement already complete")
+            if not reasons:
+                offered = [label for label in open_labels if offered_in(s["sessions_offered"], label)]
+                roomy = with_room(s, open_labels)
+                if not offered:
+                    reasons.append("Not offered in " + " or ".join(open_labels))
+                elif not roomy:
+                    reasons.append(
+                        " and ".join(
+                            f"{label} is full ({loads[label]} of {MAX_CP_PER_SESSION} credit points)"
+                            for label in offered
+                        )
+                    )
+            status = "blocked" if reasons else "available"
+            note = " · ".join(reasons)
+            if code in failed:  # an outstanding requirement again, with the reason it is
+                f = failed[code]
+                head = f"Failed in {f['last_session']} (mark {f['last_mark']}): retake needed"
+                note = head + (" · " + note if note else "")
+        result[code] = {
+            "retake": code in failed and state is None,  # failed, not passed and not currently being retaken
+            "attempts": failed[code]["attempts"] if code in failed else 0,
+            "last_failed": failed.get(code),
+            "status": status,
+            "reasons": reasons,
+            "note": note,
+            "sessions": roomy,  # sessions this subject could be enrolled in right now
+            "move_sessions": moves,  # for enrolled subjects: other sessions they could move to
+        }
+    return {
+        "subjects": result,
+        "categories": categories,
+        "records": records,
+        "session_loads": loads,
+        "major_credit": major_credit,
+    }
+
+
+def withdraw_in_progress(conn, user_id, codes):
+    """Remove in-progress enrolments (and their class choices) for these subjects. The caller commits.
+
+    Used when a swap of major, sub-major or electives leaves in-progress subjects that no longer count; completed
+    subjects are history and are never touched.
+    """
+    removed = 0
+    for code in codes:
+        cur = conn.execute(
+            "DELETE FROM enrolments WHERE user_id = ? AND subject_code = ? AND status = 'enrolled'", (user_id, code)
+        )
+        removed += cur.rowcount
+        conn.execute("DELETE FROM class_choices WHERE user_id = ? AND subject_code = ?", (user_id, code))
+    return removed
+
+
+# --- changing an enrolment -------------------------------------------------------------------
+
+def _describe(conn, code):
+    row = conn.execute("SELECT code, name, credit_points, sessions_offered FROM subjects WHERE code = ?", (code,)).fetchone()
+    return row
+
+
+def _session_problem(conn, user_id, subject, session_label, exclude_code=None):
+    """Why a subject can't go into a session, or None if it can."""
+    open_now = open_sessions(current_session_of(conn, user_id))
+    if session_label not in open_now:
+        return "You can only enrol in " + " or ".join(open_now) + "."
+    if not offered_in(subject["sessions_offered"], session_label):
+        return f"{subject['code']} {subject['name']} is not offered in {session_label}."
+    load = conn.execute(
+        "SELECT COALESCE(SUM(s.credit_points), 0) AS cp FROM enrolments e"
+        " JOIN subjects s ON s.code = e.subject_code"
+        " WHERE e.user_id = ? AND e.status = 'enrolled' AND e.session_label = ? AND e.subject_code <> ?",
+        (user_id, session_label, exclude_code or ""),
+    ).fetchone()["cp"]
+    if load + subject["credit_points"] > MAX_CP_PER_SESSION:
+        return (
+            f"{session_label} is full ({load} of {MAX_CP_PER_SESSION} credit points), so there is no room "
+            f"for {subject['code']} {subject['name']} ({subject['credit_points']} cp). "
+            "Choose another session or withdraw from a subject first."
+        )
+    return None
+
+
+def enrol(conn, user_id, subject_code, session_label):
+    """Enrol a student in a subject for one session, or raise EnrolmentError with the reason."""
+    subject = _describe(conn, subject_code)
+    if subject is None:
+        raise EnrolmentError("That subject does not exist.")
+    label = f"{subject['code']} {subject['name']}"
+
+    info = evaluate_subjects(conn, user_id)["subjects"][subject_code]
+    if info["status"] == "completed":
+        raise EnrolmentError(f"You have already completed {label}.")
+    if info["status"] == "enrolled":
+        raise EnrolmentError(f"You are already enrolled in {label}.")
+    if info["status"] == "blocked":
+        raise EnrolmentError(f"You can't enrol in {label}: {info['note']}.")
+
+    problem = _session_problem(conn, user_id, subject, session_label)
+    if problem:
+        raise EnrolmentError(problem)
+
+    # The room check is repeated inside the INSERT so two requests at once can't both squeeze in.
+    cur = conn.execute(
+        "INSERT INTO enrolments (user_id, subject_code, status, session_label)"
+        " SELECT ?, ?, 'enrolled', ?"
+        " WHERE (SELECT COALESCE(SUM(s.credit_points), 0) FROM enrolments e"
+        "        JOIN subjects s ON s.code = e.subject_code"
+        "        WHERE e.user_id = ? AND e.status = 'enrolled' AND e.session_label = ?) + ? <= ?",
+        (user_id, subject_code, session_label, user_id, session_label,
+         subject["credit_points"], MAX_CP_PER_SESSION),
+    )
+    if cur.rowcount != 1:
+        conn.rollback()
+        raise EnrolmentError(f"{session_label} is full, so {label} could not be added.")
+    # The subject is now enrolled, so it no longer belongs in the plan.
+    conn.execute("DELETE FROM planned_subjects WHERE user_id = ? AND subject_code = ?", (user_id, subject_code))
+    conn.commit()
+    return label
+
+
+def withdraw(conn, user_id, subject_code):
+    """Remove an in-progress enrolment. Completed subjects are history and cannot be removed."""
+    row = conn.execute(
+        "SELECT e.status, s.code, s.name FROM enrolments e JOIN subjects s ON s.code = e.subject_code"
+        " WHERE e.user_id = ? AND e.subject_code = ?",
+        (user_id, subject_code),
+    ).fetchone()
+    if row is None:
+        raise EnrolmentError(f"You are not enrolled in {subject_code}.")
+    label = f"{row['code']} {row['name']}"
+    if row["status"] == "completed":
+        raise EnrolmentError(f"{label} is completed and can't be withdrawn.")
+    conn.execute(
+        "DELETE FROM enrolments WHERE user_id = ? AND subject_code = ? AND status = 'enrolled'",
+        (user_id, subject_code),
+    )
+    conn.execute("DELETE FROM class_choices WHERE user_id = ? AND subject_code = ?", (user_id, subject_code))
+    conn.commit()
+    return label
+
+
+def move_session(conn, user_id, subject_code, new_session):
+    """Move an in-progress enrolment to another open session."""
+    row = conn.execute(
+        "SELECT e.status, e.session_label FROM enrolments e WHERE e.user_id = ? AND e.subject_code = ?",
+        (user_id, subject_code),
+    ).fetchone()
+    if row is None:
+        raise EnrolmentError(f"You are not enrolled in {subject_code}.")
+    subject = _describe(conn, subject_code)
+    label = f"{subject['code']} {subject['name']}"
+    if row["status"] == "completed":
+        raise EnrolmentError(f"{label} is completed and can't be moved.")
+    if row["session_label"] == new_session:
+        raise EnrolmentError(f"{label} is already in {new_session}.")
+    problem = _session_problem(conn, user_id, subject, new_session, exclude_code=subject_code)
+    if problem:
+        raise EnrolmentError(problem)
+    conn.execute(
+        "UPDATE enrolments SET session_label = ? WHERE user_id = ? AND subject_code = ? AND status = 'enrolled'",
+        (new_session, user_id, subject_code),
+    )
+    # The tutorial was picked for the old session's timetable, so it no longer applies.
+    conn.execute("DELETE FROM class_choices WHERE user_id = ? AND subject_code = ?", (user_id, subject_code))
+    conn.commit()
+    return label
