@@ -93,6 +93,10 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 | 2026-11-06 | 3 (dev tools) | Restructured the repository into features/ (one folder per feature) and ai_services/ (the four AI services from the plan | 1 HOUR | PR #28 |
 |            |               | plus their shared tools and model adapter), moved the tests to mirror it, and removed 24 empty placeholder files, using  |        |        |
 |            |               | a script that moves files with git so history is kept and changes no behaviour; 1769 tests still pass                    |        |        |
+| 2026-11-06 | 3 (dev tools) | Rewrote the README to match what is actually built, added an architecture overview with a plan-versus-actual table,      | 20 MIN | PR #29 |
+|            |               | filled in the release notes, moved the three copies of the AI answer checks into one shared module, and added tests that |        |        |
+|            |               | keep the repository layout and README honest; 49 new tests                                                               |        |        |
+
 
 ## Things that went wrong or changed
 
@@ -361,6 +365,12 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Decided to split the move (no behaviour change) from the README and shared checks changes, so the first can be reviewed as pure renames
 - Fixed two tests that start the MCP server as a separate process: they worked out the project folder from their own location and broke when the tests moved one folder deeper, so the script now fixes that
 - Fixed the script after finding that undoing a run left empty cache folders in the new places, which would have made git move a folder inside another on the next run; it now clears those first
+
+### PR #29: README, architecture docs and shared checks
+- Found the README described an architecture the code never had, so I rewrote it, added a plan-versus-actual table, and added a test that fails if the README lists a folder that does not exist or misses one that does
+- Decided to move the three copies of the AI answer checks into one module while keeping every behaviour, and wrote a test that all three paths reject the same bad text, so a safety fix can no longer be made in one place and forgotten in another
+- Fixed a test of my own where the advisor's facts did not contain the number 6, so a correct answer was flagged as inventing it; the code was right
+- Removed an unused import that the linter found
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
