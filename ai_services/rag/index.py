@@ -10,7 +10,6 @@ from features.subject_catalogue.assessment_load import assessment_load_map
 from features.subject_catalogue.assessments import ai_context, load_assessment_info
 from features.subject_catalogue.service import (
     get_major,
-    get_submajor,
     list_majors,
     list_submajors,
     load_prerequisites,
