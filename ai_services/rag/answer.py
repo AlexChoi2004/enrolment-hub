@@ -10,11 +10,12 @@ The checks are plain code, so the model cannot talk its way past them, whatever 
 """
 import re
 
+from ai_services.checks import (  # noqa: F401 (re-exported: other modules and tests import them from here)
+    MAX_ANSWER, NOT_ENOUGH, WINDOW, clean, has_link, repeats_instructions, unsupported_numbers,
+)
 from ai_services.llm import LLMError
 from ai_services.rag.retrieve import MAX_QUESTION, search
 
-NOT_ENOUGH = "Not enough context: I couldn't find anything about that in the app's rules or subject information."
-MAX_ANSWER = 1200
 SNIPPET = 240
 SYSTEM = (
     "You answer questions inside a student enrolment demonstration (a UTS-style prototype).\n"
@@ -35,23 +36,6 @@ def build_prompt(question, hits):
     return "Sources:\n" + "\n\n".join(blocks) + f"\n\nQuestion: {question}"
 
 
-def clean(text):
-    """Drop any reasoning block the model wrote, and tidy whitespace."""
-    text = re.sub(r"<think>.*?</think>", "", text, flags=re.S | re.I)
-    text = re.sub(r"[ \t]+", " ", text)  # tidy spaces but keep line breaks, so a list stays a list
-    return re.sub(r"\n\s*\n+", "\n\n", text.replace("\r", "")).strip()
-
-
-WINDOW = 6  # words in a row
-
-
-def _leaks_instructions(answer):
-    """True if the answer contains any run of WINDOW consecutive words from the instructions it was given."""
-    system = re.findall(r"[a-z0-9']+", SYSTEM.lower())
-    text = " " + " ".join(re.findall(r"[a-z0-9']+", answer.lower())) + " "
-    return any(" " + " ".join(system[i:i + WINDOW]) + " " in text for i in range(len(system) - WINDOW + 1))
-
-
 def check_answer(answer, hits, question):
     """Return a list of problems with a written answer (empty list = it passes)."""
     problems = []
@@ -64,14 +48,13 @@ def check_answer(answer, hits, question):
         problems.append("The answer cited no source.")
     if any(n < 1 or n > len(hits) for n in cited):
         problems.append("The answer cited a source that does not exist.")
-    if re.search(r"https?://|www\.", answer, re.I):
+    if has_link(answer):
         problems.append("The answer contained a web link.")
-    if _leaks_instructions(answer):
+    if repeats_instructions(SYSTEM, answer):
         problems.append("The answer repeated the instructions it was given.")
     body = re.sub(r"\[\d{1,2}\]", " ", answer)
     allowed = " ".join(h["title"] + " " + h["body"] for h in hits) + " " + question
-    allowed_numbers = set(re.findall(r"\d+(?:\.\d+)?", allowed))
-    extra = sorted(n for n in set(re.findall(r"\d+(?:\.\d+)?", body)) if n not in allowed_numbers)
+    extra = unsupported_numbers(body, allowed)
     if extra:
         problems.append("The answer used numbers that are not in the sources: " + ", ".join(extra) + ".")
     return problems

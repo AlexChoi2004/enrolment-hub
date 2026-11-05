@@ -13,8 +13,7 @@ Each role's output is returned, so the page can show who said what.
 import json
 import re
 
-from ai_services.ai_mode.agent import ACTION_CLAIM
-from ai_services.rag.answer import MAX_ANSWER, WINDOW, clean
+from ai_services.checks import MAX_ANSWER, claims_action, clean, has_link, repeats_instructions, unsupported_numbers
 from ai_services.llm import LLMError
 from ai_services.tools.registry import call_tool
 
@@ -40,12 +39,6 @@ def build_prompt(facts):
     return "Facts from the Analyst (JSON):\n<<<\n" + json.dumps(facts, indent=1) + "\n>>>\n\nWrite the explanation."
 
 
-def _leaks(answer):
-    system = re.findall(r"[a-z0-9']+", SYSTEM.lower())
-    text = " " + " ".join(re.findall(r"[a-z0-9']+", answer.lower())) + " "
-    return any(" " + " ".join(system[i:i + WINDOW]) + " " in text for i in range(len(system) - WINDOW + 1))
-
-
 def check(answer, facts):
     """The Checker: a list of problems with the Advisor's text (empty = it passes)."""
     problems = []
@@ -55,16 +48,15 @@ def check(answer, facts):
         problems.append("The text was too long.")
     if not answer.lower().startswith(facts["label"].lower()):
         problems.append(f"The text did not begin with the Analyst's verdict, \"{facts['label']}\".")
-    if re.search(r"https?://|www\.", answer, re.I):
+    if has_link(answer):
         problems.append("The text contained a web link.")
-    if ACTION_CLAIM.search(answer):
+    if claims_action(answer):
         problems.append("The text claimed an action; the Advisor can only explain.")
-    if _leaks(answer):
+    if repeats_instructions(SYSTEM, answer):
         problems.append("The text repeated the instructions it was given.")
     if not DECISION.search(answer):
         problems.append("The text did not say the decision is the student's.")
-    allowed = set(re.findall(r"\d+(?:\.\d+)?", json.dumps(facts)))
-    extra = sorted(n for n in set(re.findall(r"\d+(?:\.\d+)?", answer)) if n not in allowed)
+    extra = unsupported_numbers(answer, json.dumps(facts))
     if extra:
         problems.append("The text used numbers that are not in the facts: " + ", ".join(extra) + ".")
     return problems

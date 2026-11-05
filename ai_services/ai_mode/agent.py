@@ -12,7 +12,9 @@ import json
 import re
 import time
 
-from ai_services.rag.answer import NOT_ENOUGH, WINDOW, MAX_ANSWER, clean
+from ai_services.checks import (
+    MAX_ANSWER, NOT_ENOUGH, claims_action, clean, has_link, repeats_instructions, unsupported_numbers,
+)
 from ai_services.llm import LLMError
 from ai_services.tools.registry import call_tool, tool_specs
 
@@ -21,11 +23,6 @@ MAX_CALLS = 6
 MAX_TOOL_CHARS = 6000
 DEADLINE_SECONDS = 150
 PERSONAL = re.compile(r"\b(my|me|mine|myself|i|i'm|i've|i'd|i'll|am i|do i|can i|should i)\b", re.I)
-ACTION_CLAIM = re.compile(
-    r"\b(i(?: have|'ve)?|we(?: have|'ve)?)\s+(?:just\s+)?(enrolled|added|removed|withdrawn|withdrew|swapped|changed|moved|dropped|updated|saved|"
-    r"planned|chose|chosen|confirmed|cancelled|deleted|registered)\b|\byou(?:'ve| have)? been (?:enrolled|added|removed|withdrawn|moved)\b",
-    re.I,
-)
 SYSTEM = (
     "You help a student inside an enrolment demonstration (a UTS-style prototype). You can look things up with the tools provided.\n"
     "Rules:\n"
@@ -45,12 +42,6 @@ def is_personal(question):
     return bool(PERSONAL.search(question or ""))
 
 
-def _leaks_instructions(answer):
-    system = re.findall(r"[a-z0-9']+", SYSTEM.lower())
-    text = " " + " ".join(re.findall(r"[a-z0-9']+", answer.lower())) + " "
-    return any(" " + " ".join(system[i:i + WINDOW]) + " " in text for i in range(len(system) - WINDOW + 1))
-
-
 def check_agent_answer(answer, ran, results_text, question):
     """Problems with a written answer (empty list = it passes). `ran` is the set of tool names that ran successfully."""
     problems = []
@@ -63,15 +54,14 @@ def check_agent_answer(answer, ran, results_text, question):
         problems.append("The answer did not name a tool it used.")
     if any(n not in ran for n in named):
         problems.append("The answer named a tool that did not run.")
-    if re.search(r"https?://|www\.", answer, re.I):
+    if has_link(answer):
         problems.append("The answer contained a web link.")
-    if ACTION_CLAIM.search(answer):
+    if claims_action(answer):
         problems.append("The answer claimed an action; the AI can only look things up.")
-    if _leaks_instructions(answer):
+    if repeats_instructions(SYSTEM, answer):
         problems.append("The answer repeated the instructions it was given.")
     body = re.sub(r"\[[a-z_]+\]", " ", answer)
-    allowed = set(re.findall(r"\d+(?:\.\d+)?", results_text + " " + question))
-    extra = sorted(n for n in set(re.findall(r"\d+(?:\.\d+)?", body)) if n not in allowed)
+    extra = unsupported_numbers(body, results_text + " " + question)
     if extra:
         problems.append("The answer used numbers that no tool returned: " + ", ".join(extra) + ".")
     return problems

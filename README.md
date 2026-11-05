@@ -1,66 +1,89 @@
 # Enrolment Hub
 
-[![CI](https://github.com/AlexChoi2004/enrolment-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/AlexChoi2004/enrolment-hub/actions/workflows/ci.yml)
+A server-rendered enrolment and degree-planning web app for one degree, the **Bachelor of Computing Science (Honours)**, with
+local AI helpers that explain things but never decide them. It uses **synthetic students only** and handbook-style subject data,
+and is an independent learning project, not affiliated with or connected to any university system.
 
-A small enrolment and degree-planning prototype for one course: Bachelor of Computing Science
-(Honours), Enterprise Software Development major. Built with Flask, SQLite and HTMX.
+All results, marks, class times, due weeks and students are simulated. Subject details and prerequisites follow the public UTS
+Handbook, which says its own pages are indicative.
 
-It is an independent educational project, **not an official university system**. All students
-are synthetic. Subject codes, names, credit points, categories and prerequisite rules are
-supplied reference data (not independently verified); session offerings and general electives
-are invented examples.
-
-## What it does so far
-
-- **Subject catalogue:** search by name or code; filter by category, session and prerequisites;
-  expandable details; colour-coded categories with the requirement stated under each heading
-- **Accounts:** create an account (`firstname.lastname@student.uni.edu.au`, with password rules and
-  clear error messages) or log in; salted password hashing, lockout after repeated failures,
-  CSRF protection, safe redirects, strict security headers
-- **My record:** a synthetic demo student two years into the degree; a student can only view
-  their own record (enforced on the server)
-
-Planned: prerequisite and eligibility checks on enrolment, a degree progress planner, a basic
-timetable with clash detection, and optional RAG/MCP features.
+## What it does
+- **Plan a degree:** choose a major and a sub-major (or general electives), enrol, plan up to ten sessions ahead, and pick classes in a timetable.
+- **Enforce the rules:** prerequisites, session offerings, a 24 credit point limit, failed subjects and retakes, with the reason shown whenever something is blocked.
+- **Advise on swaps:** changing major, sub-major or electives is never blocked, but you see what carries over, the extra time and a verdict first, and a risky swap needs your own confirmation.
+- **Test quickly:** a semester simulator (complete, roll back, reset) and four starting points, from a first-year student to one late in their major.
+- **Ask questions (AI mode, off by default):** cited answers about rules and subjects, answers about your own plan from read-only tools, and a three-role swap advisor. The code decides and the AI explains; every AI answer is checked by code first.
 
 ## Run it
-
 ```bash
 python -m venv .venv
-source .venv/Scripts/activate      # Mac/Linux: source .venv/bin/activate
+.venv\Scripts\activate            # Windows (Git Bash: source .venv/Scripts/activate)
 pip install -r requirements.txt
-python app.py                      # http://127.0.0.1:5000
+python app.py                     # http://127.0.0.1:5000
 ```
+Demo login: `john.doe@student.uni.edu.au` / `Johndoe#1` (the one simulated student; there is no public sign-up).
+Delete `enrolment_hub.db` to start from a fresh database.
 
-Demo login (synthetic student, two years into the degree): `john.doe@student.uni.edu.au` / `Johndoe#1`.
-Or click **Create an account** to start as a new Year 1 student with nothing enrolled.
+**AI mode** needs a local model: install [Ollama](https://ollama.com), run `ollama pull qwen3:14b`, then turn **AI mode** on in the top right.
+Without a model the app still works and shows the relevant sources instead of a written answer.
 
-Optional settings (environment variables): `SECRET_KEY` (stable session key; a random one is
-generated if unset), `SESSION_COOKIE_SECURE=1` (when serving over HTTPS), `DATABASE_PATH`.
+| Setting (environment variable) | Default | What it does |
+|---|---|---|
+| `DEMO_PROFILE` | `fresh` | Starting point of the demo student: `fresh`, `sample`, `late` or `failed` |
+| `ALLOW_REGISTRATION` | off | Set to `1` to allow creating accounts (development only) |
+| `AI_BACKEND` | `ollama` | `ollama` or `off` |
+| `OLLAMA_URL`, `OLLAMA_MODEL` | `http://127.0.0.1:11434`, `qwen3:14b` | Where the model runs and which one |
 
-Reset the demo data: `flask --app app reset-demo`
-
-## Test
-
+## Check it
 ```bash
-python -m pytest -q
+pip install -r requirements-dev.txt
+python -m pytest -q -n auto                    # the whole suite
+ruff check --select S --exclude tests .        # security lint, also run in CI
 ```
 
-Tests run automatically on every push and pull request (GitHub Actions).
+## How it is laid out
+One Flask app, one SQLite file, one folder per feature. Each feature folder holds its own routes (the web front door), service (the rules),
+schema and seed data, and templates (the pages).
 
-## Layout
+```
+app.py              starts the app and registers every feature
+shared/             database, security (CSRF, headers), base page and styles
+features/           one folder per product feature
+ai_services/        the AI helpers and what they share
+tests/              mirrors features/ and ai_services/
+docs/               evidence, security, ethics, architecture and release notes
+```
 
-app.py app factory and configuration
-accounts/ login, password hashing, lockout
-subject_catalogue/ catalogue pages, search and filters
-enrolment/ student records
-shared/ database helpers, security helpers, base template, CSS
-tests/ one folder per feature
-docs/ ethics, security and evidence notes
+| Feature (`features/`) | What it does |
+|---|---|
+| `accounts` | Login, profile, sessions and the simulated demo student |
+| `subject_catalogue` | Subjects, majors and sub-majors, handbook prerequisites and assessments, filters |
+| `enrolment` | Enrol and withdraw, eligibility rules, results and attempts, the demo starting points |
+| `degree_planner` | The planning window, suggested plans, retakes and rescheduling |
+| `timetable` | Class choices and clash detection |
+| `majors` | Choose or swap a major, with an impact preview |
+| `submajors` | Choose or swap a sub-major or general electives, and count subjects as electives |
+| `advisor` | Swap advice: progress, what carries over, extra time, a verdict (rules in code) |
+| `transcript` | The Results page |
+| `simulator` | Complete a semester, roll it back, reset to a starting point |
+| `workload` | Assessment load, due weeks and session workload verdicts |
+| `guide` | The Help page |
 
+| AI service (`ai_services/`) | What it does |
+|---|---|
+| `rag` | Cited answers from the app's own sources, or "Not enough context" |
+| `ai_mode` | The tool-using agent that answers questions about the signed-in student |
+| `multi_agent` | The swap advisor: an Analyst (code), an Advisor (the AI) and a Checker (code) |
+| `mcp_server` | Offers the read-only tools to another AI application over MCP |
+| `tools` | The ten read-only tools all of the above share |
+| `web` | The AI switch, the question box and the swap advisor pages |
+
+`ai_services/checks.py` holds the checks every AI answer passes, and `ai_services/llm.py` is the model adapter (Ollama, off, or test stand-ins).
 
 ## Docs
-
-- `docs/ETHICS.md`: data governance and responsible AI note (in progress)
-- `docs/SECURITY.md`: secure coding case study (in progress)
-- `docs/EVIDENCE_LOG.md`: development log
+- `docs/architecture/overview.md` how the pieces fit together, and how the plan changed
+- `docs/SECURITY.md` secure coding case study
+- `docs/ETHICS.md` data governance and responsible AI note
+- `docs/MCP.md` using the MCP server from Claude Desktop
+- `docs/EVIDENCE_LOG.md` hours, commits and what I actually did
+- `docs/release-0/README.md`, `docs/release-1/README.md` and `docs/release-2/README.md` what each release contains
