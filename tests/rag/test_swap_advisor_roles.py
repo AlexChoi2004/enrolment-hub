@@ -169,10 +169,10 @@ def model(monkeypatch):
 
 def test_the_advisor_button_appears_only_with_ai_mode_on(client, log_in):
     log_in()
-    assert "Ask the advisor about this swap" not in html(client, "/major/MAJ10053")
+    assert "Explain this swap" not in html(client, "/major/MAJ10053")
     turn_on(client)
     page = html(client, "/major/MAJ10053")
-    assert "Ask the advisor about this swap" in page and "Explain this swap" in page and "The decision stays with you" in page
+    assert "Explain this swap" in page and "The decision stays with you" in page
 
 
 @pytest.mark.parametrize("url", ["/major/MAJ10053", "/submajor/SMJ10157", "/submajor/electives"])
@@ -253,3 +253,66 @@ def test_the_advisors_text_is_escaped(client, log_in, monkeypatch):
     monkeypatch.setattr("rag.llm.get_llm", lambda config: FakeLLM("<script>alert(1)</script> " + GOOD))
     page = advise_page(client).get_data(as_text=True)
     assert "<script>alert(1)</script>" not in page
+
+
+# --- one box, not two ----------------------------------------------------------------------------------------------------------------------
+
+@pytest.mark.parametrize("url", ["/major/MAJ10053", "/submajor/SMJ10157", "/submajor/electives"])
+def test_the_advisor_lives_inside_the_swap_advice_box(client, log_in, url):
+    log_in()
+    turn_on(client)
+    page = html(client, url)
+    assert page.count('<section class="card advice advice-') == 1 and "advisor-panel" not in page and "Ask the advisor about this swap" not in page
+    box = page.split('<section class="card advice advice-', 1)[1].split("</section>", 1)[0]
+    assert "Explain this swap" in box and 'id="advisor-result"' in box
+
+
+def test_with_ai_mode_off_the_advice_box_is_complete_without_the_button(client, log_in):
+    log_in()
+    box = html(client, "/major/MAJ10053").split('<section class="card advice advice-', 1)[1].split("</section>", 1)[0]
+    assert "Swap advice: Possible, but it costs time" in box and "How this verdict is worked out" in box and "Explain this swap" not in box
+
+
+def test_a_student_with_nothing_done_gets_no_explain_button(client, register):
+    register()
+    client.post("/major/MAJ03519/choose", data={"csrf_token": token(client)})
+    turn_on(client)
+    page = html(client, "/major/MAJ10053")
+    assert "have not done anything that counts" in page and "Explain this swap" not in page
+
+
+def test_the_reasons_are_one_lead_sentence_not_a_repeated_list(client, log_in):
+    log_in()
+    page = html(client, "/major/MAJ03445")
+    assert '<p class="verdict-why">' in page and "Think carefully" in page
+    assert page.count("credit points you have done would stop counting") == 1
+
+
+def test_the_explanation_comes_first_and_is_shown_once(client, log_in, model):
+    log_in()
+    turn_on(client)
+    page = advise_page(client).get_data(as_text=True)
+    assert page.count(GOOD) == 1 and page.index(GOOD) < page.index("How the three roles produced this")
+    assert "Checked by code before showing" in page and '<details class="more">' in page
+
+
+def test_the_three_roles_are_collapsed_but_all_there(client, log_in, model):
+    log_in()
+    turn_on(client)
+    page = advise_page(client).get_data(as_text=True)
+    assert '<details class="more" open' not in page
+    assert all(f in page for f in ("1. Analyst", "2. Advisor", "3. Checker", "4. You"))
+    assert "Wrote the explanation above, using only the Analyst" in page
+
+
+def test_a_rejected_explanation_shows_a_short_notice_first(client, log_in, monkeypatch):
+    log_in()
+    turn_on(client)
+    monkeypatch.setattr("rag.llm.get_llm", lambda config: FakeLLM("Good to switch! 99 dollars."))
+    page = advise_page(client).get_data(as_text=True)
+    assert page.index("did not pass the Advisor") < page.index("How the three roles produced this") and "advisor-facts_only" in page
+
+
+def test_collapsible_parts_show_an_arrow_so_they_look_clickable(client):
+    css = client.get("/static/theme.css").get_data(as_text=True)
+    assert ".advice details > summary::before" in css and "cursor: pointer; color: var(--accent)" in css

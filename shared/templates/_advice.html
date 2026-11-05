@@ -6,7 +6,7 @@
 {% elif advice %}
 <section class="card advice advice-{{ advice.tier }}">
   <h2>Swap advice: {{ advice.label }}</h2>
-  <ul class="plain">{% for r in advice.reasons %}<li>{{ r }}</li>{% endfor %}</ul>
+  <p class="verdict-why">{{ advice.reasons|join(' ') }}</p>
   <ul class="plain">
     <li>You are <strong>{{ advice.progress.percent }}%</strong> through your degree ({{ advice.progress.counted_cp }} of {{ advice.progress.degree_cp }} credit points)
       and <strong>{{ advice.progress.major_percent }}%</strong> through your major.</li>
@@ -18,6 +18,19 @@
   </ul>
   {% for n in advice.notes %}<p class="notice">{{ n }}</p>{% endfor %}
   <p class="muted">{{ advice.tuition_note }}</p>
+  {% if g.user and g.user.ai_mode %}
+    <div class="advisor-box">
+      <form method="post" action="{{ url_for('ai.advise') }}" hx-post="{{ url_for('ai.advise') }}" hx-target="#advisor-result" hx-swap="innerHTML">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="kind" value="{{ advisor_kind }}">
+        <input type="hidden" name="code" value="{{ advisor_code or '' }}">
+        <input type="hidden" name="language" value="{{ advisor_language or '' }}">
+        <button type="submit" class="btn btn-secondary">Explain this swap</button>
+        <span class="hint">The AI explains it in plain English and code checks it. The decision stays with you.</span>
+      </form>
+      <div id="advisor-result" aria-live="polite"></div>
+    </div>
+  {% endif %}
   <details>
     <summary>How this verdict is worked out</summary>
     <p>It is calculated by fixed rules from your own record, not decided by an AI, and nothing is changed until you confirm. You make the final decision.</p>

@@ -44,8 +44,7 @@
   {% endif %}
 {% endfor %}
 
-{% include '_advice.html' %}
-{% set advisor_kind, advisor_code, advisor_language = 'submajor', sub.code, picked or '' %}{% include '_advisor_panel.html' %}
+{% set advisor_kind, advisor_code, advisor_language = 'submajor', sub.code, picked or '' %}{% include '_advice.html' %}
 {% if sub.overlap_count %}
   <p class="notice">
     {{ sub.overlap_count }} subject(s) here are also in your major. A subject counts once, in your major, so it won't

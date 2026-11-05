@@ -15,8 +15,7 @@
   </tbody>
 </table>
 
-{% include '_advice.html' %}
-{% set advisor_kind, advisor_code, advisor_language = 'electives', '', '' %}{% include '_advisor_panel.html' %}
+{% set advisor_kind, advisor_code, advisor_language = 'electives', '', '' %}{% include '_advice.html' %}
 {% if options.impact.lost or options.impact.plan_removed %}
   <div class="flash flash-warning">
     {% if options.impact.lost %}

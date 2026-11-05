@@ -1,25 +1,34 @@
-<div class="card advisor-trace advisor-{{ result.status }}">
+<div class="advisor-trace advisor-{{ result.status }}">
   {% if result.status == 'refused' %}
     <p class="notice">{{ result.message }}</p>
   {% else %}
-    <h4>1. Analyst <span class="muted">(rules in code)</span></h4>
-    <p><strong>{{ result.facts.label }}.</strong> {{ result.facts.reasons|join(' ') }}</p>
-    <details><summary>Show the facts</summary><pre>{{ result.facts|tojson(indent=1) }}</pre></details>
-    <h4>2. Advisor <span class="muted">(the AI model)</span></h4>
     {% if result.status == 'advised' %}
-      <p>{{ result.advice }}</p>
+      <div class="answer-text"><p>{{ result.advice }}</p></div>
+      <p class="answer-foot">&#10003; Checked by code before showing. The decision is yours.</p>
     {% else %}
       <p class="notice">{{ result.message }}</p>
     {% endif %}
-    <h4>3. Checker <span class="muted">(code)</span></h4>
-    {% if result.status == 'advised' %}
-      <p>Passed: the explanation begins with the Analyst's verdict, every number comes from the facts, it has no links, it claims no action, and it says the decision is yours.</p>
-    {% elif result.checks %}
-      <ul class="plain">{% for c in result.checks %}<li class="unmet">{{ c }}</li>{% endfor %}</ul>
-    {% else %}
-      <p class="muted">There was no explanation to check.</p>
-    {% endif %}
-    <h4>4. You</h4>
-    <p>The AI cannot make this swap. Only you can, with the confirmation on this page.</p>
+    <details class="more">
+      <summary>How the three roles produced this</summary>
+      <h4>1. Analyst <span class="muted">(rules in code)</span></h4>
+      <p><strong>{{ result.facts.label }}.</strong> {{ result.facts.reasons|join(' ') }}</p>
+      <details><summary>Show the facts</summary><pre>{{ result.facts|tojson(indent=1) }}</pre></details>
+      <h4>2. Advisor <span class="muted">(the AI model)</span></h4>
+      {% if result.status == 'advised' %}
+        <p class="muted">Wrote the explanation above, using only the Analyst's facts.</p>
+      {% else %}
+        <p class="muted">{{ result.message }}</p>
+      {% endif %}
+      <h4>3. Checker <span class="muted">(code)</span></h4>
+      {% if result.status == 'advised' %}
+        <p>Passed: the explanation begins with the Analyst's verdict, every number comes from the facts, it has no links, it claims no action, and it says the decision is yours.</p>
+      {% elif result.checks %}
+        <ul class="plain">{% for c in result.checks %}<li class="unmet">{{ c }}</li>{% endfor %}</ul>
+      {% else %}
+        <p class="muted">There was no explanation to check.</p>
+      {% endif %}
+      <h4>4. You</h4>
+      <p>The AI cannot make this swap. Only you can, with the confirmation on this page.</p>
+    </details>
   {% endif %}
 </div>
