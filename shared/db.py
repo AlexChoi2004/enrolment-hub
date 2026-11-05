@@ -12,12 +12,12 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # Order matters: later schemas reference earlier tables.
 SCHEMA_FILES = [
-    ROOT / "subject_catalogue" / "schema.sql",
-    ROOT / "accounts" / "schema.sql",
-    ROOT / "enrolment" / "schema.sql",
-    ROOT / "timetable" / "schema.sql",
-    ROOT / "degree_planner" / "schema.sql",
-    ROOT / "rag" / "schema.sql",
+    ROOT / "features" / "subject_catalogue" / "schema.sql",
+    ROOT / "features" / "accounts" / "schema.sql",
+    ROOT / "features" / "enrolment" / "schema.sql",
+    ROOT / "features" / "timetable" / "schema.sql",
+    ROOT / "features" / "degree_planner" / "schema.sql",
+    ROOT / "ai_services" / "rag" / "schema.sql",
 ]
 
 
@@ -50,11 +50,11 @@ def init_schema(conn):
 
 def seed_db(conn, demo_profile="fresh"):
     # Imported here so each feature can add its own seeder in later chunks.
-    from accounts.seed import seed_accounts
-    from enrolment.seed import seed_enrolment
-    from rag.index import build_index
-    from subject_catalogue.seed import seed_catalogue
-    from timetable.seed import seed_timetable
+    from features.accounts.seed import seed_accounts
+    from features.enrolment.seed import seed_enrolment
+    from ai_services.rag.index import build_index
+    from features.subject_catalogue.seed import seed_catalogue
+    from features.timetable.seed import seed_timetable
 
     seed_catalogue(conn)
     seed_accounts(conn, demo_profile)

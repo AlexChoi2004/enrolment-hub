@@ -84,11 +84,15 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 | 2026-11-05 | 3 (dev tools) | Rebuilt the Help page into sections with a contents line, a starting points table generated from the presets, nine       | 1 HOUR | 0da7d40|
 |            |               | collapsible walkthroughs that each name their starting point, and a showcase list, and wrote a test that follows each    |        |        |
 |            |               | walkthrough through the app; 19 new tests; pushed straight to main, not through a pull request (see the notes below)     |        |        |
-| 2026-11-06 | 3 (dev tools) | Merged the swap advice box and the advisor box into one with the AI explanation inside it, changed the advisor to give a | 1 HOUR | PR #26 |
+| 2026-11-05 | 3 (dev tools) | Corrected the evidence log for the help page that was pushed to main directly, and recorded what went wrong and how it   | 10 MIN | PR #26 |
+|            |               |is now prevented                                                                                                          |        |        |
+| 2026-11-06 | 3 (dev tools) | Merged the swap advice box and the advisor box into one with the AI explanation inside it, changed the advisor to give a | 1 HOUR | PR #27 |
 |            |               | recommendation and things to weigh instead of repeating the facts, added a one-line rule-based reason for each verdict,  |        |        |
 |            |               | fixed collapsible sections that had lost their arrows, and made the header and simulation bar stay visible while         |        |        |
 |            |               | scrolling; 19 new tests                                                                                                  |        |        |
-
+| 2026-11-06 | 3 (dev tools) | Restructured the repository into features/ (one folder per feature) and ai_services/ (the four AI services from the plan | 1 HOUR | PR #28 |
+|            |               | plus their shared tools and model adapter), moved the tests to mirror it, and removed 24 empty placeholder files, using  |        |        |
+|            |               | a script that moves files with git so history is kept and changes no behaviour; 1769 tests still pass                    |        |        |
 
 ## Things that went wrong or changed
 
@@ -338,13 +342,25 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Decided to split the page into short sections with a contents line and keep the long steps collapsed, because the first version was one long page that was hard on the eyes
 - Fixed a label that said "Late in the major" when the preset is called "Late in the major (about 90% through)" by generating the labels from the presets
 
-### PR #26: Interface polish: one advice box, an advisor that advises, sticky bars
+### PR #26: Evidence log correction for the help page
+- Fixed the help page entry, which claimed PR #26 when the help page had actually gone straight to main (commit 0da7d40), by changing the last column to the commit and saying in the description that it was pushed directly
+- Fixed a rejected push to my docs branch by checking what was on GitHub first (one older commit that only touched the log) and replacing it with a forced push that refuses if the remote has changed, instead of pulling it into a conflict
+- Decided every evidence log row must name a real pull request or a commit, never a number I guessed, and to read the number off GitHub after opening the PR
+
+### PR #27: Interface polish: one advice box, an advisor that advises, sticky bars
 - Decided to keep the rules-based swap advice box as the main one and fold the AI explanation into it, after seeing in my own screenshot that the Analyst section repeated what the box above it already said and the Advisor said it a third time
 - Fixed the advisor repeating the facts: I had told it to explain the facts and the Checker only allows the facts' numbers, so restating them was all it could do; I changed its job to a recommendation, things to weigh and "are you sure?", and told it not to list the numbers again
 - Decided the line under the verdict names the rule that decided it, worked out by code from the same thresholds as the verdict, because the numbers were already in the list below and a rule is the one thing the list does not say
 - Decided to keep the three-role breakdown but collapse it, so the advice comes first and the evidence for how it was produced is one click away
 - Fixed collapsible sections that looked like plain text, because a style meant for the subject cards was hiding the disclosure arrows inside every card
 - Decided the header and the simulation bar share one sticky container so they never overlap, scroll away on small screens, and fixed anchor links and pop-ups that would have landed under them
+
+### PR #28: Repository restructure
+- Decided to group the code by feature and keep one app, not to split front end and back end folders, because the app is server-rendered and each feature's pages and logic belong together; the old README described a microservice design the code never had
+- Decided to do the move with a script that uses git mv and rewrites the imports, and to run the whole suite after it, instead of moving files by hand, so history is kept and nothing can be forgotten
+- Decided to split the move (no behaviour change) from the README and shared checks changes, so the first can be reviewed as pure renames
+- Fixed two tests that start the MCP server as a separate process: they worked out the project folder from their own location and broke when the tests moved one folder deeper, so the script now fixes that
+- Fixed the script after finding that undoing a run left empty cache folders in the new places, which would have made git move a folder inside another on the next run; it now clears those first
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.

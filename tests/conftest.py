@@ -3,7 +3,7 @@ import shutil
 
 import pytest
 
-from accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
+from features.accounts.seed import DEMO_EMAIL, DEMO_PASSWORD
 from app import create_app
 from shared import db
 
