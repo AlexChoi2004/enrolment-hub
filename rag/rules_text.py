@@ -90,8 +90,8 @@ RULES = [
      "offerings, clash-free classes, plan placement, subject details and swap advice), and the page shows what it looked at. The AI can only "
      "look things up: it can never enrol, withdraw, plan, move, swap or change anything. Every written answer is checked by code before it is "
      "shown, and if the check fails the facts are shown instead. On a swap page the advisor has three roles: an Analyst (code) gets the facts, "
-     "an Advisor (the AI) explains them, and a Checker (code) rejects an explanation that does not match; the student always makes the "
-     "decision."),
+     "an Advisor (the AI) gives a recommendation and things to weigh without repeating the numbers, and a Checker (code) rejects "
+     "advice that does not match the facts; the student always makes the decision."),
     ("rule:mcp", "The MCP server",
      "The ten read-only tools can also be offered to another AI application, such as Claude Desktop, through a local Model Context Protocol "
      "server. It is read-only, bound to one simulated student, works on a snapshot of the database that it cannot write back, talks only over "

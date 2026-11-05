@@ -84,6 +84,11 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 | 2026-11-05 | 3 (dev tools) | Rebuilt the Help page into sections with a contents line, a starting points table generated from the presets, nine       | 1 HOUR | 0da7d40|
 |            |               | collapsible walkthroughs that each name their starting point, and a showcase list, and wrote a test that follows each    |        |        |
 |            |               | walkthrough through the app; 19 new tests; pushed straight to main, not through a pull request (see the notes below)     |        |        |
+| 2026-11-06 | 3 (dev tools) | Merged the swap advice box and the advisor box into one with the AI explanation inside it, changed the advisor to give a | 1 HOUR | PR #26 |
+|            |               | recommendation and things to weigh instead of repeating the facts, added a one-line rule-based reason for each verdict,  |        |        |
+|            |               | fixed collapsible sections that had lost their arrows, and made the header and simulation bar stay visible while         |        |        |
+|            |               | scrolling; 19 new tests                                                                                                  |        |        |
+
 
 ## Things that went wrong or changed
 
@@ -332,6 +337,14 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Decided each walkthrough names the starting point to reset to first, so a tester reaches the situation in one step, after the idea that the preloaded data should make testing more efficient
 - Decided to split the page into short sections with a contents line and keep the long steps collapsed, because the first version was one long page that was hard on the eyes
 - Fixed a label that said "Late in the major" when the preset is called "Late in the major (about 90% through)" by generating the labels from the presets
+
+### PR #26: Interface polish: one advice box, an advisor that advises, sticky bars
+- Decided to keep the rules-based swap advice box as the main one and fold the AI explanation into it, after seeing in my own screenshot that the Analyst section repeated what the box above it already said and the Advisor said it a third time
+- Fixed the advisor repeating the facts: I had told it to explain the facts and the Checker only allows the facts' numbers, so restating them was all it could do; I changed its job to a recommendation, things to weigh and "are you sure?", and told it not to list the numbers again
+- Decided the line under the verdict names the rule that decided it, worked out by code from the same thresholds as the verdict, because the numbers were already in the list below and a rule is the one thing the list does not say
+- Decided to keep the three-role breakdown but collapse it, so the advice comes first and the evidence for how it was produced is one click away
+- Fixed collapsible sections that looked like plain text, because a style meant for the subject cards was hiding the disclosure arrows inside every card
+- Decided the header and the simulation bar share one sticky container so they never overlap, scroll away on small screens, and fixed anchor links and pop-ups that would have landed under them
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.

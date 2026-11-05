@@ -159,7 +159,7 @@ def assess(conn, user_id, kind, code=None, language=None, elective_codes=()):
     extra_sessions = max(0, sessions_after - sessions_before)
     extra_subjects = math.ceil(extra_cp / 6)
 
-    reasons = []
+    reasons, triggers = [], []  # reasons: the facts behind the verdict; triggers: the RULES that decided it
     if extra_cp <= GOOD_MAX_EXTRA_CP:
         tier = "good"
         if extra_cp == 0:
@@ -172,15 +172,33 @@ def assess(conn, user_id, kind, code=None, language=None, elective_codes=()):
         if extra_sessions >= THINK_EXTRA_SESSIONS or extra_cp >= THINK_EXTRA_CP:
             tier = "think"
             reasons.append(f"That is about {extra_subjects} extra subjects and {extra_sessions} extra session(s) of study.")
+            if extra_sessions >= THINK_EXTRA_SESSIONS:
+                triggers.append(f"it needs {THINK_EXTRA_SESSIONS} or more extra sessions")
+            if extra_cp >= THINK_EXTRA_CP:
+                triggers.append(f"{THINK_EXTRA_CP} or more credit points would stop counting")
         if kind == "major" and major_progress >= THINK_MAJOR_PROGRESS and carry_share < THINK_MAX_CARRY_SHARE:
             tier = "think"
             reasons.append(
                 f"You are {round(major_progress * 100)}% through your current major and only {round(carry_share * 100)}% "
                 "of what you have done carries over."
             )
-    if any("can't be planned" in n or "Only " in n for n in notes):
+            triggers.append(f"you are {round(THINK_MAJOR_PROGRESS * 100)}% or more through your major with under "
+                            f"{round(THINK_MAX_CARRY_SHARE * 100)}% carrying over")
+    unfinishable = any("can't be planned" in n or "Only " in n for n in notes)
+    if unfinishable:
         tier = tier if tier != "good" else "costs_time"
         reasons.append("Some of its requirements can't be completed from your current degree (see the notes below).")
+    # The one-line "why this verdict": the rule that applied. It says what the numbers below do NOT: which line they crossed.
+    if tier == "good":
+        why = ("Because everything you have done still counts." if extra_cp == 0
+               else f"Because at most one subject ({GOOD_MAX_EXTRA_CP} credit points) would stop counting.")
+    elif tier == "costs_time" and unfinishable and extra_cp <= GOOD_MAX_EXTRA_CP:
+        why = "Because some of its requirements can't be completed from your current degree (see the notes below)."
+    elif tier == "costs_time":
+        why = (f"Because more than one subject ({GOOD_MAX_EXTRA_CP} credit points) would stop counting, but not enough to be a serious setback "
+               f"({THINK_EXTRA_SESSIONS} extra sessions or {THINK_EXTRA_CP} credit points).")
+    else:
+        why = "Because " + " and ".join(triggers) + "."
 
     needs_ack = tier != "good"
     ack = (f"I understand this adds about {extra_subjects} extra subject(s) and moves my graduation back by "
@@ -199,7 +217,7 @@ def assess(conn, user_id, kind, code=None, language=None, elective_codes=()):
         "graduate_before": session_after(current, sessions_before),
         "graduate_after": session_after(current, sessions_after),
         "electives_offer": offer, "counted_as_electives": list(elective_codes),
-        "reasons": reasons, "notes": notes, "needs_ack": needs_ack, "ack_text": ack,
+        "reasons": reasons, "why": why, "notes": notes, "needs_ack": needs_ack, "ack_text": ack,
         "tuition_note": "Extra subjects mean extra tuition (HECS or otherwise). The app does not know your fees, so no dollar amount is shown.",
         "rules": [
             f"Good to switch: {GOOD_MAX_EXTRA_CP} credit points (one subject) or fewer would stop counting.",

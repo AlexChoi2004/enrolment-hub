@@ -337,3 +337,24 @@ a.btn.btn-danger, a.btn.btn-danger:visited { color: var(--bad); }
                     font-size: .75rem; font-weight: 500; }
 .walkthrough ol { margin: .3rem 0 .5rem; padding-left: 1.3rem; }
 .walkthrough .see { background: #f5faf6; border-left: 4px solid #15803d; padding: .5rem .8rem; border-radius: 4px; margin: .4rem 0 .7rem; }
+
+/* One swap advice box: a lead sentence, the facts, and the AI explanation inside it; collapsible parts look clickable again */
+.verdict-why { margin: .2rem 0 .6rem; font-size: 1.02rem; }
+.advice details > summary, .advisor-trace details > summary { display: block; cursor: pointer; color: var(--accent); list-style: none; margin: .3rem 0; }
+.advice details > summary::-webkit-details-marker, .advisor-trace details > summary::-webkit-details-marker { display: none; }
+.advice details > summary::before, .advisor-trace details > summary::before { content: "\25B8  "; }
+.advice details[open] > summary::before, .advisor-trace details[open] > summary::before { content: "\25BE  "; }
+.advisor-box { margin: .9rem 0 .5rem; padding-top: .8rem; border-top: 1px solid var(--border); }
+.advisor-box form { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.advisor-box .hint { color: var(--muted); font-size: .85rem; }
+.advisor-trace { margin-top: .8rem; padding: .7rem .9rem; border-left: 4px solid #15803d; background: #f8faf9; border-radius: 8px; }
+.advisor-facts_only, .advisor-unavailable, .advisor-refused { border-left-color: #c2570c; background: #fffaf2; }
+.advisor-trace h4 { margin: .8rem 0 .2rem; font-size: .92rem; }
+.advisor-trace pre { white-space: pre-wrap; background: #f1f3f7; padding: .5rem; border-radius: 6px; font-size: .8rem; max-height: 14rem; overflow: auto; }
+
+/* The header and the simulation bar stay visible however far you scroll */
+.sticky-top { position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(20, 30, 50, .08); }
+html { scroll-padding-top: 7rem; }
+.guide-section { scroll-margin-top: 7rem; }
+.toasts { top: 7rem; }
+@media (max-width: 700px) { .sticky-top { position: static; box-shadow: none; } html { scroll-padding-top: 0; } .toasts { top: 1rem; } }

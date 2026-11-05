@@ -169,10 +169,10 @@ def model(monkeypatch):
 
 def test_the_advisor_button_appears_only_with_ai_mode_on(client, log_in):
     log_in()
-    assert "Ask the advisor about this swap" not in html(client, "/major/MAJ10053")
+    assert "Explain this swap" not in html(client, "/major/MAJ10053")
     turn_on(client)
     page = html(client, "/major/MAJ10053")
-    assert "Ask the advisor about this swap" in page and "Explain this swap" in page and "The decision stays with you" in page
+    assert "Explain this swap" in page and "The decision stays with you" in page
 
 
 @pytest.mark.parametrize("url", ["/major/MAJ10053", "/submajor/SMJ10157", "/submajor/electives"])
@@ -253,3 +253,142 @@ def test_the_advisors_text_is_escaped(client, log_in, monkeypatch):
     monkeypatch.setattr("rag.llm.get_llm", lambda config: FakeLLM("<script>alert(1)</script> " + GOOD))
     page = advise_page(client).get_data(as_text=True)
     assert "<script>alert(1)</script>" not in page
+
+
+# --- one box, not two ----------------------------------------------------------------------------------------------------------------------
+
+@pytest.mark.parametrize("url", ["/major/MAJ10053", "/submajor/SMJ10157", "/submajor/electives"])
+def test_the_advisor_lives_inside_the_swap_advice_box(client, log_in, url):
+    log_in()
+    turn_on(client)
+    page = html(client, url)
+    assert page.count('<section class="card advice advice-') == 1 and "advisor-panel" not in page and "Ask the advisor about this swap" not in page
+    box = page.split('<section class="card advice advice-', 1)[1].split("</section>", 1)[0]
+    assert "Explain this swap" in box and 'id="advisor-result"' in box
+
+
+def test_with_ai_mode_off_the_advice_box_is_complete_without_the_button(client, log_in):
+    log_in()
+    box = html(client, "/major/MAJ10053").split('<section class="card advice advice-', 1)[1].split("</section>", 1)[0]
+    assert "Swap advice: Possible, but it costs time" in box and "How this verdict is worked out" in box and "Explain this swap" not in box
+
+
+def test_a_student_with_nothing_done_gets_no_explain_button(client, register):
+    register()
+    client.post("/major/MAJ03519/choose", data={"csrf_token": token(client)})
+    turn_on(client)
+    page = html(client, "/major/MAJ10053")
+    assert "have not done anything that counts" in page and "Explain this swap" not in page
+
+
+def test_the_box_gives_the_rule_that_decided_the_verdict_not_a_repeat_of_the_numbers(client, log_in):
+    log_in()
+    page = html(client, "/major/MAJ03445")
+    assert '<p class="verdict-why">Because it needs 2 or more extra sessions.</p>' in page
+    assert "That is about" not in page and "credit points you have done would stop counting" not in page  # said once, in the facts list
+
+
+def test_the_explanation_comes_first_and_is_shown_once(client, log_in, model):
+    log_in()
+    turn_on(client)
+    page = advise_page(client).get_data(as_text=True)
+    assert page.count(GOOD) == 1 and page.index(GOOD) < page.index("How the three roles produced this")
+    assert "Checked by code before showing" in page and '<details class="more">' in page
+
+
+def test_the_three_roles_are_collapsed_but_all_there(client, log_in, model):
+    log_in()
+    turn_on(client)
+    page = advise_page(client).get_data(as_text=True)
+    assert '<details class="more" open' not in page
+    assert all(f in page for f in ("1. Analyst", "2. Advisor", "3. Checker", "4. You"))
+    assert "Wrote the explanation above, using only the Analyst" in page
+
+
+def test_a_rejected_explanation_shows_a_short_notice_first(client, log_in, monkeypatch):
+    log_in()
+    turn_on(client)
+    monkeypatch.setattr("rag.llm.get_llm", lambda config: FakeLLM("Good to switch! 99 dollars."))
+    page = advise_page(client).get_data(as_text=True)
+    assert page.index("did not pass the Advisor") < page.index("How the three roles produced this") and "advisor-facts_only" in page
+
+
+def test_collapsible_parts_show_an_arrow_so_they_look_clickable(client):
+    css = client.get("/static/theme.css").get_data(as_text=True)
+    assert ".advice details > summary::before" in css and "cursor: pointer; color: var(--accent)" in css
+
+
+# --- the Advisor advises instead of reading the numbers back ----------------------------------------------------------------------------
+
+def test_the_advisor_is_told_to_recommend_and_to_ask_whether_they_are_sure():
+    assert "do not list them again" in SYSTEM and "recommendation" in SYSTEM and "things to weigh" in SYSTEM
+    assert "starting with '- '" in SYSTEM and "asking whether they are sure" in SYSTEM and "the decision is the student's" in SYSTEM
+
+
+def test_the_advisor_is_given_the_rule_that_decided_the_verdict(conn):
+    model = FakeLLM(GOOD)
+    advise(conn, 1, "major", "MAJ10053", None, model)
+    assert '"why": "Because more than one subject (6 credit points) would stop counting' in model.calls[0][1]
+
+
+ADVICE = ("Possible, but it costs time. Swapping is sensible if you really prefer the new major, because most of your work carries over.\n"
+          "Things to weigh:\n- Is the new major worth about a year longer?\n- Do the subjects you would lose matter to you?\n"
+          "Are you sure? Extra subjects mean extra tuition. The decision is yours.")
+
+
+def test_a_recommendation_with_a_list_passes_the_checker(conn):
+    result = advise(conn, 1, "major", "MAJ10053", None, FakeLLM(ADVICE))
+    assert result["status"] == "advised" and result["checks"] == []
+
+
+def test_the_recommendation_is_shown_with_its_list(client, log_in, monkeypatch):
+    log_in()
+    turn_on(client)
+    monkeypatch.setattr("rag.llm.get_llm", lambda config: FakeLLM(ADVICE))
+    page = advise_page(client).get_data(as_text=True)
+    assert "<ul><li>Is the new major worth about a year longer?</li><li>Do the subjects you would lose matter to you?</li></ul>" in page
+    assert "Are you sure? Extra subjects mean extra tuition. The decision is yours." in page
+
+
+# --- the verdict's one-line reason -------------------------------------------------------------------------------------------------------------
+
+def test_the_verdict_says_which_rule_decided_it(conn):
+    from advisor.service import assess
+
+    assert assess(conn, 1, "major", "MAJ03519")["why"] == "Because everything you have done still counts."
+    assert assess(conn, 1, "major", "MAJ10053")["why"].startswith("Because more than one subject (6 credit points) would stop counting, but not enough")
+    assert assess(conn, 1, "major", "MAJ03445")["why"] == "Because it needs 2 or more extra sessions."  # 30 credit points lost: under the 36 line
+
+
+def test_the_late_preset_names_the_major_progress_rule_too(tmp_path):
+    from advisor.service import assess
+
+    path = tmp_path / "late.db"
+    db.build_database(str(path), demo_profile="late")
+    c = db.connect(str(path))
+    why = assess(c, 1, "major", "MAJ03445")["why"]
+    assert why.startswith("Because ") and why.endswith(".") and "36 or more credit points would stop counting" in why
+    c.close()
+
+
+# --- the bars stay put ---------------------------------------------------------------------------------------------------------------------------------
+
+def test_the_header_and_simulation_bar_share_one_sticky_container(client, log_in):
+    log_in()
+    page = html(client, "/planner")
+    top = page.split('<div class="sticky-top">', 1)[1].split("<main", 1)[0]
+    assert '<header class="site-header">' in top and 'class="demo-bar"' in top and top.count("</header>") == 1
+    assert page.index('class="sticky-top"') < page.index("<main")
+
+
+def test_visitors_get_the_sticky_header_without_the_bar(client):
+    page = html(client, "/login")
+    top = page.split('<div class="sticky-top">', 1)[1].split("<main", 1)[0]
+    assert "site-header" in top and "demo-bar" not in top
+
+
+def test_the_sticky_styles_keep_the_bars_on_top_and_clear_of_anchors(client):
+    css = client.get("/static/theme.css").get_data(as_text=True)
+    assert ".sticky-top { position: sticky; top: 0; z-index: 100;" in css
+    assert "html { scroll-padding-top: 7rem; }" in css and ".guide-section { scroll-margin-top: 7rem; }" in css
+    assert "@media (max-width: 700px) { .sticky-top { position: static;" in css  # on a small screen the bars scroll away instead of filling it
