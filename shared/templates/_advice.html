@@ -6,7 +6,7 @@
 {% elif advice %}
 <section class="card advice advice-{{ advice.tier }}">
   <h2>Swap advice: {{ advice.label }}</h2>
-  <p class="verdict-why">{{ advice.reasons|join(' ') }}</p>
+  <p class="verdict-why">{{ advice.why }}</p>
   <ul class="plain">
     <li>You are <strong>{{ advice.progress.percent }}%</strong> through your degree ({{ advice.progress.counted_cp }} of {{ advice.progress.degree_cp }} credit points)
       and <strong>{{ advice.progress.major_percent }}%</strong> through your major.</li>
@@ -26,7 +26,7 @@
         <input type="hidden" name="code" value="{{ advisor_code or '' }}">
         <input type="hidden" name="language" value="{{ advisor_language or '' }}">
         <button type="submit" class="btn btn-secondary">Explain this swap</button>
-        <span class="hint">The AI explains it in plain English and code checks it. The decision stays with you.</span>
+        <span class="hint">The AI gives a recommendation and what to weigh, and code checks it. The decision stays with you.</span>
       </form>
       <div id="advisor-result" aria-live="polite"></div>
     </div>

@@ -3,7 +3,12 @@
     <p class="notice">{{ result.message }}</p>
   {% else %}
     {% if result.status == 'advised' %}
-      <div class="answer-text"><p>{{ result.advice }}</p></div>
+      <div class="answer-text">
+        {% for block in result.advice|answer_blocks %}
+          {% if block.kind == 'ul' %}<ul>{% for item in block['items'] %}<li>{{ item }}</li>{% endfor %}</ul>
+          {% else %}<p>{{ block.text }}</p>{% endif %}
+        {% endfor %}
+      </div>
       <p class="answer-foot">&#10003; Checked by code before showing. The decision is yours.</p>
     {% else %}
       <p class="notice">{{ result.message }}</p>

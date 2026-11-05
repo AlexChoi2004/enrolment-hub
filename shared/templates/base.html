@@ -10,6 +10,7 @@
   <script src="{{ url_for('shared.static', filename='keep-scroll.js') }}" defer></script>
 </head>
 <body>
+  <div class="sticky-top">
   <header class="site-header">
     <a class="brand" href="{{ url_for('index') }}">Enrolment Hub</a>
     <nav class="nav-main">
@@ -52,6 +53,7 @@
       </span>
     </div>
   {% endif %}
+  </div>
   <main class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}

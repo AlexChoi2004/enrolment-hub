@@ -195,7 +195,7 @@ def get_swap_advice(conn, user_id, kind, code=None, language=None):
     advice = assess(conn, user_id, kind, code, language)
     if advice is None:
         raise ToolError("That major or sub-major does not exist.")
-    out = {k: advice[k] for k in ("target", "label", "first_choice", "reasons", "progress", "carried_cp", "carry_percent", "lost_cp",
+    out = {k: advice[k] for k in ("target", "label", "first_choice", "why", "reasons", "progress", "carried_cp", "carry_percent", "lost_cp",
                                    "extra_subjects", "extra_sessions", "graduate_before", "graduate_after",
                                    "notes", "tuition_note", "needs_ack", "electives_offer")}
     if advice["first_choice"]:
