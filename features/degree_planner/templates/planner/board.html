@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Planner board · Enrolment Hub{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('shared.static', filename='dist/board.css') }}">
+{% endblock %}
+{% block content %}
+<h1>Planner board</h1>
+<p class="page-actions"><a class="btn btn-secondary" href="{{ url_for('planner.page') }}">Classic planner</a></p>
+{# The board is built by React and TypeScript (frontend/). This plain version is what you see without JavaScript, and until it loads. #}
+<div id="board-root" data-board-endpoint="{{ url_for('planner_api.board') }}" data-move-endpoint="{{ url_for('planner_api.move') }}" data-csrf="{{ csrf_token() }}">
+  <p class="muted">Your plan, session by session. The drag-and-drop board needs JavaScript; use the <a href="{{ url_for('planner.page') }}">classic planner</a> to change your plan without it.</p>
+  {% for column in board.columns if column.cards %}
+    <section class="card" aria-label="{{ column.label }}">
+      <h2>{{ column.label }}{% if column.current %} (current){% endif %} <span class="muted">{{ column.load_cp }} of {{ column.capacity_cp }} cp</span></h2>
+      <ul class="plain">{% for card in column.cards %}<li>{{ card.code }} {{ card.name }} ({{ card.credit_points }} cp){% if card.state == 'enrolled' %}, enrolled{% endif %}</li>{% endfor %}</ul>
+    </section>
+  {% endfor %}
+</div>
+<script type="module" src="{{ url_for('shared.static', filename='dist/board.js') }}"></script>
+{% endblock %}

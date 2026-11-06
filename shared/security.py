@@ -23,11 +23,16 @@ def csrf_token():
     return token
 
 
-def require_csrf():
-    """Abort with 400 unless the request carries this session's CSRF token."""
+def csrf_valid():
+    """True only if the request carries this session's CSRF token (as a form field or an X-CSRF-Token header)."""
     expected = session.get(CSRF_SESSION_KEY, "")
     supplied = request.form.get("csrf_token") or request.headers.get("X-CSRF-Token") or ""
-    if not expected or not hmac.compare_digest(expected.encode(), supplied.encode()):
+    return bool(expected) and hmac.compare_digest(expected.encode(), supplied.encode())
+
+
+def require_csrf():
+    """Abort with 400 unless the request carries this session's CSRF token."""
+    if not csrf_valid():
         abort(400, description="Invalid or missing CSRF token.")
 
 

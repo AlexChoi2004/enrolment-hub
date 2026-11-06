@@ -103,6 +103,11 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 |            |               | JSON endpoint from the existing services, a strict typed contract checked from both sides with fixtures from the real    |        |        |
 |            |               | server data, an accessible bundle committed so Node is not needed to run the app, and CI for type-checking, tests, an    |        |        |
 |            |               | end-to-end render check, CodeQL, Dependabot and npm audit; 62 new Python tests and 65 frontend tests                     |        |        |
+| 2026-11-06 | 3 (dev tools) | Fixed the planner board after testing it myself: made the board a fixed height with columns that scroll on their own,    | 2 HOUR | PR #32 |
+|            |               | added edge auto-scroll while dragging, a filter, a category menu and requirement groups with choose-N-more hints, and    |        |        |
+|            |               | put the missing elective subjects on the board, with the planner still deciding every move; 16 new Python tests and      |        |        |
+|            |               | 27 new frontend tests                                                                                                    |        |        |
+
 
 ## Things that went wrong or changed
 
@@ -385,7 +390,7 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Decided the toggle logic is plain functions tested in Node, and that the script runs in the page head without any inline code, so there is no flash of the wrong theme and the content security policy stays strict
 - Fixed my own first test thresholds (I guessed the number of tokens) and a check that also matched colour words in comments
 
-### PR 31: React and TypeScript dashboard
+### PR #31: React and TypeScript dashboard
 - Decided to add one React and TypeScript island instead of rewriting the front end, because the rule-heavy server-rendered pages are tested and secure and the dashboard is where a visual interface helps, and the server stays in charge: React only displays what a read-only endpoint sends
 - Decided the data shape is a contract that fails loudly from both sides (strict TypeScript and zod on one side, fixtures made from real server data and a Python test on the other), so neither side can change alone
 - Decided to commit the built bundle and add a plain server-rendered version of the page, so running the app never needs Node and the page works without JavaScript, and CI fails if the committed bundle differs from its source
@@ -394,6 +399,13 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed style tests that checked nothing, because Vitest replaces CSS imports with empty text: I rewrote them to read the real files, added a guard that the files are not empty and a test that the check would catch a bad colour
 - Found that the swap advisor's graduation formula projects a student with no enrolments two sessions late, used a corrected formula on the dashboard with a test that it agrees with the swap advice where the student has progress, and left the advisor alone so I did not change its tested numbers
 - Fixed a test that assumed Flask writes JSON with spaces, and a Node command that does not take a folder in the version I used
+
+### PR #32: Planner board layout and categories
+- Found by using the board myself that I could not drag a subject from the bottom of a long list to a session, because the page scrolled and the browser does not scroll while dragging, so I changed the board to a fixed height where every column scrolls inside itself and added edge auto-scroll
+- Found that the subjects you choose (major electives, sub-major choices, general electives) were missing from the board, because it only listed required subjects and I had left choices to the classic planner; they are now on the board and the planner's own limit still refuses an extra one
+- Decided to group the long to-place list by requirement with a category menu, not a separate column per category, because five to seven extra columns would have pushed the sessions off the screen
+- Decided to fold away subjects that are waiting on other subjects, so the list shows what can be placed now first, while still letting me drag one to see why it is refused
+- Fixed several of my own tests that looked for text that now appears in two places, and a test that tried to exceed an elective limit in a session where the subject is not offered, so the planner refused it for a different reason
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.

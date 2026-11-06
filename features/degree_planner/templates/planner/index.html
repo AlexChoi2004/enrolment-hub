@@ -107,6 +107,7 @@
 {% endif %}
 
 <div class="page-actions">
+  <a class="btn btn-secondary" href="{{ url_for('planner_api.page') }}">Board view</a>
   <form class="enrol-form" method="post" action="{{ url_for('planner.suggest') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button type="submit" class="btn">Suggest a plan</button>

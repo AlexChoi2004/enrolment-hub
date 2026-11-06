@@ -42,3 +42,4 @@ def test_a_smoke_job_runs_the_real_server_and_the_real_bundle_together():
     assert (ROOT / "frontend" / "smoke.mjs").is_file()
     smoke = (ROOT / "frontend" / "smoke.mjs").read_text(encoding="utf-8")
     assert "throw new Error" in smoke and "dashboard never rendered" in smoke  # it fails loudly, never silently
+    assert "the board never rendered" in smoke and "the move was not saved" in smoke  # the board is checked too, including a real move

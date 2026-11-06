@@ -8,7 +8,8 @@
     "dev": "vite build --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "build": "tsc --noEmit && vite build"
+    "build": "tsc --noEmit && vite build && vite build --mode board",
+    "dev:board": "vite build --mode board --watch"
   },
   "dependencies": {
     "react": "19.3.1",

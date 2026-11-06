@@ -1,0 +1,52 @@
+/* The planner board island. Only the site's colour tokens, so it follows light and dark mode. */
+.board { display: grid; gap: .8rem; }
+.board-help { margin: 0; }
+/* The board has a bounded height and every column scrolls inside itself, so the to-place list and all the sessions are on screen at once:
+   you never have to drag across a scrolling page. */
+.board-scroll { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(15rem, 17rem); gap: .8rem; overflow-x: auto; padding-bottom: .5rem;
+                align-items: stretch; height: clamp(24rem, calc(100vh - 19rem), 60rem); height: clamp(24rem, calc(100dvh - 19rem), 60rem); }
+.board-col { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: .7rem; display: flex; flex-direction: column; gap: .6rem;
+             min-height: 0; max-height: 100%; }
+.board-col-head { flex: none; }
+.board-col:first-child { position: sticky; left: 0; z-index: 2; background: var(--surface-3); }
+.board-col-current { border-color: var(--accent); }
+.board-col-head { display: grid; gap: .35rem; }
+.board-col-title { margin: 0; font-size: 1rem; }
+.board-col-pills { display: flex; flex-wrap: wrap; gap: .4rem; }
+.board-col-valid { outline: 2px dashed var(--accent); outline-offset: 2px; }
+.board-col-invalid { opacity: .72; }
+.board-col-over.board-col-valid { background: var(--accent-soft); }
+.board-col-over.board-col-invalid { outline: 2px dashed var(--bad-strong); outline-offset: 2px; }
+.board-cards { list-style: none; margin: 0; padding: 0 .15rem 0 0; display: grid; gap: .5rem; align-content: start; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.board-cards .board-cards { overflow: visible; flex: none; margin-top: .5rem; }   /* the waiting group inside the to-place list does not scroll on its own */
+.board-filter, .board-category { width: 100%; padding: .35rem .5rem; font: inherit; font-size: .88rem; border: 1px solid var(--border); border-radius: 6px; }
+.board-group-title { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding-top: .35rem; display: flex; align-items: center; gap: .4rem; }
+.board-group-title[class*="cat-"]::before { content: ""; flex: none; width: .65rem; height: .65rem; border-radius: 3px; background: var(--c, var(--grey)); }
+.board-card-category { justify-self: start; font-size: .72rem; }
+.board-note { margin: 0; }
+.board-waiting summary { cursor: pointer; color: var(--accent); font-size: .88rem; padding: .2rem 0; }
+.board-empty { padding: .4rem 0; }
+
+.board-card { background: var(--card); border: 1px solid var(--border); border-left: 5px solid var(--grey); border-radius: 8px; padding: .45rem .6rem; display: grid; gap: .2rem; }
+.board-card[draggable="true"] { cursor: grab; }
+.board-card[draggable="true"]:active { cursor: grabbing; }
+.board-card-enrolled { border-left-color: var(--ok-strong); }
+.board-card-planned { border-left-color: var(--accent); }
+.board-card-stranded { border-left-color: var(--orange); }
+.board-card-busy { opacity: .6; }
+.board-card-top { display: flex; justify-content: space-between; color: var(--muted); font-size: .8rem; }
+.board-card-name { font-size: .9rem; line-height: 1.25; }
+.board-card-tags { display: flex; flex-wrap: wrap; gap: .35rem; }
+.board-card-problem { margin: 0; font-size: .82rem; color: var(--warn); }
+.board-card-hint { margin: 0; font-size: .8rem; }
+.board-card-menu select { width: 100%; padding: .3rem .4rem; font: inherit; font-size: .85rem; border: 1px solid var(--border); border-radius: 6px; }
+
+.board-announce, .board-announce-space { min-height: 2.4rem; }
+.board-announce { padding: .55rem .8rem; border-radius: 8px; border: 1px solid var(--border); border-left: 5px solid var(--ok-strong); background: var(--ok-soft); color: var(--ok-text); }
+.board-announce-refused { border-left-color: var(--orange); background: var(--warn-soft); color: var(--warn-text); }
+.board-announce-error { border-left-color: var(--bad-strong); background: var(--bad-soft); color: var(--bad-text); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .board-card-refused { animation: board-shake .45s; }
+}
+@keyframes board-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }

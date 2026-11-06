@@ -1,6 +1,8 @@
 import { type Dashboard, parseDashboard } from "../contract";
 
-const files = import.meta.glob("./fixtures/*.json", { eager: true, import: "default" }) as Record<string, unknown>;
+const files = import.meta.glob("./fixtures/dashboard.*.json", { eager: true, import: "default" }) as Record<string, unknown>;
+const boardFiles = import.meta.glob("./fixtures/board.*.json", { eager: true, import: "default" }) as Record<string, unknown>;
+const moveFiles = import.meta.glob("./fixtures/move.*.json", { eager: true, import: "default" }) as Record<string, unknown>;
 
 export type Preset = "fresh" | "sample" | "late" | "failed";
 
@@ -30,4 +32,15 @@ export function fakeFetch(response: Response | (() => Promise<Response>) | Error
     if (response instanceof Error || response instanceof DOMException) throw response;
     return typeof response === "function" ? response() : response.clone();
   }) as typeof fetch;
+}
+
+/** The planner board as the real server sent it for one starting point. */
+export function boardRaw(name: Preset): unknown {
+  return structuredClone(boardFiles[`./fixtures/board.${name}.json`]);
+}
+export const allBoardFixtures = Object.entries(boardFiles);
+
+/** The server's real answers to a move: it worked, the planner refused with a reason, or the request was bad. */
+export function moveRaw(name: "ok" | "refused" | "bad"): unknown {
+  return structuredClone(moveFiles[`./fixtures/move.${name}.json`]);
 }

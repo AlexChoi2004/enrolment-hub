@@ -9,6 +9,7 @@ Handbook, which says its own pages are indicative.
 
 ## What it does
 - **See where you stand:** a dashboard with progress by requirement, the projected graduation session and your next steps (a React and TypeScript page).
+- **Plan by dragging:** a planner board where you drag subjects between sessions (React and TypeScript), and the planner's own rules decide every move and say why when they refuse one.
 - **Plan a degree:** choose a major and a sub-major (or general electives), enrol, plan up to ten sessions ahead, and pick classes in a timetable.
 - **Enforce the rules:** prerequisites, session offerings, a 24 credit point limit, failed subjects and retakes, with the reason shown whenever something is blocked.
 - **Advise on swaps:** changing major, sub-major or electives is never blocked, but you see what carries over, the extra time and a verdict first, and a risky swap needs your own confirmation.
@@ -55,7 +56,7 @@ schema and seed data, and templates (the pages).
 app.py              starts the app and registers every feature
 shared/             database, security (CSRF, headers), base page and styles
 features/           one folder per product feature
-frontend/           the React and TypeScript dashboard (built into shared/static/dist)
+frontend/           the React and TypeScript dashboard and planner board (built into shared/static/dist)
 ai_services/        the AI helpers and what they share
 tests/              mirrors features/ and ai_services/
 docs/               evidence, security, ethics, architecture and release notes
@@ -67,7 +68,7 @@ docs/               evidence, security, ethics, architecture and release notes
 | `subject_catalogue` | Subjects, majors and sub-majors, handbook prerequisites and assessments, filters |
 | `enrolment` | Enrol and withdraw, eligibility rules, results and attempts, the demo starting points |
 | `dashboard` | Progress, projected graduation and next steps: the data endpoint and the page that loads the React dashboard |
-| `degree_planner` | The planning window, suggested plans, retakes and rescheduling |
+| `degree_planner` | The planning window, suggested plans, retakes and rescheduling, and the drag-and-drop planner board |
 | `timetable` | Class choices and clash detection |
 | `majors` | Choose or swap a major, with an impact preview |
 | `submajors` | Choose or swap a sub-major or general electives, and count subjects as electives |

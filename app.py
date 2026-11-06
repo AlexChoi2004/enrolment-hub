@@ -15,6 +15,7 @@ from features.transcript.routes import bp as transcript_bp
 from features.submajors.routes import bp as submajors_bp
 from features.simulator.routes import bp as simulator_bp
 from features.dashboard.routes import bp as dashboard_bp
+from features.degree_planner.api import bp as planner_api_bp
 from features.guide.routes import bp as guide_bp
 from ai_services.web.routes import bp as ai_bp
 from features.timetable.routes import bp as timetable_bp
@@ -72,6 +73,7 @@ def create_app(test_config=None):
     app.register_blueprint(simulator_bp)
     app.register_blueprint(guide_bp)
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(planner_api_bp)
     app.register_blueprint(ai_bp)
     app.register_blueprint(enrolment_bp)
 

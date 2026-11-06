@@ -177,3 +177,19 @@ def test_walkthrough_ai_questions_have_somewhere_to_be_asked(client, log_in):
     reset_to(client, "late")
     post(client, "/ai/mode")
     assert 'class="ask-panel"' in html(client, "/planner") and "Explain this swap" in html(client, "/major/MAJ03445")
+
+
+def test_walkthrough_plan_by_dragging_and_see_the_planner_say_no(app, client, log_in):
+    log_in()
+    reset_to(client, "failed")
+    assert 'href="/planner/board"' in html(client, "/planner") and "Board view" in html(client, "/planner")
+    board = client.get("/api/planner/board").get_json()
+    assert "48024" in [c["code"] for c in board["to_place"] if c["retake"]]
+    spring = next(c for c in board["columns"] if c["label"] == "Spring 2027")
+    assert any(c["code"] == "31251" and c["problem"] for c in spring["cards"])
+    ok = client.post("/api/planner/move", json={"code": "48024", "to": "Spring 2027"}, headers={"X-CSRF-Token": token(client)})
+    assert ok.status_code == 200 and ok.get_json()["ok"] is True
+    no = client.post("/api/planner/move", json={"code": "48024", "to": "Autumn 2029"}, headers={"X-CSRF-Token": token(client)})
+    assert no.status_code == 422 and "needs 48024 Programming 2 first" in no.get_json()["error"]
+    classic = html(client, "/planner")
+    assert "Spring 2027" in classic and "48024" in classic  # the classic planner shows the same plan

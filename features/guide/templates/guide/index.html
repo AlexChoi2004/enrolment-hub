@@ -65,6 +65,18 @@
       Data Structures and Algorithms is no longer blocked. Press <strong>Roll back a semester</strong> to undo it all and try again.</p>
   </details>
 
+  <details class="walkthrough" data-preset="failed">
+    <summary>Plan by dragging, and see the planner say no <span class="tag">Start from: {{ presets["failed"].title }}</span></summary>
+    <ol>
+      <li>Open the <strong>Degree planner</strong> and press <strong>Board view</strong>. Programming 2 is in the <strong>To place</strong> column with a Retake tag. Data Structures and Algorithms is in Spring 2027, marked as blocked.</li>
+      <li>Drag <strong>Programming 2</strong> to <strong>Spring 2027</strong>. The planner accepts it.</li>
+      <li>Now drag Programming 2 to <strong>Autumn 2029</strong>. The card shakes and stays put.</li>
+      <li>Try the same with the keyboard: use the <strong>Move to…</strong> menu on a card.</li>
+    </ol>
+    <p class="see"><strong>You should see:</strong> the first move is confirmed by the server and the board redraws. The second is refused with the planner's own reason: Data Structures and Algorithms
+      is planned for Spring 2027 and needs Programming 2 first. Nothing changed, and the classic planner shows the same plan.</p>
+  </details>
+
   <details class="walkthrough" data-preset="fresh">
     <summary>Fail a subject and watch the plan react <span class="tag">Start from: {{ presets["fresh"].title }}</span></summary>
     <ol>
@@ -197,6 +209,7 @@
     <dt>Dashboard</dt><dd>The first page after you log in: progress by requirement, your projected graduation session, your sessions ahead and what to do next.</dd>
     <dt>Subjects</dt><dd>Every subject in your degree with whether you can enrol, and why or why not. Failed subjects show "Failed: retake needed".</dd>
     <dt>Degree planner</dt><dd>Plans future sessions. It shows completed, in progress, planned, failed and blocked subjects, and a workload verdict for each session.</dd>
+    <dt>Planner board</dt><dd>Linked from the Degree planner as <strong>Board view</strong>: your plan as columns, one per session. Drag a subject to a session, or use its <strong>Move to…</strong> menu. The planner checks every move and says why if it can't be done. The <strong>To place</strong> list has a filter, shows what you can place now first and folds away subjects that are waiting on others; every column scrolls on its own, and dragging near an edge scrolls for you.</dd>
     <dt>Timetable</dt><dd>Your classes for a session. Clashes are allowed but drawn in red.</dd>
     <dt>Record</dt><dd>Your degree progress, oldest session first.</dd>
     <dt>Results</dt><dd>Every attempt with mark, grade and outcome, newest session first (you can switch the order).</dd>

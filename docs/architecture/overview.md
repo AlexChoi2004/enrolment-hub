@@ -20,13 +20,18 @@ each of those a single transaction.
 ## Server-rendered pages, plus React and TypeScript where it helps
 Most pages are server-rendered (Flask and Jinja). They work without JavaScript, the server enforces every rule, and the forms are easy to
 secure and test. The **dashboard** is different: it is a visual summary (progress bars, a projection, a timeline), so it is built as a
-**React and TypeScript "island"** inside one server-rendered page, in `frontend/`.
+**React and TypeScript "island"** inside one server-rendered page, in `frontend/`. A second island, the **planner board**, lets a student drag subjects between sessions.
 
 - **The server decides, React displays.** The page loads one read-only JSON endpoint (`GET /api/dashboard`) built from the same services as the
   other pages. It adds no rules of its own, and it cannot change anything.
 - **A typed contract.** The shape of that JSON is described once in TypeScript (`frontend/src/contract.ts`, strict, validated with zod at runtime)
   and once by the server. Checked-in fixtures made from the real server data are validated by the front end's tests, and a Python test fails if
   the server stops matching them, so neither side can drift alone.
+- **The board writes, so the server is stricter still.** Every drag becomes one `POST /api/planner/move` that goes through the planner's own add, move and
+  remove, so the board can never allow what the planner refuses, and a refusal comes back with the planner's own reason and changes nothing. The request needs a
+  CSRF token (in a header), must be JSON with exactly two keys, and the subject code and session are checked before anything runs. The server also tells the page which
+  sessions are valid for each card, so the page can highlight them, but it still lets the student try any session: the answer, and the reason, come from the planner.
+  The classic planner stays as the fallback, and a menu on every card does everything dragging does, for keyboards and touch screens.
 - **It still works without Node or JavaScript.** The built files are committed to `shared/static/dist`, so `python app.py` never needs Node, and the
   page contains a plain server-rendered summary that shows first and when scripts are off. CI rebuilds the bundle and fails if the committed one differs.
 - **It looks native.** It uses the site's colour tokens only, so it follows light and dark mode, and a test fails if a colour is hard-coded.
