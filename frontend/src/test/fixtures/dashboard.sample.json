@@ -1,0 +1,111 @@
+{
+  "student": {
+    "display_name": "John Doe"
+  },
+  "period": {
+    "label": "Autumn 2027",
+    "year": 3,
+    "semester": 1
+  },
+  "degree": {
+    "total_cp": 192,
+    "completed_cp": 96,
+    "enrolled_cp": 24,
+    "planned_cp": 0,
+    "remaining_cp": 72
+  },
+  "counts": {
+    "completed": 16,
+    "enrolled": 4,
+    "planned": 0,
+    "retake": 0,
+    "blocked": 0
+  },
+  "choices": {
+    "major": {
+      "name": "Enterprise Software Development"
+    },
+    "pathway": {
+      "kind": "submajor",
+      "name": "Innovation and Entrepreneurship"
+    }
+  },
+  "categories": [
+    {
+      "key": "core",
+      "label": "Core subjects",
+      "required_cp": 96,
+      "completed_cp": 54,
+      "enrolled_cp": 6,
+      "planned_cp": 0,
+      "pending": false
+    },
+    {
+      "key": "honours_core",
+      "label": "Honours core",
+      "required_cp": 24,
+      "completed_cp": 0,
+      "enrolled_cp": 6,
+      "planned_cp": 0,
+      "pending": false
+    },
+    {
+      "key": "major_core",
+      "label": "Major core",
+      "required_cp": 30,
+      "completed_cp": 18,
+      "enrolled_cp": 6,
+      "planned_cp": 0,
+      "pending": false
+    },
+    {
+      "key": "major_elective",
+      "label": "Major electives",
+      "required_cp": 18,
+      "completed_cp": 0,
+      "enrolled_cp": 6,
+      "planned_cp": 0,
+      "pending": false
+    },
+    {
+      "key": "sub_core",
+      "label": "Sub-major core",
+      "required_cp": 24,
+      "completed_cp": 24,
+      "enrolled_cp": 0,
+      "planned_cp": 0,
+      "pending": false
+    }
+  ],
+  "graduation": {
+    "session": "Spring 2028",
+    "sessions_left": 3,
+    "remaining_cp": 72,
+    "finished": false
+  },
+  "sessions": [
+    {
+      "label": "Autumn 2027",
+      "current": true,
+      "load_cp": 24,
+      "enrolled": 4,
+      "planned": 0,
+      "workload": "heavy",
+      "workload_label": "Heavy"
+    }
+  ],
+  "next_steps": [
+    {
+      "kind": "workload",
+      "severity": "info",
+      "text": "Autumn 2027 looks heavy: have a look at its workload in the planner.",
+      "href": "/planner"
+    },
+    {
+      "kind": "plan",
+      "severity": "info",
+      "text": "Use Suggest a plan to lay out your remaining sessions.",
+      "href": "/planner"
+    }
+  ]
+}

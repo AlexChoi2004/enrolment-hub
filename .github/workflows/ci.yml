@@ -36,3 +36,59 @@ jobs:
         run: ruff check --select S --exclude tests .
       - name: Known vulnerabilities in dependencies
         run: pip-audit -r requirements.txt
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install exactly what the lock file says
+        run: npm ci
+      - name: Type-check (strict TypeScript)
+        run: npm run typecheck
+      - name: Component and contract tests
+        run: npm test
+      - name: Build the dashboard
+        run: npm run build
+      - name: The committed bundle must be the one this source builds
+        working-directory: .
+        run: git diff --exit-code -- shared/static/dist
+      - name: Known vulnerabilities in dependencies
+        run: npm audit --audit-level=high
+      - name: Theme logic tests (Node)
+        working-directory: .
+        run: node --test tests/js/theme.test.mjs
+
+  smoke:
+    # The real server, the real built bundle and real data, in a browser-like page: does the dashboard actually render?
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -r requirements.txt
+      - run: npm ci
+        working-directory: frontend
+      - name: Start the app
+        run: |
+          DEMO_PROFILE=sample AI_BACKEND=off PORT=5055 python app.py > server.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:5055/login > /dev/null && break; sleep 1; done
+      - name: Load the dashboard and check it rendered
+        run: node frontend/smoke.mjs http://127.0.0.1:5055
+      - name: Show the server log if it failed
+        if: failure()
+        run: cat server.log

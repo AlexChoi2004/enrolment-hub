@@ -1,0 +1,108 @@
+{
+  "student": {
+    "display_name": "John Doe"
+  },
+  "period": {
+    "label": "Autumn 2027",
+    "year": 1,
+    "semester": 1
+  },
+  "degree": {
+    "total_cp": 192,
+    "completed_cp": 0,
+    "enrolled_cp": 0,
+    "planned_cp": 0,
+    "remaining_cp": 192
+  },
+  "counts": {
+    "completed": 0,
+    "enrolled": 0,
+    "planned": 0,
+    "retake": 0,
+    "blocked": 0
+  },
+  "choices": {
+    "major": {
+      "name": null
+    },
+    "pathway": {
+      "kind": null,
+      "name": null
+    }
+  },
+  "categories": [
+    {
+      "key": "core",
+      "label": "Core subjects",
+      "required_cp": 96,
+      "completed_cp": 0,
+      "enrolled_cp": 0,
+      "planned_cp": 0,
+      "pending": false
+    },
+    {
+      "key": "honours_core",
+      "label": "Honours core",
+      "required_cp": 24,
+      "completed_cp": 0,
+      "enrolled_cp": 0,
+      "planned_cp": 0,
+      "pending": false
+    },
+    {
+      "key": "major_pending",
+      "label": "Major (not chosen yet)",
+      "required_cp": 48,
+      "completed_cp": 0,
+      "enrolled_cp": 0,
+      "planned_cp": 0,
+      "pending": true
+    },
+    {
+      "key": "submajor_pending",
+      "label": "Sub-major or electives (not chosen yet)",
+      "required_cp": 24,
+      "completed_cp": 0,
+      "enrolled_cp": 0,
+      "planned_cp": 0,
+      "pending": true
+    }
+  ],
+  "graduation": {
+    "session": "Spring 2030",
+    "sessions_left": 7,
+    "remaining_cp": 192,
+    "finished": false
+  },
+  "sessions": [
+    {
+      "label": "Autumn 2027",
+      "current": true,
+      "load_cp": 0,
+      "enrolled": 0,
+      "planned": 0,
+      "workload": null,
+      "workload_label": "Not enough information"
+    }
+  ],
+  "next_steps": [
+    {
+      "kind": "setup",
+      "severity": "warning",
+      "text": "Choose your major, so its 48 credit points are in your plan.",
+      "href": "/major"
+    },
+    {
+      "kind": "setup",
+      "severity": "warning",
+      "text": "Choose a sub-major or general electives for the last 24 credit points.",
+      "href": "/submajor"
+    },
+    {
+      "kind": "enrol",
+      "severity": "info",
+      "text": "You can enrol in core subjects now (24 credit points of room in Autumn 2027).",
+      "href": "/subjects"
+    }
+  ]
+}

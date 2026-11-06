@@ -8,6 +8,7 @@ All results, marks, class times, due weeks and students are simulated. Subject d
 Handbook, which says its own pages are indicative.
 
 ## What it does
+- **See where you stand:** a dashboard with progress by requirement, the projected graduation session and your next steps (a React and TypeScript page).
 - **Plan a degree:** choose a major and a sub-major (or general electives), enrol, plan up to ten sessions ahead, and pick classes in a timetable.
 - **Enforce the rules:** prerequisites, session offerings, a 24 credit point limit, failed subjects and retakes, with the reason shown whenever something is blocked.
 - **Advise on swaps:** changing major, sub-major or electives is never blocked, but you see what carries over, the extra time and a verdict first, and a risky swap needs your own confirmation.
@@ -21,6 +22,10 @@ python -m venv .venv
 .venv\Scripts\activate            # Windows (Git Bash: source .venv/Scripts/activate)
 pip install -r requirements.txt
 python app.py                     # http://127.0.0.1:5000
+```
+Node is only needed to change the dashboard (the built files are committed, so running the app never needs it):
+```bash
+cd frontend && npm ci && npm test && npm run build
 ```
 Demo login: `john.doe@student.uni.edu.au` / `Johndoe#1` (the one simulated student; there is no public sign-up).
 Delete `enrolment_hub.db` to start from a fresh database.
@@ -50,6 +55,7 @@ schema and seed data, and templates (the pages).
 app.py              starts the app and registers every feature
 shared/             database, security (CSRF, headers), base page and styles
 features/           one folder per product feature
+frontend/           the React and TypeScript dashboard (built into shared/static/dist)
 ai_services/        the AI helpers and what they share
 tests/              mirrors features/ and ai_services/
 docs/               evidence, security, ethics, architecture and release notes
@@ -60,6 +66,7 @@ docs/               evidence, security, ethics, architecture and release notes
 | `accounts` | Login, profile, sessions and the simulated demo student |
 | `subject_catalogue` | Subjects, majors and sub-majors, handbook prerequisites and assessments, filters |
 | `enrolment` | Enrol and withdraw, eligibility rules, results and attempts, the demo starting points |
+| `dashboard` | Progress, projected graduation and next steps: the data endpoint and the page that loads the React dashboard |
 | `degree_planner` | The planning window, suggested plans, retakes and rescheduling |
 | `timetable` | Class choices and clash detection |
 | `majors` | Choose or swap a major, with an impact preview |
@@ -82,7 +89,7 @@ docs/               evidence, security, ethics, architecture and release notes
 `ai_services/checks.py` holds the checks every AI answer passes, and `ai_services/llm.py` is the model adapter (Ollama, off, or test stand-ins).
 
 ## Docs
-- `docs/architecture/overview.md` how the pieces fit together, and how the plan changed
+- `docs/architecture/overview.md` how the pieces fit together (server-rendered pages plus a React island), and how the plan changed
 - `docs/SECURITY.md` secure coding case study
 - `docs/ETHICS.md` data governance and responsible AI note
 - `docs/MCP.md` using the MCP server from Claude Desktop
