@@ -96,7 +96,9 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 | 2026-11-06 | 3 (dev tools) | Rewrote the README to match what is actually built, added an architecture overview with a plan-versus-actual table,      | 20 MIN | PR #29 |
 |            |               | filled in the release notes, moved the three copies of the AI answer checks into one shared module, and added tests that |        |        |
 |            |               | keep the repository layout and README honest; 49 new tests                                                               |        |        |
-
+| 2026-11-06 | 3 (dev tools) | Added light and dark themes that follow the system setting with a toggle that remembers the choice, by turning 64        | 1 HOUR | PR #30 |
+|            |               | hard-coded colours into named tokens with light and dark values, with tests that no raw colour is left, that text is     |        |        |
+|            |               | readable in both themes against WCAG contrast, and that the toggle logic works; 157 new tests                            |        |        |
 
 ## Things that went wrong or changed
 
@@ -371,6 +373,13 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Decided to move the three copies of the AI answer checks into one module while keeping every behaviour, and wrote a test that all three paths reject the same bad text, so a safety fix can no longer be made in one place and forgotten in another
 - Fixed a test of my own where the advisor's facts did not contain the number 6, so a correct answer was flagged as inventing it; the code was right
 - Removed an unused import that the linter found
+
+### PR #30: Light and dark themes
+- Decided the dark theme is a soft dark close to the one I liked in a screenshot and follows the system setting by default, with a toggle for an override, because a visitor's device setting is the best first guess and the choice should still be theirs
+- Decided to turn every colour into a token instead of adding dark overrides rule by rule, so no colour can be missed, and added a test that fails if a raw colour is written outside the token blocks
+- Fixed category badge text that was below the contrast guideline even in the light theme, found by the contrast tests, by mixing the badge colour toward the text colour, and darkened one pale timetable edge colour
+- Decided the toggle logic is plain functions tested in Node, and that the script runs in the page head without any inline code, so there is no flash of the wrong theme and the content security policy stays strict
+- Fixed my own first test thresholds (I guessed the number of tokens) and a check that also matched colour words in comments
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
