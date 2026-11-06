@@ -99,6 +99,10 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 | 2026-11-06 | 3 (dev tools) | Added light and dark themes that follow the system setting with a toggle that remembers the choice, by turning 64        | 1 HOUR | PR #30 |
 |            |               | hard-coded colours into named tokens with light and dark values, with tests that no raw colour is left, that text is     |        |        |
 |            |               | readable in both themes against WCAG contrast, and that the toggle logic works; 157 new tests                            |        |        |
+| 2026-11-06 | 3 (dev tools) | Built a dashboard as the landing page in React and TypeScript, as one island inside the server-rendered app: a read-only | 2 HOUR | PR #31 |
+|            |               | JSON endpoint from the existing services, a strict typed contract checked from both sides with fixtures from the real    |        |        |
+|            |               | server data, an accessible bundle committed so Node is not needed to run the app, and CI for type-checking, tests, an    |        |        |
+|            |               | end-to-end render check, CodeQL, Dependabot and npm audit; 62 new Python tests and 65 frontend tests                     |        |        |
 
 ## Things that went wrong or changed
 
@@ -380,6 +384,16 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Fixed category badge text that was below the contrast guideline even in the light theme, found by the contrast tests, by mixing the badge colour toward the text colour, and darkened one pale timetable edge colour
 - Decided the toggle logic is plain functions tested in Node, and that the script runs in the page head without any inline code, so there is no flash of the wrong theme and the content security policy stays strict
 - Fixed my own first test thresholds (I guessed the number of tokens) and a check that also matched colour words in comments
+
+### PR 31: React and TypeScript dashboard
+- Decided to add one React and TypeScript island instead of rewriting the front end, because the rule-heavy server-rendered pages are tested and secure and the dashboard is where a visual interface helps, and the server stays in charge: React only displays what a read-only endpoint sends
+- Decided the data shape is a contract that fails loudly from both sides (strict TypeScript and zod on one side, fixtures made from real server data and a Python test on the other), so neither side can change alone
+- Decided to commit the built bundle and add a plain server-rendered version of the page, so running the app never needs Node and the page works without JavaScript, and CI fails if the committed bundle differs from its source
+- Decided to install only package versions at least two weeks old, pin exact versions from a lock file, and add npm audit, CodeQL and Dependabot, because a new dependency is a supply-chain risk
+- Fixed a weakness my own test found: my rule for links in the data accepted "//evil.example" because it starts with a slash, so the contract now only accepts a single leading slash
+- Fixed style tests that checked nothing, because Vitest replaces CSS imports with empty text: I rewrote them to read the real files, added a guard that the files are not empty and a test that the check would catch a bad colour
+- Found that the swap advisor's graduation formula projects a student with no enrolments two sessions late, used a corrected formula on the dashboard with a test that it agrees with the swap advice where the student has progress, and left the advisor alone so I did not change its tested numbers
+- Fixed a test that assumed Flask writes JSON with spaces, and a Node command that does not take a folder in the version I used
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
