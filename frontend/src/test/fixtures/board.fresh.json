@@ -103,6 +103,7 @@
       "name": "Business Requirements Modelling",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -113,6 +114,7 @@
       "name": "Communication for IT Professionals",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -134,6 +136,7 @@
       "name": "Computing Science Studio 1",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -144,6 +147,7 @@
       "name": "Computing Science Studio 2",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -154,6 +158,7 @@
       "name": "Data Structures and Algorithms",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -164,6 +169,7 @@
       "name": "Database Fundamentals",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -174,6 +180,7 @@
       "name": "Discrete Mathematics",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -195,6 +202,7 @@
       "name": "Mathematics 1",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -216,6 +224,7 @@
       "name": "Mathematics 2",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -226,6 +235,7 @@
       "name": "Network Fundamentals",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -247,6 +257,7 @@
       "name": "Professional Practice in Computing",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -268,6 +279,7 @@
       "name": "Programming 1",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -289,6 +301,7 @@
       "name": "Programming 2",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -299,6 +312,7 @@
       "name": "Project Management and the Professional",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -309,6 +323,7 @@
       "name": "Theory of Computing Science",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -319,6 +334,7 @@
       "name": "Web Systems",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -340,6 +356,7 @@
       "name": "Honours Project",
       "credit_points": 12,
       "category": "Honours core",
+      "category_key": "honours_core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -350,6 +367,7 @@
       "name": "Technology Research Methods",
       "credit_points": 6,
       "category": "Honours core",
+      "category_key": "honours_core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -360,6 +378,7 @@
       "name": "Technology Research Preparation",
       "credit_points": 6,
       "category": "Honours core",
+      "category_key": "honours_core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -372,5 +391,34 @@
       ]
     }
   ],
-  "needs_choice": []
+  "groups": [
+    {
+      "key": "core",
+      "label": "Core subjects",
+      "kind": "required",
+      "count": 16,
+      "choose": null,
+      "chosen": null,
+      "need": null
+    },
+    {
+      "key": "honours_core",
+      "label": "Honours core",
+      "kind": "required",
+      "count": 3,
+      "choose": null,
+      "chosen": null,
+      "need": null
+    }
+  ],
+  "choose_first": [
+    {
+      "label": "Choose your major to see its subjects here.",
+      "href": "/major"
+    },
+    {
+      "label": "Choose a sub-major or general electives to see their subjects here.",
+      "href": "/submajor"
+    }
+  ]
 }

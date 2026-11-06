@@ -19,6 +19,7 @@
           "name": "Advanced Database",
           "credit_points": 6,
           "category": "Major electives",
+          "category_key": "major_elective",
           "state": "enrolled",
           "problem": null,
           "retake": false,
@@ -29,6 +30,7 @@
           "name": "Technology Research Methods",
           "credit_points": 6,
           "category": "Honours core",
+          "category_key": "honours_core",
           "state": "enrolled",
           "problem": null,
           "retake": false,
@@ -39,6 +41,7 @@
           "name": "Advanced Algorithms",
           "credit_points": 6,
           "category": "Major electives",
+          "category_key": "major_elective",
           "state": "enrolled",
           "problem": null,
           "retake": false,
@@ -49,6 +52,7 @@
           "name": "Computing Science Studio 2",
           "credit_points": 6,
           "category": "Core subjects",
+          "category_key": "core",
           "state": "enrolled",
           "problem": null,
           "retake": false,
@@ -144,6 +148,7 @@
       "name": "Communication for IT Professionals",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -164,6 +169,7 @@
       "name": "Discrete Mathematics",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -184,6 +190,7 @@
       "name": "Network Fundamentals",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -204,6 +211,7 @@
       "name": "Professional Practice in Computing",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -224,6 +232,7 @@
       "name": "Theory of Computing Science",
       "credit_points": 6,
       "category": "Core subjects",
+      "category_key": "core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -234,6 +243,7 @@
       "name": "Honours Project",
       "credit_points": 12,
       "category": "Honours core",
+      "category_key": "honours_core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -250,6 +260,7 @@
       "name": "Capstone",
       "credit_points": 6,
       "category": "Major core",
+      "category_key": "major_core",
       "state": "todo",
       "problem": null,
       "retake": false,
@@ -262,5 +273,34 @@
       ]
     }
   ],
-  "needs_choice": []
+  "groups": [
+    {
+      "key": "core",
+      "label": "Core subjects",
+      "kind": "required",
+      "count": 5,
+      "choose": null,
+      "chosen": null,
+      "need": null
+    },
+    {
+      "key": "honours_core",
+      "label": "Honours core",
+      "kind": "required",
+      "count": 1,
+      "choose": null,
+      "chosen": null,
+      "need": null
+    },
+    {
+      "key": "major_core",
+      "label": "Major core",
+      "kind": "required",
+      "count": 1,
+      "choose": null,
+      "chosen": null,
+      "need": null
+    }
+  ],
+  "choose_first": []
 }

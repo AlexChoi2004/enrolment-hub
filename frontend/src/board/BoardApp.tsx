@@ -1,7 +1,8 @@
-import { type DragEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { type DragEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type BoardLoaded, loadBoard, moveCard } from "./api";
-import { Card, Column } from "./components";
+import { ALL, Card, Column, ToPlaceList } from "./components";
 import type { Board, BoardCard } from "./contract";
+import { edgeDelta } from "./scroll";
 
 type Announcement = { kind: "ok" | "refused" | "error"; text: string; loginNeeded?: boolean } | null;
 type Loading = { status: "loading" };
@@ -47,6 +48,9 @@ export function BoardView({ initial, moveEndpoint, csrf, fetchImpl }: BoardInner
   const [busy, setBusy] = useState<string | null>(null);
   const [refused, setRefused] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState<Announcement>(null);
+  const [filter, setFilter] = useState("");
+  const [category, setCategory] = useState(ALL);
+  const scroller = useRef<HTMLDivElement>(null);
 
   const cards = useMemo(() => new Map<string, BoardCard>([...board.to_place, ...board.columns.flatMap((c) => c.cards)].map((c) => [c.code, c])), [board]);
   const locations = useMemo(() => new Map<string, string | null>([...board.to_place.map((c) => [c.code, null] as const), ...board.columns.flatMap((c) => c.cards.map((card) => [card.code, c.label] as const))]), [board]);
@@ -86,6 +90,20 @@ export function BoardView({ initial, moveEndpoint, csrf, fetchImpl }: BoardInner
     if (to === null && card.state === "todo") return; // it is not in the plan, so there is nothing to take out
     void perform(code, to);
   };
+  /** While dragging near an edge, scroll the sessions sideways and the list under the pointer up or down. */
+  const autoScroll = (event: DragEvent<HTMLElement>) => {
+    if (!dragging) return;
+    const box = scroller.current;
+    if (box) {
+      const rect = box.getBoundingClientRect();
+      box.scrollLeft += edgeDelta(event.clientX, rect.left, rect.right);
+    }
+    const list = (event.target as HTMLElement | null)?.closest?.(".board-col")?.querySelector<HTMLElement>(".board-cards");
+    if (list) {
+      const rect = list.getBoundingClientRect();
+      list.scrollTop += edgeDelta(event.clientY, rect.top, rect.bottom);
+    }
+  };
   const allowDrop = (label: string | null) => (event: DragEvent<HTMLElement>) => {
     if (!dragging) return;
     event.preventDefault(); // every column accepts the drop: an invalid one gets the planner's reason, which is the point
@@ -117,13 +135,23 @@ export function BoardView({ initial, moveEndpoint, csrf, fetchImpl }: BoardInner
           {announcement.loginNeeded ? <> <a href="/login">Go to the login page</a></> : null}
         </div>
       ) : <div className="board-announce-space" role="status" aria-live="polite" />}
-      {board.needs_choice.length > 0 ? (
-        <p className="dash-muted">Still to choose in the <a href="/planner">classic planner</a>: {board.needs_choice.join(", ")}.</p>
-      ) : null}
-      <div className="board-scroll">
+      {board.choose_first.map((note) => (
+        <p key={note.href} className="dash-muted board-note"><a href={note.href}>{note.label}</a></p>
+      ))}
+      <div className="board-scroll" ref={scroller} onDragOver={autoScroll}>
         <Column title="To place" count={board.to_place.length} note="drop a planned card here to take it out" state={columnState(null)} over={over === "to-place"}
-                onDragOver={allowDrop(null)} onDragLeave={() => setOver(null)} onDrop={dropOn(null)}>
-          {board.to_place.map(renderCard)}
+                onDragOver={allowDrop(null)} onDragLeave={() => setOver(null)} onDrop={dropOn(null)}
+                extra={
+                  <>
+                    <input type="search" className="board-filter" placeholder="Filter subjects…" aria-label="Filter subjects to place" value={filter}
+                           onChange={(event) => setFilter(event.target.value)} />
+                    <select className="board-category" aria-label="Show category" value={category} onChange={(event) => setCategory(event.target.value)}>
+                      <option value={ALL}>All categories ({board.to_place.filter((c) => c.state === "todo").length})</option>
+                      {board.groups.map((g) => <option key={g.key} value={g.key}>{g.label} ({g.count})</option>)}
+                    </select>
+                  </>
+                }>
+          <ToPlaceList cards={board.to_place} groups={board.groups} query={filter} category={category} renderCard={renderCard} />
         </Column>
         {board.columns.map((column) => (
           <Column key={column.label} title={column.label} column={column} count={column.cards.length} state={columnState(column.label)} over={over === column.label}

@@ -1,7 +1,7 @@
-import { type DragEvent, type ReactNode } from "react";
+import { Fragment, type DragEvent, type ReactNode } from "react";
 import { plural } from "../format";
 import { ProgressBar } from "../components/ProgressBar";
-import type { BoardCard, BoardColumn } from "./contract";
+import type { BoardCard, BoardColumn, BoardGroup } from "./contract";
 
 const STATE_LABEL: Record<BoardCard["state"], string> = {
   enrolled: "Enrolled (locked)", planned: "Planned", todo: "To place", stranded: "Needs rescheduling",
@@ -36,8 +36,9 @@ export function Card({ card, busy, refused, onDragStart, onDragEnd, onMove }: Ca
         <span className="board-card-cp">{card.credit_points} cp</span>
       </div>
       <strong className="board-card-name">{card.name}</strong>
+      {card.category_key && (card.state === "planned" || card.state === "enrolled") ? <span className={`badge category cat-${card.category_key} board-card-category`}>{card.category}</span> : null}
       <div className="board-card-tags">
-        <span className="dash-pill">{STATE_LABEL[card.state]}</span>
+        {card.state === "enrolled" || card.state === "stranded" ? <span className="dash-pill">{STATE_LABEL[card.state]}</span> : <span className="dash-sr">{STATE_LABEL[card.state]}.</span>}
         {card.retake ? <span className="dash-pill dash-wl-heavy">Retake</span> : null}
       </div>
       {card.problem ? <p className="board-card-problem">{card.problem}</p> : null}
@@ -64,6 +65,8 @@ interface ColumnProps {
   column?: BoardColumn;
   count: number;
   note?: string;
+  /** Extra controls under the title, for example the filter box. */
+  extra?: ReactNode;
   /** When a card is being dragged: does this column accept it according to the server? */
   state: "idle" | "valid" | "invalid";
   over: boolean;
@@ -73,7 +76,7 @@ interface ColumnProps {
   children: ReactNode;
 }
 
-export function Column({ title, column, count, note, state, over, onDragOver, onDragLeave, onDrop, children }: ColumnProps) {
+export function Column({ title, column, count, note, extra, state, over, onDragOver, onDragLeave, onDrop, children }: ColumnProps) {
   const classes = ["board-col", state !== "idle" ? `board-col-${state}` : "", over ? "board-col-over" : "", column?.current ? "board-col-current" : ""].filter(Boolean).join(" ");
   return (
     <section className={classes} aria-label={typeof title === "string" ? title : undefined} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
@@ -91,8 +94,67 @@ export function Column({ title, column, count, note, state, over, onDragOver, on
         ) : (
           <span className="dash-muted">{plural(count, "subject")}{note ? ` · ${note}` : ""}</span>
         )}
+        {extra}
       </header>
       <ul className="board-cards">{children}</ul>
     </section>
+  );
+}
+
+export const ALL = "all";
+
+function hint(group: BoardGroup): string {
+  if (group.kind === "choose" && group.need !== null && group.choose !== null && group.chosen !== null) {
+    return ` · choose ${group.need} more (${group.chosen} of ${group.choose} chosen)`;
+  }
+  return ` (${group.count})`;
+}
+
+interface ToPlaceProps {
+  cards: readonly BoardCard[];
+  groups: readonly BoardGroup[];
+  /** The text typed in the filter box. */
+  query: string;
+  /** ALL, or the key of one requirement. */
+  category: string;
+  renderCard: (card: BoardCard) => ReactNode;
+}
+
+/**
+ * The to-place list, grouped by requirement. Within each requirement what can be placed now comes first, and what is waiting on
+ * other subjects is folded away. A subject whose session has passed is listed first, under its own heading.
+ */
+export function ToPlaceList({ cards, groups, query, category, renderCard }: ToPlaceProps) {
+  const needle = query.trim().toLowerCase();
+  const matches = (card: BoardCard) => !needle || card.code.toLowerCase().includes(needle) || card.name.toLowerCase().includes(needle);
+  const stranded = category === ALL ? cards.filter((c) => c.state === "stranded" && matches(c)) : [];
+  const sections = groups
+    .filter((g) => category === ALL || g.key === category)
+    .map((g) => {
+      const mine = cards.filter((c) => c.state === "todo" && c.category === g.label && matches(c));
+      return { group: g, ready: mine.filter((c) => c.valid_sessions.length > 0), waiting: mine.filter((c) => c.valid_sessions.length === 0) };
+    })
+    .filter((s) => s.ready.length + s.waiting.length > 0);
+  const shown = stranded.length + sections.length;
+  return (
+    <>
+      {stranded.length > 0 ? <li className="board-group-title">Needs rescheduling</li> : null}
+      {stranded.map(renderCard)}
+      {sections.map(({ group, ready, waiting }) => (
+        <Fragment key={group.key}>
+          <li className={`board-group-title cat-${group.key}`}>{group.label}{hint(group)}</li>
+          {ready.map(renderCard)}
+          {waiting.length > 0 ? (
+            <li className="board-waiting">
+              <details open={Boolean(needle)}>
+                <summary>Waiting on other subjects ({waiting.length})</summary>
+                <ul className="board-cards">{waiting.map(renderCard)}</ul>
+              </details>
+            </li>
+          ) : null}
+        </Fragment>
+      ))}
+      {shown === 0 ? <li className="dash-muted board-empty">{needle ? "No subject matches that filter." : "Everything is placed."}</li> : null}
+    </>
   );
 }

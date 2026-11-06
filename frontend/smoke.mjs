@@ -61,6 +61,10 @@ const boardWindow = await openBoard();
 const cols = [...boardWindow.document.querySelectorAll(".board-col")];
 console.log("board:       ", cols.length, "columns |", cols.map((c) => c.getAttribute("aria-label")).slice(0, 3).join(", "), "...");
 if (cols.length !== 11) throw new Error(`expected a to-place column and ten sessions, saw ${cols.length}`);
+const titles = [...boardWindow.document.querySelectorAll(".board-group-title")].map((t) => t.textContent);
+console.log("groups:      ", titles.join(" | "));
+if (!titles.includes("Major electives · choose 2 more (1 of 3 chosen)")) throw new Error("the subjects to choose from are missing from the board");
+if (!boardWindow.document.body.textContent.includes("Advanced Algorithms")) throw new Error("an elective to choose from is not on the board");
 
 // drag a real subject onto a real session, using the page's own events
 const card = [...boardWindow.document.querySelectorAll(".board-card")].find((li) => li.textContent.includes("Communication for IT Professionals"));

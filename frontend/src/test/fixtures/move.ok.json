@@ -1,12 +1,14 @@
 {
   "board": {
     "capacity_cp": 24,
+    "choose_first": [],
     "columns": [
       {
         "capacity_cp": 24,
         "cards": [
           {
             "category": "Core subjects",
+            "category_key": "core",
             "code": "31265",
             "credit_points": 6,
             "name": "Communication for IT Professionals",
@@ -17,6 +19,7 @@
           },
           {
             "category": "Core subjects",
+            "category_key": "core",
             "code": "37181",
             "credit_points": 6,
             "name": "Discrete Mathematics",
@@ -27,6 +30,7 @@
           },
           {
             "category": "Major core",
+            "category_key": "major_core",
             "code": "41025",
             "credit_points": 6,
             "name": "Introduction to Software Development",
@@ -47,6 +51,7 @@
         "cards": [
           {
             "category": "Core subjects",
+            "category_key": "core",
             "code": "31251",
             "credit_points": 6,
             "name": "Data Structures and Algorithms",
@@ -66,6 +71,7 @@
           },
           {
             "category": "Core subjects",
+            "category_key": "core",
             "code": "48024",
             "credit_points": 6,
             "name": "Programming 2",
@@ -156,8 +162,52 @@
         "workload_label": "Not enough information"
       }
     ],
-    "needs_choice": [
-      "Major electives"
+    "groups": [
+      {
+        "choose": null,
+        "chosen": null,
+        "count": 7,
+        "key": "core",
+        "kind": "required",
+        "label": "Core subjects",
+        "need": null
+      },
+      {
+        "choose": null,
+        "chosen": null,
+        "count": 3,
+        "key": "honours_core",
+        "kind": "required",
+        "label": "Honours core",
+        "need": null
+      },
+      {
+        "choose": null,
+        "chosen": null,
+        "count": 4,
+        "key": "major_core",
+        "kind": "required",
+        "label": "Major core",
+        "need": null
+      },
+      {
+        "choose": 3,
+        "chosen": 0,
+        "count": 9,
+        "key": "major_elective",
+        "kind": "choose",
+        "label": "Major electives",
+        "need": 3
+      },
+      {
+        "choose": null,
+        "chosen": null,
+        "count": 2,
+        "key": "sub_core",
+        "kind": "required",
+        "label": "Sub-major core",
+        "need": null
+      }
     ],
     "period": {
       "label": "Autumn 2027",
@@ -167,6 +217,7 @@
     "to_place": [
       {
         "category": "Core subjects",
+        "category_key": "core",
         "code": "41078",
         "credit_points": 6,
         "name": "Computing Science Studio 1",
@@ -183,6 +234,7 @@
       },
       {
         "category": "Core subjects",
+        "category_key": "core",
         "code": "41079",
         "credit_points": 6,
         "name": "Computing Science Studio 2",
@@ -193,6 +245,7 @@
       },
       {
         "category": "Core subjects",
+        "category_key": "core",
         "code": "31271",
         "credit_points": 6,
         "name": "Database Fundamentals",
@@ -214,6 +267,7 @@
       },
       {
         "category": "Core subjects",
+        "category_key": "core",
         "code": "41092",
         "credit_points": 6,
         "name": "Network Fundamentals",
@@ -235,6 +289,7 @@
       },
       {
         "category": "Core subjects",
+        "category_key": "core",
         "code": "43030",
         "credit_points": 6,
         "name": "Professional Practice in Computing",
@@ -256,6 +311,7 @@
       },
       {
         "category": "Core subjects",
+        "category_key": "core",
         "code": "31272",
         "credit_points": 6,
         "name": "Project Management and the Professional",
@@ -271,6 +327,7 @@
       },
       {
         "category": "Core subjects",
+        "category_key": "core",
         "code": "41080",
         "credit_points": 6,
         "name": "Theory of Computing Science",
@@ -286,6 +343,7 @@
       },
       {
         "category": "Honours core",
+        "category_key": "honours_core",
         "code": "31482",
         "credit_points": 12,
         "name": "Honours Project",
@@ -296,6 +354,7 @@
       },
       {
         "category": "Honours core",
+        "category_key": "honours_core",
         "code": "32931",
         "credit_points": 6,
         "name": "Technology Research Methods",
@@ -306,6 +365,7 @@
       },
       {
         "category": "Honours core",
+        "category_key": "honours_core",
         "code": "32144",
         "credit_points": 6,
         "name": "Technology Research Preparation",
@@ -322,6 +382,7 @@
       },
       {
         "category": "Major core",
+        "category_key": "major_core",
         "code": "41026",
         "credit_points": 6,
         "name": "Advanced Software Development",
@@ -337,6 +398,7 @@
       },
       {
         "category": "Major core",
+        "category_key": "major_core",
         "code": "41759",
         "credit_points": 6,
         "name": "Capstone",
@@ -353,6 +415,7 @@
       },
       {
         "category": "Major core",
+        "category_key": "major_core",
         "code": "48433",
         "credit_points": 6,
         "name": "Software Architecture",
@@ -368,6 +431,7 @@
       },
       {
         "category": "Major core",
+        "category_key": "major_core",
         "code": "31282",
         "credit_points": 6,
         "name": "Systems Testing and Quality Management",
@@ -383,7 +447,151 @@
         ]
       },
       {
+        "category": "Major electives",
+        "category_key": "major_elective",
+        "code": "41052",
+        "credit_points": 6,
+        "name": "Advanced Algorithms",
+        "problem": null,
+        "retake": false,
+        "state": "todo",
+        "valid_sessions": [
+          "Spring 2028",
+          "Spring 2029",
+          "Spring 2030",
+          "Spring 2031"
+        ]
+      },
+      {
+        "category": "Major electives",
+        "category_key": "major_elective",
+        "code": "32113",
+        "credit_points": 6,
+        "name": "Advanced Database",
+        "problem": null,
+        "retake": false,
+        "state": "todo",
+        "valid_sessions": []
+      },
+      {
+        "category": "Major electives",
+        "category_key": "major_elective",
+        "code": "31777",
+        "credit_points": 6,
+        "name": "Advanced Interaction Design",
+        "problem": null,
+        "retake": false,
+        "state": "todo",
+        "valid_sessions": []
+      },
+      {
+        "category": "Major electives",
+        "category_key": "major_elective",
+        "code": "41889",
+        "credit_points": 6,
+        "name": "Application Development in the iOS Environment",
+        "problem": null,
+        "retake": false,
+        "state": "todo",
+        "valid_sessions": [
+          "Autumn 2027",
+          "Autumn 2028",
+          "Autumn 2029",
+          "Autumn 2030",
+          "Autumn 2031"
+        ]
+      },
+      {
+        "category": "Major electives",
+        "category_key": "major_elective",
+        "code": "31927",
+        "credit_points": 6,
+        "name": "Application Development with .NET",
+        "problem": null,
+        "retake": false,
+        "state": "todo",
+        "valid_sessions": [
+          "Spring 2028",
+          "Spring 2029",
+          "Spring 2030",
+          "Spring 2031"
+        ]
+      },
+      {
+        "category": "Major electives",
+        "category_key": "major_elective",
+        "code": "41001",
+        "credit_points": 6,
+        "name": "Cloud Computing and Software as a Service",
+        "problem": null,
+        "retake": false,
+        "state": "todo",
+        "valid_sessions": [
+          "Autumn 2028",
+          "Autumn 2029",
+          "Autumn 2030",
+          "Autumn 2031"
+        ]
+      },
+      {
+        "category": "Major electives",
+        "category_key": "major_elective",
+        "code": "31260",
+        "credit_points": 6,
+        "name": "Fundamentals of Interaction Design",
+        "problem": null,
+        "retake": false,
+        "state": "todo",
+        "valid_sessions": [
+          "Autumn 2027",
+          "Spring 2027",
+          "Autumn 2028",
+          "Spring 2028",
+          "Autumn 2029",
+          "Spring 2029",
+          "Autumn 2030",
+          "Spring 2030",
+          "Autumn 2031",
+          "Spring 2031"
+        ]
+      },
+      {
+        "category": "Major electives",
+        "category_key": "major_elective",
+        "code": "41040",
+        "credit_points": 6,
+        "name": "Introduction to Artificial Intelligence",
+        "problem": null,
+        "retake": false,
+        "state": "todo",
+        "valid_sessions": [
+          "Autumn 2027",
+          "Autumn 2028",
+          "Autumn 2029",
+          "Autumn 2030",
+          "Autumn 2031"
+        ]
+      },
+      {
+        "category": "Major electives",
+        "category_key": "major_elective",
+        "code": "41113",
+        "credit_points": 6,
+        "name": "Software Development Studio",
+        "problem": null,
+        "retake": false,
+        "state": "todo",
+        "valid_sessions": [
+          "Spring 2027",
+          "Spring 2028",
+          "Spring 2029",
+          "Spring 2030",
+          "Spring 2031"
+        ]
+      },
+      {
         "category": "Sub-major core",
+        "category_key": "sub_core",
         "code": "81546",
         "credit_points": 6,
         "name": "Innovation in Complex Systems",
@@ -405,6 +613,7 @@
       },
       {
         "category": "Sub-major core",
+        "category_key": "sub_core",
         "code": "81547",
         "credit_points": 6,
         "name": "Leading Creative Innovation",
