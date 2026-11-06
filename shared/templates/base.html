@@ -3,9 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <meta name="htmx-config" content='{"includeIndicatorStyles": false}'>
   <title>{% block title %}Enrolment Hub{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('shared.static', filename='theme.css') }}">
+  <script src="{{ url_for('shared.static', filename='theme.js') }}"></script>
   <script src="{{ url_for('shared.static', filename='htmx.min.js') }}" defer></script>
   <script src="{{ url_for('shared.static', filename='keep-scroll.js') }}" defer></script>
 </head>
@@ -24,6 +26,7 @@
     </nav>
     <nav class="nav-account">
       <a href="{{ url_for('guide.page') }}"{% if request.blueprint == 'guide' %} aria-current="page"{% endif %}>Help</a>
+      <button type="button" id="theme-toggle" class="nav-button" aria-pressed="false" hidden>Dark mode</button>
       {% if g.user %}
         <form method="post" action="{{ url_for('ai.mode') }}" class="ai-switch">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
