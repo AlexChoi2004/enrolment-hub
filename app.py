@@ -14,6 +14,7 @@ from features.majors.routes import bp as majors_bp
 from features.transcript.routes import bp as transcript_bp
 from features.submajors.routes import bp as submajors_bp
 from features.simulator.routes import bp as simulator_bp
+from features.dashboard.routes import bp as dashboard_bp
 from features.guide.routes import bp as guide_bp
 from ai_services.web.routes import bp as ai_bp
 from features.timetable.routes import bp as timetable_bp
@@ -70,14 +71,15 @@ def create_app(test_config=None):
     app.register_blueprint(submajors_bp)
     app.register_blueprint(simulator_bp)
     app.register_blueprint(guide_bp)
+    app.register_blueprint(dashboard_bp)
     app.register_blueprint(ai_bp)
     app.register_blueprint(enrolment_bp)
 
     @app.get("/")
     def index():
-        # Students go straight to their record; visitors see a welcome screen.
+        # Students land on their dashboard; visitors see a welcome screen.
         if g.get("user"):
-            return redirect(url_for("enrolment.me"))
+            return redirect(url_for("dashboard.page"))
         return render_template(
             "welcome.html",
             show_demo=app.config["SHOW_DEMO_CREDENTIALS"],

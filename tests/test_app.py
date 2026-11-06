@@ -26,11 +26,11 @@ def test_home_page_shows_a_welcome_screen_to_visitors(client):
     assert b'href="/subjects"' not in res.data  # no Subjects link until you log in
 
 
-def test_home_page_sends_logged_in_students_to_their_record(client, log_in):
+def test_home_page_sends_logged_in_students_to_their_dashboard(client, log_in):
     log_in()
     res = client.get("/")
     assert res.status_code == 302
-    assert res.headers["Location"].endswith("/students/me")
+    assert res.headers["Location"].endswith("/dashboard")
 
 
 def test_subject_catalogue_requires_a_login(client):

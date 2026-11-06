@@ -109,7 +109,7 @@ def login():
         return _render_login(401, GENERIC_FAILURE, email)
 
     _start_session(user)
-    return redirect(security.safe_next(request.values.get("next"), url_for("enrolment.me")))
+    return redirect(security.safe_next(request.values.get("next"), url_for("dashboard.page")))
 
 
 @bp.route("/register", methods=["GET", "POST"])
@@ -138,7 +138,7 @@ def register():
         return _render_register(409, ["An account with this email already exists. Try logging in."], email)
 
     _start_session(user)
-    return redirect(url_for("enrolment.me"))
+    return redirect(url_for("dashboard.page"))
 
 
 @bp.get("/profile")

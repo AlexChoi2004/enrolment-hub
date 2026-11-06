@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard · Enrolment Hub{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('shared.static', filename='dist/dashboard.css') }}">
+{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+{# The page is built by React and TypeScript (frontend/). This plain version is what you see without JavaScript, and until it loads. #}
+<div id="dashboard-root" data-endpoint="{{ url_for('dashboard.data') }}">
+  <section class="card" aria-label="Summary">
+    <p><strong>{{ data.period.label }}</strong> · Year {{ data.period.year }}, Semester {{ data.period.semester }}</p>
+    <ul class="plain">
+      <li>{{ data.degree.completed_cp }} of {{ data.degree.total_cp }} credit points completed, {{ data.degree.enrolled_cp }} in progress, {{ data.degree.planned_cp }} planned.</li>
+      <li>Projected graduation: <strong>{{ data.graduation.session }}</strong>{% if data.graduation.sessions_left %} ({{ data.graduation.sessions_left }} more sessions after this one){% endif %}.</li>
+    </ul>
+  </section>
+  {% if data.next_steps %}
+    <section class="card" aria-label="Next steps">
+      <h2>Next steps</h2>
+      <ul class="plain">{% for step in data.next_steps %}<li><a href="{{ step.href }}">{{ step.text }}</a></li>{% endfor %}</ul>
+    </section>
+  {% endif %}
+</div>
+<script type="module" src="{{ url_for('shared.static', filename='dist/dashboard.js') }}"></script>
+{% endblock %}

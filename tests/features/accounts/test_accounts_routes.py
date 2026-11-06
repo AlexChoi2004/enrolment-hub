@@ -39,10 +39,10 @@ def test_demo_credentials_can_be_hidden(tmp_path):
     assert DEMO_PASSWORD.encode() not in res.data
 
 
-def test_successful_login_goes_to_my_record_and_starts_a_session(client, log_in):
+def test_successful_login_goes_to_the_dashboard_and_starts_a_session(client, log_in):
     res = log_in()
     assert res.status_code == 302
-    assert res.headers["Location"].endswith("/students/me")
+    assert res.headers["Location"].endswith("/dashboard")
     assert logged_in(client)
     page = client.get("/subjects").get_data(as_text=True)
     assert ">Profile<" in page
@@ -134,7 +134,7 @@ def test_csrf_token_changes_after_login(client, csrf, log_in):
 def test_login_never_redirects_off_site(client, log_in, evil):
     res = log_in(next=evil)
     assert res.status_code == 302
-    assert res.headers["Location"].endswith("/students/me")
+    assert res.headers["Location"].endswith("/dashboard")
     assert "evil" not in res.headers["Location"]
 
 

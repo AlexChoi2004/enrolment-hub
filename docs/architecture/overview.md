@@ -17,6 +17,22 @@ All features share **one SQLite file**. That is deliberate. Swapping a major, co
 each change several tables (enrolments, attempts, plans, class choices, the student) and must happen all-or-nothing. One database makes
 each of those a single transaction.
 
+## Server-rendered pages, plus React and TypeScript where it helps
+Most pages are server-rendered (Flask and Jinja). They work without JavaScript, the server enforces every rule, and the forms are easy to
+secure and test. The **dashboard** is different: it is a visual summary (progress bars, a projection, a timeline), so it is built as a
+**React and TypeScript "island"** inside one server-rendered page, in `frontend/`.
+
+- **The server decides, React displays.** The page loads one read-only JSON endpoint (`GET /api/dashboard`) built from the same services as the
+  other pages. It adds no rules of its own, and it cannot change anything.
+- **A typed contract.** The shape of that JSON is described once in TypeScript (`frontend/src/contract.ts`, strict, validated with zod at runtime)
+  and once by the server. Checked-in fixtures made from the real server data are validated by the front end's tests, and a Python test fails if
+  the server stops matching them, so neither side can drift alone.
+- **It still works without Node or JavaScript.** The built files are committed to `shared/static/dist`, so `python app.py` never needs Node, and the
+  page contains a plain server-rendered summary that shows first and when scripts are off. CI rebuilds the bundle and fails if the committed one differs.
+- **It looks native.** It uses the site's colour tokens only, so it follows light and dark mode, and a test fails if a colour is hard-coded.
+- **Safe by construction.** The content security policy is unchanged (no inline scripts), links in the data must stay on this site, React escapes all text,
+  dependencies are pinned to exact versions from a lock file, and CI runs `npm audit`, CodeQL and Dependabot.
+
 ## The AI helpers
 ```mermaid
 flowchart LR
@@ -44,4 +60,5 @@ flowchart LR
 |---|---|---|---|
 | Architecture | Microservice-style: each feature split into `frontend/`, `backend/`, `database/` and its own tests | One Flask app, one SQLite file, one folder per feature, tests mirroring it | Swaps, rollbacks and results are all-or-nothing changes across features, and one app is simpler to test and run |
 | AI | Separate `rag-server`, `ai-mode`, `mcp-server` and `multi-agent-server` folders | The same four, as packages under `ai_services/`, sharing one tool layer, one model adapter and one set of checks | They all need the same read-only tools and the same checks, so sharing them keeps the safety rules in one place |
+| Front end | React and TypeScript front end for the whole app | Server-rendered pages, with one React and TypeScript island (the dashboard) | A rewrite would have put the rule-heavy, tested pages at risk; one island shows the skill where a visual interface helps, behind a typed contract |
 | Releases | R0 core, R1 RAG, MCP and AI mode, R2 multi-agent | All three delivered | The multi-agent swap advisor was kept to code roles plus one model role, so it can be tested |

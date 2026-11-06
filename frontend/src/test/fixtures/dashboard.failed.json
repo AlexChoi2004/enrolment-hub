@@ -1,0 +1,126 @@
+{
+  "student": {
+    "display_name": "John Doe"
+  },
+  "period": {
+    "label": "Autumn 2027",
+    "year": 2,
+    "semester": 1
+  },
+  "degree": {
+    "total_cp": 192,
+    "completed_cp": 42,
+    "enrolled_cp": 18,
+    "planned_cp": 6,
+    "remaining_cp": 126
+  },
+  "counts": {
+    "completed": 7,
+    "enrolled": 3,
+    "planned": 1,
+    "retake": 1,
+    "blocked": 1
+  },
+  "choices": {
+    "major": {
+      "name": "Enterprise Software Development"
+    },
+    "pathway": {
+      "kind": "submajor",
+      "name": "Innovation and Entrepreneurship"
+    }
+  },
+  "categories": [
+    {
+      "key": "core",
+      "label": "Core subjects",
+      "required_cp": 96,
+      "completed_cp": 30,
+      "enrolled_cp": 12,
+      "planned_cp": 6,
+      "pending": false
+    },
+    {
+      "key": "honours_core",
+      "label": "Honours core",
+      "required_cp": 24,
+      "completed_cp": 0,
+      "enrolled_cp": 0,
+      "planned_cp": 0,
+      "pending": false
+    },
+    {
+      "key": "major_core",
+      "label": "Major core",
+      "required_cp": 30,
+      "completed_cp": 0,
+      "enrolled_cp": 6,
+      "planned_cp": 0,
+      "pending": false
+    },
+    {
+      "key": "major_elective",
+      "label": "Major electives",
+      "required_cp": 18,
+      "completed_cp": 0,
+      "enrolled_cp": 0,
+      "planned_cp": 0,
+      "pending": false
+    },
+    {
+      "key": "sub_core",
+      "label": "Sub-major core",
+      "required_cp": 24,
+      "completed_cp": 12,
+      "enrolled_cp": 0,
+      "planned_cp": 0,
+      "pending": false
+    }
+  ],
+  "graduation": {
+    "session": "Autumn 2030",
+    "sessions_left": 6,
+    "remaining_cp": 132,
+    "finished": false
+  },
+  "sessions": [
+    {
+      "label": "Autumn 2027",
+      "current": true,
+      "load_cp": 18,
+      "enrolled": 3,
+      "planned": 0,
+      "workload": "light",
+      "workload_label": "Light"
+    },
+    {
+      "label": "Spring 2027",
+      "current": false,
+      "load_cp": 6,
+      "enrolled": 0,
+      "planned": 1,
+      "workload": "light",
+      "workload_label": "Light"
+    }
+  ],
+  "next_steps": [
+    {
+      "kind": "retake",
+      "severity": "warning",
+      "text": "48024 Programming 2 was failed: retake it before anything that needs it.",
+      "href": "/planner"
+    },
+    {
+      "kind": "blocked",
+      "severity": "warning",
+      "text": "31251 Data Structures and Algorithms is planned but blocked: Needs 48024 Programming 2 (failed: retake it first) completed or planned in an earlier session.",
+      "href": "/planner"
+    },
+    {
+      "kind": "enrol",
+      "severity": "info",
+      "text": "You have 6 credit points of room in Autumn 2027: enrol in a subject.",
+      "href": "/subjects"
+    }
+  ]
+}

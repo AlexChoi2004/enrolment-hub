@@ -34,10 +34,10 @@ def test_register_page_explains_the_rules_and_the_made_up_name_note(client):
     assert b"Year 1" in res.data
 
 
-def test_successful_registration_logs_the_student_in_and_goes_to_their_record(app, client, register):
+def test_successful_registration_logs_the_student_in_and_goes_to_their_dashboard(app, client, register):
     res = register()
     assert res.status_code == 302
-    assert res.headers["Location"].endswith("/students/me")
+    assert res.headers["Location"].endswith("/dashboard")
     assert logged_in(client)
     assert user_count(app) == 2  # the demo student and the new one
 
@@ -65,8 +65,8 @@ def test_demo_student_is_shown_in_year_3_with_a_history(client, log_in):
 
 
 def test_record_url_uses_a_generated_student_number_not_the_email(client, register):
-    res = register()
-    me = client.get(res.headers["Location"])
+    register()
+    me = client.get("/students/me")
     assert re.search(r"/students/S\d{7}/record$", me.headers["Location"])
     page = client.get(me.headers["Location"]).get_data(as_text=True)
     assert JANE not in page
