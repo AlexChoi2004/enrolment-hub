@@ -139,7 +139,7 @@ def test_the_ai_switch_is_styled_like_the_other_links(client, log_in):
 def test_buttons_made_from_links_are_not_underlined(client):
     css = client.get("/static/theme.css").get_data(as_text=True)
     assert ".btn, .button { display: inline-block; text-decoration: none;" in css
-    assert "a.btn, a.btn:visited { color: #fff; }" in css and ".setup-row" in css and ".ask-form" in css
+    assert "a.btn, a.btn:visited { color: var(--on-accent); }" in css and ".setup-row" in css and ".ask-form" in css
 
 
 def test_the_choose_major_and_sub_major_prompts_are_the_same_compact_row(client, log_in):

@@ -375,4 +375,4 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
 - Code, tests and wording were drafted with Claude. I reviewed, ran and committed each chunk myself, and fixed several issues along the way (a missing template,
-  wrongly placed files, edits applied to the wrong test file)
+wrongly placed files, edits applied to the wrong test file)

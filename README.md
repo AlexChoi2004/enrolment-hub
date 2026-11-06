@@ -11,6 +11,7 @@ Handbook, which says its own pages are indicative.
 - **Plan a degree:** choose a major and a sub-major (or general electives), enrol, plan up to ten sessions ahead, and pick classes in a timetable.
 - **Enforce the rules:** prerequisites, session offerings, a 24 credit point limit, failed subjects and retakes, with the reason shown whenever something is blocked.
 - **Advise on swaps:** changing major, sub-major or electives is never blocked, but you see what carries over, the extra time and a verdict first, and a risky swap needs your own confirmation.
+- **Light and dark themes:** follows your device or browser setting, with a toggle that remembers your choice.
 - **Test quickly:** a semester simulator (complete, roll back, reset) and four starting points, from a first-year student to one late in their major.
 - **Ask questions (AI mode, off by default):** cited answers about rules and subjects, answers about your own plan from read-only tools, and a three-role swap advisor. The code decides and the AI explains; every AI answer is checked by code first.
 
