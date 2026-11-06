@@ -43,7 +43,7 @@ def test_the_fixture_is_exactly_what_the_server_sends(tmp_path, key):
 
 
 def test_there_is_a_fixture_for_every_starting_point_and_nothing_else():
-    assert sorted(p.name for p in FIXTURES.glob("*.json")) == sorted(f"dashboard.{k}.json" for k in KEYS)
+    assert sorted(p.name for p in FIXTURES.glob("dashboard.*.json")) == sorted(f"dashboard.{k}.json" for k in KEYS)
 
 
 def all_keys(value, found=None):

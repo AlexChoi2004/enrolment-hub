@@ -1,0 +1,293 @@
+{
+  "period": {
+    "label": "Autumn 2027",
+    "year": 3,
+    "semester": 1
+  },
+  "capacity_cp": 24,
+  "columns": [
+    {
+      "label": "Autumn 2027",
+      "current": true,
+      "capacity_cp": 24,
+      "load_cp": 24,
+      "workload": "heavy",
+      "workload_label": "Heavy",
+      "cards": [
+        {
+          "code": "31272",
+          "name": "Project Management and the Professional",
+          "credit_points": 6,
+          "category": "Core subjects",
+          "state": "enrolled",
+          "problem": null,
+          "retake": false,
+          "valid_sessions": []
+        },
+        {
+          "code": "32144",
+          "name": "Technology Research Preparation",
+          "credit_points": 6,
+          "category": "Honours core",
+          "state": "enrolled",
+          "problem": null,
+          "retake": false,
+          "valid_sessions": []
+        },
+        {
+          "code": "41026",
+          "name": "Advanced Software Development",
+          "credit_points": 6,
+          "category": "Major core",
+          "state": "enrolled",
+          "problem": null,
+          "retake": false,
+          "valid_sessions": []
+        },
+        {
+          "code": "41040",
+          "name": "Introduction to Artificial Intelligence",
+          "credit_points": 6,
+          "category": "Major electives",
+          "state": "enrolled",
+          "problem": null,
+          "retake": false,
+          "valid_sessions": []
+        }
+      ]
+    },
+    {
+      "label": "Spring 2027",
+      "current": false,
+      "capacity_cp": 24,
+      "load_cp": 0,
+      "workload": null,
+      "workload_label": "Not enough information",
+      "cards": []
+    },
+    {
+      "label": "Autumn 2028",
+      "current": false,
+      "capacity_cp": 24,
+      "load_cp": 0,
+      "workload": null,
+      "workload_label": "Not enough information",
+      "cards": []
+    },
+    {
+      "label": "Spring 2028",
+      "current": false,
+      "capacity_cp": 24,
+      "load_cp": 0,
+      "workload": null,
+      "workload_label": "Not enough information",
+      "cards": []
+    },
+    {
+      "label": "Autumn 2029",
+      "current": false,
+      "capacity_cp": 24,
+      "load_cp": 0,
+      "workload": null,
+      "workload_label": "Not enough information",
+      "cards": []
+    },
+    {
+      "label": "Spring 2029",
+      "current": false,
+      "capacity_cp": 24,
+      "load_cp": 0,
+      "workload": null,
+      "workload_label": "Not enough information",
+      "cards": []
+    },
+    {
+      "label": "Autumn 2030",
+      "current": false,
+      "capacity_cp": 24,
+      "load_cp": 0,
+      "workload": null,
+      "workload_label": "Not enough information",
+      "cards": []
+    },
+    {
+      "label": "Spring 2030",
+      "current": false,
+      "capacity_cp": 24,
+      "load_cp": 0,
+      "workload": null,
+      "workload_label": "Not enough information",
+      "cards": []
+    },
+    {
+      "label": "Autumn 2031",
+      "current": false,
+      "capacity_cp": 24,
+      "load_cp": 0,
+      "workload": null,
+      "workload_label": "Not enough information",
+      "cards": []
+    },
+    {
+      "label": "Spring 2031",
+      "current": false,
+      "capacity_cp": 24,
+      "load_cp": 0,
+      "workload": null,
+      "workload_label": "Not enough information",
+      "cards": []
+    }
+  ],
+  "to_place": [
+    {
+      "code": "31265",
+      "name": "Communication for IT Professionals",
+      "credit_points": 6,
+      "category": "Core subjects",
+      "state": "todo",
+      "problem": null,
+      "retake": false,
+      "valid_sessions": [
+        "Spring 2027",
+        "Autumn 2028",
+        "Spring 2028",
+        "Autumn 2029",
+        "Spring 2029",
+        "Autumn 2030",
+        "Spring 2030",
+        "Autumn 2031",
+        "Spring 2031"
+      ]
+    },
+    {
+      "code": "41079",
+      "name": "Computing Science Studio 2",
+      "credit_points": 6,
+      "category": "Core subjects",
+      "state": "todo",
+      "problem": null,
+      "retake": false,
+      "valid_sessions": [
+        "Spring 2027",
+        "Spring 2028",
+        "Spring 2029",
+        "Spring 2030",
+        "Spring 2031"
+      ]
+    },
+    {
+      "code": "37181",
+      "name": "Discrete Mathematics",
+      "credit_points": 6,
+      "category": "Core subjects",
+      "state": "todo",
+      "problem": null,
+      "retake": false,
+      "valid_sessions": [
+        "Spring 2027",
+        "Autumn 2028",
+        "Spring 2028",
+        "Autumn 2029",
+        "Spring 2029",
+        "Autumn 2030",
+        "Spring 2030",
+        "Autumn 2031",
+        "Spring 2031"
+      ]
+    },
+    {
+      "code": "41092",
+      "name": "Network Fundamentals",
+      "credit_points": 6,
+      "category": "Core subjects",
+      "state": "todo",
+      "problem": null,
+      "retake": false,
+      "valid_sessions": [
+        "Spring 2027",
+        "Autumn 2028",
+        "Spring 2028",
+        "Autumn 2029",
+        "Spring 2029",
+        "Autumn 2030",
+        "Spring 2030",
+        "Autumn 2031",
+        "Spring 2031"
+      ]
+    },
+    {
+      "code": "43030",
+      "name": "Professional Practice in Computing",
+      "credit_points": 6,
+      "category": "Core subjects",
+      "state": "todo",
+      "problem": null,
+      "retake": false,
+      "valid_sessions": [
+        "Spring 2027",
+        "Autumn 2028",
+        "Spring 2028",
+        "Autumn 2029",
+        "Spring 2029",
+        "Autumn 2030",
+        "Spring 2030",
+        "Autumn 2031",
+        "Spring 2031"
+      ]
+    },
+    {
+      "code": "41080",
+      "name": "Theory of Computing Science",
+      "credit_points": 6,
+      "category": "Core subjects",
+      "state": "todo",
+      "problem": null,
+      "retake": false,
+      "valid_sessions": []
+    },
+    {
+      "code": "31482",
+      "name": "Honours Project",
+      "credit_points": 12,
+      "category": "Honours core",
+      "state": "todo",
+      "problem": null,
+      "retake": false,
+      "valid_sessions": []
+    },
+    {
+      "code": "32931",
+      "name": "Technology Research Methods",
+      "credit_points": 6,
+      "category": "Honours core",
+      "state": "todo",
+      "problem": null,
+      "retake": false,
+      "valid_sessions": [
+        "Spring 2027",
+        "Spring 2028",
+        "Spring 2029",
+        "Spring 2030",
+        "Spring 2031"
+      ]
+    },
+    {
+      "code": "41759",
+      "name": "Capstone",
+      "credit_points": 6,
+      "category": "Major core",
+      "state": "todo",
+      "problem": null,
+      "retake": false,
+      "valid_sessions": [
+        "Autumn 2028",
+        "Autumn 2029",
+        "Autumn 2030",
+        "Autumn 2031"
+      ]
+    }
+  ],
+  "needs_choice": [
+    "Major electives"
+  ]
+}
