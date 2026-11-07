@@ -112,6 +112,11 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 |            |               | the tool cannot see: a skip link, a visible focus ring, reduced motion for all animation, announced error messages, and  |        |        |
 |            |               | keyboard focus that follows a card on the planner board; with Python structure checks, a checker tested against 18 broken|        |        |
 |            |               | pages, and an accessibility document with the limits and manual checks                                                   |        |        |
+| 2026-11-08 | 3 (dev tools) | Added a major comparison that ranks every major for a student's progress using the swap advisor's own rules, and a       | HOURS | PR #42 |
+|            |               | calendar download of the timetable that follows the iCalendar standard with the Sydney timezone, optional due weeks, safe|        |        |
+|            |               | handling of bad input, and an independent parser checking it in CI; made the dashboard, swap advice and comparison share |        |        |
+|            |               | one graduation rule after the comparison exposed an off-by-one for first-years; 148 new tests                            |        |        |
+
 
 ## Things that went wrong or changed
 
@@ -424,6 +429,15 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Decided to be honest about the limits in docs/ACCESSIBILITY.md: the audit has no layout engine so it cannot check colour contrast as rendered, target sizes or a real screen reader, so contrast is checked from the colour tokens and the rest is a manual checklist
 - Fixed a tick mark that axe only flagged as "needs review", because its label sat on a plain span that screen readers do not reliably announce
 - Fixed my own tests: a case where I built a "broken" dropdown that was still labelled, and two older tests that looked for the old heading level and navigation markup
+
+### PR #42: Compare majors and calendar export
+- Decided the comparison adds no rules of its own: each row is the swap advisor's answer for that major, so the table and each swap page cannot disagree, and a test checks every row against the advisor
+- Found that the comparison showed a first-year "Autumn 2031" for every major while the dashboard said "Spring 2030", because the advisor ignored the room left in the current session; I moved the rule into one shared function used by all three places and updated the one old test that had the off-by-one in its expectation
+- Decided to write the calendar generator as pure functions and test the format rules directly (CRLF, folding at 75 bytes without splitting a character, escaping, the Sydney timezone with daylight saving), because calendar programs are strict and silent about what they reject
+- Decided to check the file with an independent library as well as my own parser, so a mistake I made in both would still be caught, and to run that in CI; it also confirmed a 2pm class stays at 2pm across the clocks changing
+- Decided due weeks go on the Friday of the week as all-day events that say the real day is in the subject outline, and that exam-period tasks are left out, so the file never presents an invented date as real
+- Decided the session value in the download link is validated and never echoed into the filename or the file, and tested line-break and header injection attempts
+- Fixed my own test expectation for the planner's rule when I first guessed the wrong session label for an out-of-window subject
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
