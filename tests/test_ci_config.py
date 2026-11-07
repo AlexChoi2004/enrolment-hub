@@ -43,3 +43,13 @@ def test_a_smoke_job_runs_the_real_server_and_the_real_bundle_together():
     smoke = (ROOT / "frontend" / "smoke.mjs").read_text(encoding="utf-8")
     assert "throw new Error" in smoke and "dashboard never rendered" in smoke  # it fails loudly, never silently
     assert "the board never rendered" in smoke and "the move was not saved" in smoke  # the board is checked too, including a real move
+
+
+def test_the_smoke_job_also_runs_the_accessibility_audit_on_every_page():
+    job = CI.split("  smoke:", 1)[1]
+    assert "node frontend/a11y.mjs http://127.0.0.1:5055" in job and "ALLOW_REGISTRATION=1" in job  # registration on, so the sign-up page is audited
+    audit = (ROOT / "frontend" / "a11y.mjs").read_text(encoding="utf-8")
+    assert "process.exit(total === 0 ? 0 : 1)" in audit and "wcag22aa" in audit  # any violation fails the build
+    assert '"color-contrast": { enabled: false }' in audit  # the one rule jsdom cannot run, covered by the token tests
+    for page in ("Dashboard (React)", "Planner board (React)", "Simulator: roll back", "Choose a sub-major"):
+        assert page in audit

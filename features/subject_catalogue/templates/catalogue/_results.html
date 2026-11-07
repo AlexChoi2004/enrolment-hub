@@ -10,7 +10,7 @@
     </section>
   {% else %}
   <section class="group cat-{{ g.category }}{{ ' group-complete' if g.complete }}">
-    <h2 class="group-title">{{ g.label }}{% if g.complete %} <span class="tick" aria-label="complete">&#10003;</span>{% endif %}</h2>
+    <h2 class="group-title">{{ g.label }}{% if g.complete %} <span class="tick"><span aria-hidden="true">&#10003;</span><span class="visually-hidden">complete</span></span>{% endif %}</h2>
     <p class="group-rule">{{ g.rule }}</p>
     {% if g.note %}<p class="group-note">{{ g.note }}</p>{% endif %}
     {% for s in g.subjects %}

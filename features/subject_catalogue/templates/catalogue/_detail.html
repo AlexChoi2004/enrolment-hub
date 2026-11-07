@@ -10,7 +10,7 @@
     <p>{% for t in subject.style_tags %}<span class="badge">{{ t }}</span> {% endfor %}</p>
   {% endif %}
 
-  <h3>Assessment</h3>
+  <h2>Assessment</h2>
   {% if subject.assessment_load.score %}
     <p>
       <span class="badge aload-{{ subject.assessment_load.score }}">Assessment load {{ subject.assessment_load.score }} of 5</span>
@@ -44,7 +44,7 @@
     {% endif %}
   {% endif %}
 
-  <h3>Prerequisites</h3>
+  <h2>Prerequisites</h2>
   {% if subject.prereq_status == 'required' %}
     <ul class="plain">
       {% for r in subject.requirements %}
@@ -79,14 +79,14 @@
   {% endif %}
 
   {% if subject.submajors %}
-    <h3>Sub-majors</h3>
+    <h2>Sub-majors</h2>
     <ul class="plain">
       {% for m in subject.submajors %}<li>{{ m.name }}{% if m.language %} ({{ m.language }}){% endif %}: {{ m.role }}</li>{% endfor %}
     </ul>
   {% endif %}
 
   {% if subject.majors %}
-    <h3>Majors</h3>
+    <h2>Majors</h2>
     <ul class="plain">
       {% for m in subject.majors %}<li>{{ m.name }}: {{ 'core' if m.role == 'core' else 'option' }}</li>{% endfor %}
     </ul>
@@ -128,7 +128,7 @@
   {% endif %}
 
   {% if subject.unlocks %}
-    <h3>Leads to</h3>
+    <h2>Leads to</h2>
     <ul class="plain">
       {% for u in subject.unlocks %}
         <li><a href="{{ url_for('catalogue.detail_page', code=u.code) }}">{{ u.code }} {{ u.name }}</a></li>
