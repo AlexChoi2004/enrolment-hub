@@ -75,7 +75,7 @@ details[open] .chev { transform: rotate(180deg); }
          color: var(--muted); background: var(--surface-2); }
 .badge.warn { color: var(--warn); border-color: var(--warn-border); background: var(--warn-soft); }
 .detail { margin-top: .6rem; padding-top: .6rem; border-top: 1px dashed var(--border); }
-.detail h3 { margin: .6rem 0 .2rem; font-size: .9rem; color: var(--muted); text-transform: uppercase; }
+.detail h2 { margin: .6rem 0 .2rem; font-size: .9rem; color: var(--muted); text-transform: uppercase; }
 .notice { color: var(--warn); }
 .error { color: var(--bad); }
 ul.plain { margin: .2rem 0; padding-left: 1.1rem; }
@@ -404,3 +404,15 @@ input, select, textarea { background: var(--field); color: var(--text); font-fam
 input::placeholder, textarea::placeholder { color: var(--muted); opacity: 1; }
 
 [hidden] { display: none !important; }
+
+/* ===== Accessibility ===== */
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+.skip-link { position: absolute; left: .5rem; top: -4rem; z-index: 1000; padding: .5rem .9rem; border-radius: 6px; background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.skip-link:focus { top: .5rem; }
+/* One clear focus ring everywhere, in a colour that has contrast against every surface in both themes (tested) */
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline-offset: 0; }
+#main:focus { outline: none; }  /* only reached by the skip link, so a ring around the whole page would just be noise */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

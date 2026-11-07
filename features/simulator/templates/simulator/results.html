@@ -22,11 +22,12 @@
         <tr>
           <td>{{ s.code }} {{ s.name }}<br><span class="muted">{{ s.credit_points }} cp</span></td>
           <td>
-            <select name="result_{{ s.code }}">
+            <label class="visually-hidden" for="result_{{ s.code }}">Result for {{ s.code }} {{ s.name }}</label>
+            <select name="result_{{ s.code }}" id="result_{{ s.code }}">
               {% for value, label in labels.items() %}<option value="{{ value }}" {{ 'selected' if chosen == value }}>{{ label }}</option>{% endfor %}
             </select>
           </td>
-          <td><input type="text" inputmode="numeric" name="mark_{{ s.code }}" value="{{ form.get('mark_' ~ s.code, '') }}" placeholder="0 to 100" size="6"></td>
+          <td><label class="visually-hidden" for="mark_{{ s.code }}">Mark for {{ s.code }} {{ s.name }}, optional</label><input type="text" inputmode="numeric" id="mark_{{ s.code }}" name="mark_{{ s.code }}" value="{{ form.get('mark_' ~ s.code, '') }}" placeholder="0 to 100" size="6"></td>
         </tr>
       {% endfor %}
     </tbody>

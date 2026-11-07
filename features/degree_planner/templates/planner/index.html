@@ -195,7 +195,7 @@
 <h2>Still to plan</h2>
 {% if plan.outstanding %}
   <table class="table">
-    <thead><tr><th>Code</th><th>Subject</th><th>Requirement</th><th>cp</th><th></th></tr></thead>
+    <thead><tr><th>Code</th><th>Subject</th><th>Requirement</th><th>cp</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
     <tbody>
       {% for o in plan.outstanding %}
         <tr>
@@ -225,7 +225,7 @@
 {% for sec in plan.elective_sections %}
   {% if sec.complete %}
     <div class="card plan-complete">
-      <span class="card-title"><span class="name">{{ sec.label }}</span><span class="tick" aria-label="complete">&#10003;</span></span>
+      <span class="card-title"><span class="name">{{ sec.label }}</span><span class="tick"><span aria-hidden="true">&#10003;</span><span class="visually-hidden">complete</span></span></span>
       <p class="group-note">You've already completed or chosen all {{ sec.choose }} {{ sec.label|lower }} ({{ sec.chosen }} of {{ sec.choose }}).</p>
     </div>
   {% else %}

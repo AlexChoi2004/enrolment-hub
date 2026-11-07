@@ -198,7 +198,7 @@ def test_the_built_files_are_in_the_repository(client):
 
 def test_the_dashboard_is_the_first_link_and_marked_when_open(client, log_in):
     log_in()
-    nav = html(client, "/dashboard").split('<nav class="nav-main">', 1)[1].split("</nav>", 1)[0]
+    nav = html(client, "/dashboard").split('<nav class="nav-main" aria-label="Main">', 1)[1].split("</nav>", 1)[0]
     assert re.findall(r">([^<]+)</a>", nav)[:2] == ["Dashboard", "Subjects"] and 'href="/dashboard" aria-current="page"' in nav
 
 

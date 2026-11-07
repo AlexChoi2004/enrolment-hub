@@ -48,6 +48,7 @@ export function BoardView({ initial, moveEndpoint, csrf, fetchImpl }: BoardInner
   const [busy, setBusy] = useState<string | null>(null);
   const [refused, setRefused] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState<Announcement>(null);
+  const [focusAfter, setFocusAfter] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const [category, setCategory] = useState(ALL);
   const scroller = useRef<HTMLDivElement>(null);
@@ -55,6 +56,12 @@ export function BoardView({ initial, moveEndpoint, csrf, fetchImpl }: BoardInner
   const cards = useMemo(() => new Map<string, BoardCard>([...board.to_place, ...board.columns.flatMap((c) => c.cards)].map((c) => [c.code, c])), [board]);
   const locations = useMemo(() => new Map<string, string | null>([...board.to_place.map((c) => [c.code, null] as const), ...board.columns.flatMap((c) => c.cards.map((card) => [card.code, c.label] as const))]), [board]);
   const draggedCard = dragging ? cards.get(dragging) : undefined;
+
+  useEffect(() => {  // after a move the card is somewhere else: put keyboard focus on it there, so a keyboard user is not dropped back at the top
+    if (!focusAfter) return;
+    document.getElementById(`move-${focusAfter}`)?.focus();
+    setFocusAfter(null);
+  }, [focusAfter, board]);
 
   useEffect(() => {  // the shake is a short cue; take the marker off afterwards (a timer, so it also works where animation events do not fire)
     if (!refused) return;
@@ -70,6 +77,7 @@ export function BoardView({ initial, moveEndpoint, csrf, fetchImpl }: BoardInner
     setBusy(null);
     if (outcome.status === "moved") {
       setBoard(outcome.board);
+      setFocusAfter(code);
       setAnnouncement({ kind: "ok", text: outcome.message });
     } else if (outcome.status === "refused") {
       setRefused(code); // the card stays where it was and shakes; the planner's own reason is shown

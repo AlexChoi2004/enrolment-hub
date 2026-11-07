@@ -85,10 +85,12 @@ jobs:
         working-directory: frontend
       - name: Start the app
         run: |
-          DEMO_PROFILE=sample AI_BACKEND=off PORT=5055 python app.py > server.log 2>&1 &
+          ALLOW_REGISTRATION=1 DEMO_PROFILE=sample AI_BACKEND=off PORT=5055 python app.py > server.log 2>&1 &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:5055/login > /dev/null && break; sleep 1; done
       - name: Load the dashboard and check it rendered
         run: node frontend/smoke.mjs http://127.0.0.1:5055
+      - name: Accessibility audit (axe-core on every page and both React islands)
+        run: node frontend/a11y.mjs http://127.0.0.1:5055
       - name: Show the server log if it failed
         if: failure()
         run: cat server.log

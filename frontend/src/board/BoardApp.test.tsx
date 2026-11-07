@@ -177,6 +177,25 @@ describe("the menu, for anyone who cannot or does not want to drag", () => {
     expect(JSON.parse(String((spy.mock.calls[0]?.[1] as RequestInit).body))).toEqual({ code: "48024", to: "Spring 2027" });
   });
 
+  it("puts keyboard focus on the card's menu in its new place, so a keyboard user is not dropped at the top of the page", async () => {
+    show(failed());
+    const menu = screen.getByLabelText("Move 48024 Programming 2 to");
+    menu.focus();
+    fireEvent.change(menu, { target: { value: "Spring 2027" } });
+    await screen.findByText("Added 48024 Programming 2 to your plan for Spring 2027.");
+    const moved = within(column("Spring 2027")).getByLabelText("Move 48024 Programming 2 to");
+    await waitFor(() => expect(moved).toHaveFocus());
+  });
+
+  it("does not move focus when a move is refused", async () => {
+    show(failed(), jsonResponse(moveRaw("refused"), { status: 422 }));
+    const menu = screen.getByLabelText("Move 48024 Programming 2 to");
+    menu.focus();
+    fireEvent.change(menu, { target: { value: "Autumn 2029" } });
+    await screen.findByRole("alert");
+    expect(screen.getByLabelText("Move 48024 Programming 2 to")).toHaveFocus();
+  });
+
   it("can take a planned subject out of the plan", async () => {
     const spy = show(failed());
     fireEvent.change(screen.getByLabelText("Move 31251 Data Structures and Algorithms to"), { target: { value: "__remove__" } });

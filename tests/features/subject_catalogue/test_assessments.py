@@ -268,7 +268,7 @@ def test_a_subject_shows_its_description_tags_and_assessment_table(client, log_i
     log_in()
     page = card(html(client, "/subjects"), "41039")
     assert "Learn core programming with Java" in page and "Code-based" in page
-    assert "<h3>Assessment</h3>" in page and "Lab Assessments" in page and "30%" in page
+    assert "<h2>Assessment</h2>" in page and "Lab Assessments" in page and "30%" in page
     assert "Individual" in page and "Mandatory, no marks" in page
     assert "Source: UTS Handbook (handbook.uts.edu.au) (indicative), retrieved 2 Nov 2026." in page
     assert "Group work counts for 0% of the marks and exams for 20%." in page

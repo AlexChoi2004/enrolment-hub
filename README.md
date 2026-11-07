@@ -93,6 +93,7 @@ docs/               evidence, security, ethics, architecture and release notes
 - `docs/architecture/overview.md` how the pieces fit together (server-rendered pages plus a React island), and how the plan changed
 - `docs/SECURITY.md` secure coding case study
 - `docs/ETHICS.md` data governance and responsible AI note
+- `docs/ACCESSIBILITY.md` what was checked for accessibility, what it found, and what still needs a person
 - `docs/MCP.md` using the MCP server from Claude Desktop
 - `docs/EVIDENCE_LOG.md` hours, commits and what I actually did
 - `docs/release-0/README.md`, `docs/release-1/README.md` and `docs/release-2/README.md` what each release contains

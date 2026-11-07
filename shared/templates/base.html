@@ -13,10 +13,11 @@
   <script src="{{ url_for('shared.static', filename='keep-scroll.js') }}" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to main content</a>
   <div class="sticky-top">
   <header class="site-header">
     <a class="brand" href="{{ url_for('index') }}">Enrolment Hub</a>
-    <nav class="nav-main">
+    <nav class="nav-main" aria-label="Main">
       {% if current_user %}
         <a href="{{ url_for('dashboard.page') }}"{% if request.blueprint == 'dashboard' %} aria-current="page"{% endif %}>Dashboard</a>
         <a href="{{ url_for('catalogue.list_page') }}"{% if request.blueprint == 'catalogue' %} aria-current="page"{% endif %}>Subjects</a>
@@ -26,7 +27,7 @@
         <a href="{{ url_for('transcript.page') }}"{% if request.blueprint == 'transcript' %} aria-current="page"{% endif %}>Results</a>
       {% endif %}
     </nav>
-    <nav class="nav-account">
+    <nav class="nav-account" aria-label="Account">
       <a href="{{ url_for('guide.page') }}"{% if request.blueprint == 'guide' %} aria-current="page"{% endif %}>Help</a>
       <button type="button" id="theme-toggle" class="nav-button" aria-pressed="false" hidden>Dark mode</button>
       {% if g.user %}
@@ -59,12 +60,12 @@
     </div>
   {% endif %}
   </div>
-  <main class="container">
+  <main id="main" class="container" tabindex="-1">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="toasts">
           {% for category, message in messages %}
-            <p class="toast flash-{{ category }}" role="status">{{ message }}</p>
+            <p class="toast flash-{{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</p>
           {% endfor %}
         </div>
       {% endif %}
