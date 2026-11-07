@@ -1,11 +1,11 @@
 """Timetable pages. A student can only ever change their own class choices."""
-from flask import Blueprint, abort, flash, g, make_response, redirect, render_template, request, url_for
+from flask import Blueprint, Response, abort, flash, g, make_response, redirect, render_template, request, url_for
 
 from features.enrolment.service import current_session_of, open_sessions
 from shared import security
 from shared.db import get_db
 from features.subject_catalogue.service import is_valid_code
-from features.timetable import service
+from features.timetable import ical, service
 from features.workload.service import load_context, session_workload
 
 bp = Blueprint("timetable", __name__, template_folder="templates", url_prefix="/timetable")
@@ -25,8 +25,28 @@ def page():
             workload=workload,
             sessions=open_sessions(current),
             current=session_label,
+            has_classes=any(column["items"] for column in timetable["columns"]),
         )
     )
+    response.headers["Cache-Control"] = "no-store"  # personal data must not be cached
+    return response
+
+
+@bp.get("/export.ics")
+@security.login_required
+def export():
+    """The signed-in student's timetable for one session as a calendar file. Read-only: it changes nothing."""
+    conn = get_db()
+    session_label = service.valid_session(request.args.get("session", ""), current_session_of(conn, g.user["id"]))
+    timetable = service.get_timetable(conn, g.user["id"], session_label)
+    items = [item for column in timetable["columns"] for item in column["items"]]
+    if not items:
+        flash(f"You have no classes in {session_label} to add to a calendar yet. Enrol in a subject and choose its classes first.", "warning")
+        return redirect(url_for("timetable.page", session=session_label), code=303)
+    due = service.due_tasks(conn, timetable["subjects"]) if request.args.get("due") == "1" else []
+    response = Response(ical.build_calendar(session_label, items, due), mimetype="text/calendar")
+    response.headers["Content-Type"] = "text/calendar; charset=utf-8"
+    response.headers["Content-Disposition"] = f'attachment; filename="enrolment-hub-timetable-{ical.slug(session_label)}.ics"'
     response.headers["Cache-Control"] = "no-store"  # personal data must not be cached
     return response
 

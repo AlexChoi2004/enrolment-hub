@@ -165,7 +165,7 @@ def test_text_that_is_only_for_screen_readers_counts_as_a_name():
 # --- every real page -------------------------------------------------------------------------------------------------------------------------------
 
 LOGGED_OUT = ["/", "/login", "/help"]
-LOGGED_IN = ["/dashboard", "/subjects", "/planner", "/planner/board", "/timetable", "/students/me", "/transcript", "/major", "/submajor",
+LOGGED_IN = ["/dashboard", "/subjects", "/planner", "/planner/board", "/timetable", "/students/me", "/transcript", "/major", "/major/compare", "/submajor",
              "/submajor/electives", "/profile", "/simulator/reset", "/simulator/results", "/help"]
 
 

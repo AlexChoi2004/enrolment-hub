@@ -5,9 +5,7 @@ shapes it, and adds no rules of its own. The result is plain data (numbers, labe
 React and TypeScript page reads it. That shape is a contract: frontend/src/contract.ts describes it, and a test fails if the two
 drift apart.
 """
-import math
-
-from features.advisor.service import SESSION_CP, session_after
+from features.advisor.service import SESSION_CP, room_in_current_session, session_after, sessions_after_current
 from features.degree_planner.service import get_plan
 from features.enrolment.service import current_session_of
 from features.subject_catalogue.service import degree_categories, degree_subjects, user_major, user_submajor
@@ -54,16 +52,12 @@ def _categories(conn, user_id, plan):
 
 
 def _graduation(conn, user_id, plan, current):
-    """The session the degree finishes in if every session from now is filled to 24 credit points.
-
-    The room left in the current session counts, so a student who has not enrolled yet is not projected a session late."""
-    in_current = conn.execute(
-        "SELECT COALESCE(SUM(s.credit_points), 0) FROM enrolments e JOIN subjects s ON s.code = e.subject_code"
-        " WHERE e.user_id = ? AND e.status = 'enrolled' AND e.session_label = ?", (user_id, current)).fetchone()[0]
-    remaining = max(0, plan["degree_total_cp"] - plan["completed_cp"] - plan["enrolled_cp"])
-    after_current = math.ceil(max(0, remaining - max(0, SESSION_CP - in_current)) / SESSION_CP)
+    """The session the degree finishes in if every session from now is filled to 24 credit points (the advisor's own rule)."""
+    counted = plan["completed_cp"] + plan["enrolled_cp"]
+    remaining = max(0, plan["degree_total_cp"] - counted)
+    after_current = sessions_after_current(counted, room_in_current_session(conn, user_id, current))
     return {"session": session_after(current, after_current), "sessions_left": after_current, "remaining_cp": remaining,
-            "finished": plan["degree_total_cp"] - plan["completed_cp"] - plan["enrolled_cp"] <= 0}
+            "finished": plan["degree_total_cp"] - counted <= 0}
 
 
 def _sessions(plan, current):

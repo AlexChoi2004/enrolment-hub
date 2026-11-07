@@ -6,7 +6,7 @@ React and TypeScript pages (the dashboard and the planner board) and both colour
 ## What is checked, and where it runs
 | Check | How | Runs |
 |---|---|---|
-| **axe-core 4.14.0**, WCAG 2.0, 2.1 and 2.2 A and AA plus best practice | `frontend/a11y.mjs` loads the real server and the real built bundles in a simulated browser and audits **22 pages**: every page, a subject, a major and a sub-major, and the simulator's whole flow (results, review, roll back). The two React pages are audited after they have rendered. | CI, in the smoke job, on every pull request |
+| **axe-core 4.14.0**, WCAG 2.0, 2.1 and 2.2 A and AA plus best practice | `frontend/a11y.mjs` loads the real server and the real built bundles in a simulated browser and audits **23 pages**: every page, a subject, a major and a sub-major, and the simulator's whole flow (results, review, roll back). The two React pages are audited after they have rendered. | CI, in the smoke job, on every pull request |
 | **Page structure** | `tests/shared/test_accessibility.py`: one `<main>` and one `<h1>`, heading levels that never skip, a name for every link, button, table header and form control, distinct names for the two navigation landmarks, no duplicate ids, a unique title per page, a skip link as the first focusable element, zoom allowed. The checker is itself tested against 18 deliberately broken pages, so a pass means something. | Python tests |
 | **Colour contrast** | `tests/shared/test_theme.py`: about 150 WCAG contrast checks (4.5:1 for text, 3:1 for edges) over the colour tokens in **both** themes, including badges, the timetable, load colours and messages. The focus ring is checked at 3:1 against ten surfaces in both themes. | Python tests |
 | **Keyboard and motion** | One visible focus ring everywhere (`:focus-visible`), a skip link, and a stylesheet rule that stops all animation for people who ask for reduced motion. On the planner board, every card has a **Move to…** menu that does everything dragging does, and keyboard focus follows the card to its new place. | Python and frontend tests |
@@ -24,7 +24,7 @@ The first run (before this work) found **26 violations across 22 pages, which we
 
 The same audit also marked one item "needs review" that was a genuine problem: a tick mark whose label was on a plain `<span>`, which screen readers do not reliably announce. It now has real text.
 Things axe cannot see were fixed too: there was **no skip link** and **no explicit focus style**, so keyboard focus depended on each browser's default; and on the planner board, **keyboard focus was lost after a move**.
-After the fixes the audit reports **0 violations on all 22 pages**. Two page-level rules (one main landmark, one level-one heading) are always "needs review" in a simulated browser; the Python structure tests check both on every page instead.
+After the fixes the audit reports **0 violations on all 23 pages**. Two page-level rules (one main landmark, one level-one heading) are always "needs review" in a simulated browser; the Python structure tests check both on every page instead.
 
 ## Design decisions
 - **Colour is never the only signal.** Progress bars use solid, lighter and striped fills and name each kind in text; workload and states are words; a locked subject says so.

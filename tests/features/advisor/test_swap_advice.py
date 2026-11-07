@@ -143,7 +143,8 @@ def test_the_projected_graduation_follows_the_students_own_session(conn, student
 
     complete_semester(conn, student, {})  # on to Spring 2027
     a = assess(conn, student, "major", "MAJ10053")
-    assert current_session_of(conn, student) == "Spring 2027" and a["graduate_before"] == session_after("Spring 2027", 8)
+    # 192 cp is 8 sessions of 24 including the current one, so 7 more after Spring 2027 (the room left in the current session counts)
+    assert current_session_of(conn, student) == "Spring 2027" and a["graduate_before"] == session_after("Spring 2027", 7) == "Autumn 2031"
 
 
 def test_the_advice_reflects_a_failed_subject_that_no_longer_counts(conn, student):

@@ -193,3 +193,25 @@ def test_walkthrough_plan_by_dragging_and_see_the_planner_say_no(app, client, lo
     assert no.status_code == 422 and "needs 48024 Programming 2 first" in no.get_json()["error"]
     classic = html(client, "/planner")
     assert "Spring 2027" in classic and "48024" in classic  # the classic planner shows the same plan
+
+
+def test_walkthrough_compare_every_major_for_your_progress(client, log_in):
+    log_in()
+    reset_to(client, "sample")
+    assert 'href="/major/compare">Compare all majors for me</a>' in html(client, "/major")
+    page = html(client, "/major/compare")
+    assert page.index("Your major") < page.index("Artificial Intelligence and Data Analytics") and "Enterprise Software Development" in page
+    assert page.count("Think carefully") >= 6 and "Possible, but it costs time" in page
+    swap = html(client, "/major/MAJ10053")
+    assert "Possible, but it costs time" in swap and "Autumn 2029" in swap  # the same numbers as the table
+    assert "Earliest graduation" in page and "Name" in page
+
+
+def test_walkthrough_put_your_timetable_in_a_calendar(client, log_in):
+    log_in()
+    reset_to(client, "sample")
+    assert "Add to your calendar" in html(client, "/timetable") and "Download calendar (.ics)" in html(client, "/timetable")
+    res = client.get("/timetable/export.ics?session=Autumn+2027&due=1")
+    text = res.get_data(as_text=True)
+    assert res.status_code == 200 and res.headers["Content-Type"].startswith("text/calendar")
+    assert "DTSTART;TZID=Australia/Sydney:20270222T" in text and "RRULE:FREQ=WEEKLY;COUNT=13" in text and "Due: " in text

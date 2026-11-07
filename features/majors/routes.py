@@ -1,8 +1,11 @@
 """Choose or swap a major. A student can only ever change their own major."""
 from flask import Blueprint, abort, flash, g, make_response, redirect, render_template, request, url_for
 
-from features.advisor.service import ElectiveChoiceError, assess, validate_electives
+from features.advisor.service import (
+    GOOD_MAX_EXTRA_CP, THINK_EXTRA_CP, THINK_EXTRA_SESSIONS, ElectiveChoiceError, assess, validate_electives,
+)
 from features.majors import service
+from features.majors.compare import compare_majors
 from shared import security
 from shared.db import get_db
 from features.subject_catalogue.service import is_valid_major_code, list_majors, user_major
@@ -23,6 +26,15 @@ def index():
     return _private(render_template(
         "majors/index.html", majors=list_majors(conn), current=user_major(conn, g.user["id"]),
     ))
+
+
+@bp.get("/compare")
+@security.login_required
+def compare():
+    """Every major judged for this student by the swap advisor's rules. Read-only: it changes nothing."""
+    comparison = compare_majors(get_db(), g.user["id"], request.args.get("sort", "fit"))  # an unknown sort falls back to best fit
+    rules = {"good_cp": GOOD_MAX_EXTRA_CP, "think_sessions": THINK_EXTRA_SESSIONS, "think_cp": THINK_EXTRA_CP}
+    return _private(render_template("majors/compare.html", comparison=comparison, rules=rules))
 
 
 @bp.get("/<code>")

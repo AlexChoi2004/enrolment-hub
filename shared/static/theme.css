@@ -416,3 +416,20 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline-offs
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* ===== Compare majors ===== */
+.compare-sorts { display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin: 0 0 .8rem; padding: 0; }
+.compare-sorts a[aria-current="true"] { font-weight: 700; text-decoration: none; color: var(--text); border-bottom: 2px solid var(--accent); }
+.compare-wrap { overflow-x: auto; }
+.compare-table td, .compare-table th { vertical-align: top; }
+.compare-table tbody th { text-transform: none; font-size: 1rem; color: var(--text); }
+.compare-current { background: var(--accent-soft); }
+.compare-table meter { width: 7rem; height: .8rem; }
+.badge.fit-good { background: var(--ok-soft); color: var(--ok-text); border-color: var(--ok-border); }
+.badge.fit-costs_time { background: var(--warn-soft); color: var(--warn-text); border-color: var(--warn-border); }
+.badge.fit-think { background: var(--bad-soft); color: var(--bad-text); border-color: var(--bad-border); }
+
+/* ===== Calendar export ===== */
+.calendar-export h2 { margin-top: 0; font-size: 1rem; }
+.calendar-form { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin-bottom: .4rem; }
+.calendar-option { display: inline-flex; align-items: center; gap: .4rem; }

@@ -17,8 +17,8 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Install dependencies (and an independent calendar parser, used only to check the calendar export)
+        run: pip install -r requirements.txt icalendar recurring-ical-events
       - name: Run tests
         run: python -m pytest -q
 
