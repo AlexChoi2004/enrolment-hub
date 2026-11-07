@@ -65,6 +65,27 @@
       Data Structures and Algorithms is no longer blocked. Press <strong>Roll back a semester</strong> to undo it all and try again.</p>
   </details>
 
+  <details class="walkthrough" data-preset="sample">
+    <summary>Put your timetable in a calendar <span class="tag">Start from: {{ presets["sample"].title }}</span></summary>
+    <ol>
+      <li>Open the <strong>Timetable</strong>. Your lectures are already there.</li>
+      <li>Under <strong>Add to your calendar</strong>, tick <strong>Include assessment due weeks</strong> if you want them, then press <strong>Download calendar (.ics)</strong>.</li>
+      <li>Open the downloaded file, or import it in Google Calendar (Settings, Import and export), Apple Calendar or Outlook.</li>
+    </ol>
+    <p class="see"><strong>You should see:</strong> each lecture repeating every week for 13 weeks from Monday 22 February 2027, and the due weeks as all-day events on Fridays. The dates, times and rooms are illustrative.</p>
+  </details>
+
+  <details class="walkthrough" data-preset="sample">
+    <summary>Compare every major for your progress <span class="tag">Start from: {{ presets["sample"].title }}</span></summary>
+    <ol>
+      <li>Open <strong>Majors</strong> (the Degree planner's major link, or the <code>/major</code> page) and press <strong>Compare all majors for me</strong>.</li>
+      <li>Your own major, Enterprise Software Development, is at the top. Below it, the other seven are ranked best fit first.</li>
+      <li>Artificial Intelligence and Data Analytics is first: it costs one extra session. The rest are <strong>Think carefully</strong>.</li>
+      <li>Press <strong>Earliest graduation</strong> or <strong>Name</strong> to reorder, then <strong>Look at this swap</strong> on any row.</li>
+    </ol>
+    <p class="see"><strong>You should see:</strong> the same numbers on the swap page as in the table, because both come from the same rules. Nothing has changed until you confirm a swap there.</p>
+  </details>
+
   <details class="walkthrough" data-preset="failed">
     <summary>Plan by dragging, and see the planner say no <span class="tag">Start from: {{ presets["failed"].title }}</span></summary>
     <ol>
@@ -209,6 +230,8 @@
     <dt>Dashboard</dt><dd>The first page after you log in: progress by requirement, your projected graduation session, your sessions ahead and what to do next.</dd>
     <dt>Subjects</dt><dd>Every subject in your degree with whether you can enrol, and why or why not. Failed subjects show "Failed: retake needed".</dd>
     <dt>Degree planner</dt><dd>Plans future sessions. It shows completed, in progress, planned, failed and blocked subjects, and a workload verdict for each session.</dd>
+    <dt>Compare majors</dt><dd>On the Majors page, <strong>Compare all majors for me</strong> ranks every major by how well it fits what you have already done: what carries over, what would stop counting, the extra time and when you would graduate. It uses the same rules as each major's swap page, and changes nothing.</dd>
+    <dt>Calendar export</dt><dd>On the Timetable page, <strong>Download calendar (.ics)</strong> saves your classes for the session as a file that Google Calendar, Apple Calendar and Outlook can open. Each class repeats weekly for 13 weeks, and you can add assessment due weeks. All dates are illustrative.</dd>
     <dt>Planner board</dt><dd>Linked from the Degree planner as <strong>Board view</strong>: your plan as columns, one per session. Drag a subject to a session, or use its <strong>Move to…</strong> menu. The planner checks every move and says why if it can't be done. The <strong>To place</strong> list has a filter, shows what you can place now first and folds away subjects that are waiting on others; every column scrolls on its own, and dragging near an edge scrolls for you.</dd>
     <dt>Timetable</dt><dd>Your classes for a session. Clashes are allowed but drawn in red.</dd>
     <dt>Record</dt><dd>Your degree progress, oldest session first.</dd>

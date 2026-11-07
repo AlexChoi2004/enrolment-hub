@@ -10,8 +10,10 @@ Handbook, which says its own pages are indicative.
 ## What it does
 - **See where you stand:** a dashboard with progress by requirement, the projected graduation session and your next steps (a React and TypeScript page).
 - **Plan by dragging:** a planner board where you drag subjects between sessions (React and TypeScript), and the planner's own rules decide every move and say why when they refuse one.
+- **Take it with you:** download your timetable as a calendar file (with the assessment due weeks if you like) for Google, Apple or Outlook calendar.
 - **Plan a degree:** choose a major and a sub-major (or general electives), enrol, plan up to ten sessions ahead, and pick classes in a timetable.
 - **Enforce the rules:** prerequisites, session offerings, a 24 credit point limit, failed subjects and retakes, with the reason shown whenever something is blocked.
+- **Compare majors:** every major ranked for what you have already done, with the same verdicts, credit points lost, extra time and graduation date as each swap page.
 - **Advise on swaps:** changing major, sub-major or electives is never blocked, but you see what carries over, the extra time and a verdict first, and a risky swap needs your own confirmation.
 - **Light and dark themes:** follows your device or browser setting, with a toggle that remembers your choice.
 - **Test quickly:** a semester simulator (complete, roll back, reset) and four starting points, from a first-year student to one late in their major.
@@ -69,8 +71,8 @@ docs/               evidence, security, ethics, architecture and release notes
 | `enrolment` | Enrol and withdraw, eligibility rules, results and attempts, the demo starting points |
 | `dashboard` | Progress, projected graduation and next steps: the data endpoint and the page that loads the React dashboard |
 | `degree_planner` | The planning window, suggested plans, retakes and rescheduling, and the drag-and-drop planner board |
-| `timetable` | Class choices and clash detection |
-| `majors` | Choose or swap a major, with an impact preview |
+| `timetable` | Class choices, clash detection and a calendar (.ics) download |
+| `majors` | Choose or swap a major, with an impact preview, and a comparison of every major for your progress |
 | `submajors` | Choose or swap a sub-major or general electives, and count subjects as electives |
 | `advisor` | Swap advice: progress, what carries over, extra time, a verdict (rules in code) |
 | `transcript` | The Results page |

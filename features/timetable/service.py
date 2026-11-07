@@ -270,3 +270,19 @@ def drop_class(conn, user_id, subject_code, component):
         "session": row["session_label"],
         "class": component_label(row["class_name"]),
     }
+
+
+def due_tasks(conn, subjects):
+    """The marked assessment tasks of these subjects that fall in a teaching week (not the exam period), for the calendar export.
+
+    The due weeks are the app's illustrative ones: the handbook publishes none."""
+    from features.subject_catalogue.assessments import EXAM_WEEK, load_assessment_info
+
+    info, out = load_assessment_info(conn), []
+    for subject in subjects:
+        for index, task in enumerate(info.get(subject["code"], {}).get("tasks", [])):
+            week = task.get("due_week")
+            if week is None or week == EXAM_WEEK or task.get("weight") is None:
+                continue
+            out.append({"code": subject["code"], "index": index, "name": task["name"], "week": week, "weight_text": task.get("weight_text", "")})
+    return out

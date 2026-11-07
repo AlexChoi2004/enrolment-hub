@@ -29,6 +29,22 @@ THINK_MAJOR_PROGRESS = 0.75  # this far through the major...
 THINK_MAX_CARRY_SHARE = 0.25  # ...with almost nothing carrying over
 
 
+def room_in_current_session(conn, user_id, current):
+    """Credit points of room left in the current session: 24 minus what the student is already enrolled in for it."""
+    used = conn.execute(
+        "SELECT COALESCE(SUM(s.credit_points), 0) FROM enrolments e JOIN subjects s ON s.code = e.subject_code"
+        " WHERE e.user_id = ? AND e.status = 'enrolled' AND e.session_label = ?", (user_id, current)).fetchone()[0]
+    return max(0, SESSION_CP - used)
+
+
+def sessions_after_current(counted_cp, room_now):
+    """Sessions still needed AFTER the current one, filling every session with 24 credit points.
+
+    counted_cp is what already counts (done or in progress). The room left in the current session counts too, so a student who has
+    not enrolled yet is not projected a session late. One rule, used by the dashboard, the swap advice and the major comparison."""
+    return math.ceil(max(0, DEGREE_CREDIT_POINTS - counted_cp - room_now) / SESSION_CP)
+
+
 def session_after(label, steps):
     for _ in range(steps):
         label = next_session(label)
@@ -154,8 +170,9 @@ def assess(conn, user_id, kind, code=None, language=None, elective_codes=()):
     carry_share = carried_cp / counted_before if counted_before else 1.0
     major_progress = before["major_cp"] / 48
 
-    sessions_before = math.ceil(max(0, DEGREE_CREDIT_POINTS - counted_before) / SESSION_CP)
-    sessions_after = math.ceil(max(0, DEGREE_CREDIT_POINTS - counted_after) / SESSION_CP)
+    room_now = room_in_current_session(conn, user_id, current)  # unchanged by the swap: room freed by dropping subjects is not counted
+    sessions_before = sessions_after_current(counted_before, room_now)
+    sessions_after = sessions_after_current(counted_after, room_now)
     extra_sessions = max(0, sessions_after - sessions_before)
     extra_subjects = math.ceil(extra_cp / 6)
 

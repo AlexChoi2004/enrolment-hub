@@ -51,5 +51,11 @@ def test_the_smoke_job_also_runs_the_accessibility_audit_on_every_page():
     audit = (ROOT / "frontend" / "a11y.mjs").read_text(encoding="utf-8")
     assert "process.exit(total === 0 ? 0 : 1)" in audit and "wcag22aa" in audit  # any violation fails the build
     assert '"color-contrast": { enabled: false }' in audit  # the one rule jsdom cannot run, covered by the token tests
-    for page in ("Dashboard (React)", "Planner board (React)", "Simulator: roll back", "Choose a sub-major"):
+    for page in ("Dashboard (React)", "Planner board (React)", "Simulator: roll back", "Choose a sub-major", "Compare majors"):
         assert page in audit
+
+
+def test_the_test_job_installs_the_independent_calendar_parser_so_that_check_runs_in_ci():
+    job = CI.split("  test:", 1)[1].split("  security:", 1)[0]
+    assert "icalendar" in job and "recurring-ical-events" in job
+    assert "icalendar" in (ROOT / "requirements-dev.txt").read_text(encoding="utf-8")

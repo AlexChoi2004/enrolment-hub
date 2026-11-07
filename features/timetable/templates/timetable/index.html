@@ -15,6 +15,20 @@
   {% endfor %}
 </nav>
 
+<section class="card calendar-export" aria-labelledby="cal-title">
+  <h2 id="cal-title">Add to your calendar</h2>
+  {% if has_classes %}
+    <form method="get" action="{{ url_for('timetable.export') }}" class="calendar-form">
+      <input type="hidden" name="session" value="{{ current }}">
+      <label class="calendar-option"><input type="checkbox" name="due" value="1"> Include assessment due weeks</label>
+      <button type="submit" class="btn btn-secondary">Download calendar (.ics)</button>
+    </form>
+    <p class="muted">Opens in Google Calendar, Apple Calendar and Outlook. Each class repeats weekly for 13 weeks. Session dates, class times and due weeks are illustrative.</p>
+  {% else %}
+    <p class="muted">Nothing to add yet: enrol in a subject for {{ current }} and your classes can be downloaded as a calendar file.</p>
+  {% endif %}
+</section>
+
 {% if workload.status %}
   <details class="workload wl-{{ workload.status }}">
     <summary><span class="badge wl-badge-{{ workload.status }}">Workload: {{ workload.label }}</span>
