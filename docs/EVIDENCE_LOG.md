@@ -103,11 +103,15 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 |            |               | JSON endpoint from the existing services, a strict typed contract checked from both sides with fixtures from the real    |        |        |
 |            |               | server data, an accessible bundle committed so Node is not needed to run the app, and CI for type-checking, tests, an    |        |        |
 |            |               | end-to-end render check, CodeQL, Dependabot and npm audit; 62 new Python tests and 65 frontend tests                     |        |        |
-| 2026-11-06 | 3 (dev tools) | Fixed the planner board after testing it myself: made the board a fixed height with columns that scroll on their own,    | 2 HOUR | PR #32 |
+| 2026-11-06 | 3 (dev tools) | Fixed the planner board after testing it myself: made the board a fixed height with columns that scroll on their own,    | 2 HOUR | PR #40 |
 |            |               | added edge auto-scroll while dragging, a filter, a category menu and requirement groups with choose-N-more hints, and    |        |        |
 |            |               | put the missing elective subjects on the board, with the planner still deciding every move; 16 new Python tests and      |        |        |
 |            |               | 27 new frontend tests                                                                                                    |        |        |
-
+| 2026-11-07 | 3 (dev tools) | Audited the whole app for accessibility with axe-core on 22 pages and both React pages, in CI, and fixed what it found   | 1 HOUR | PR #41 |
+|            |               | (an unlabelled form control, unnamed navigation landmarks, a skipped heading level, empty table headers), then added what|        |        |
+|            |               | the tool cannot see: a skip link, a visible focus ring, reduced motion for all animation, announced error messages, and  |        |        |
+|            |               | keyboard focus that follows a card on the planner board; with Python structure checks, a checker tested against 18 broken|        |        |
+|            |               | pages, and an accessibility document with the limits and manual checks                                                   |        |        |
 
 ## Things that went wrong or changed
 
@@ -400,12 +404,26 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Found that the swap advisor's graduation formula projects a student with no enrolments two sessions late, used a corrected formula on the dashboard with a test that it agrees with the swap advice where the student has progress, and left the advisor alone so I did not change its tested numbers
 - Fixed a test that assumed Flask writes JSON with spaces, and a Node command that does not take a folder in the version I used
 
-### PR #32: Planner board layout and categories
+### PRs #32 to #39: Dependabot dependency updates (not my work)
+- Decided to switch on Dependabot for pip, npm and the GitHub Actions in PR #31, so outdated dependencies are found automatically, and it opened eight update pull requests within minutes of that merging: setup-node, checkout and setup-python (the Actions), then python-dotenv, flask, pytest, requests and @types/node
+- Found that every one passed all seven CI checks, which shows the pipeline tests a dependency change before it can be merged, so I did not have to test them by hand
+- Decided to leave them unmerged until after the report, because eight dependency bumps close to submission add risk for no benefit, including three Actions that each skip several major versions
+- Fixed my wrong guess of the next pull request number: I expected my planner board to be #32, but these eight came first, so it became #40, and from now on I read the number off GitHub after opening the pull request
+
+### PR #40: Planner board layout and categories
 - Found by using the board myself that I could not drag a subject from the bottom of a long list to a session, because the page scrolled and the browser does not scroll while dragging, so I changed the board to a fixed height where every column scrolls inside itself and added edge auto-scroll
 - Found that the subjects you choose (major electives, sub-major choices, general electives) were missing from the board, because it only listed required subjects and I had left choices to the classic planner; they are now on the board and the planner's own limit still refuses an extra one
 - Decided to group the long to-place list by requirement with a category menu, not a separate column per category, because five to seven extra columns would have pushed the sessions off the screen
 - Decided to fold away subjects that are waiting on other subjects, so the list shows what can be placed now first, while still letting me drag one to see why it is refused
 - Fixed several of my own tests that looked for text that now appears in two places, and a test that tried to exceed an elective limit in a session where the subject is not offered, so the planner refused it for a different reason
+
+### PR #41: Accessibility audit and fixes
+- Decided to measure accessibility with axe-core on every real page and both React pages in CI, not to eyeball it, and to put a Python structure checker beside it that I tested against 18 deliberately broken pages, so a pass means something
+- Found 26 violations across 22 pages that were four distinct problems, the worst being the simulator's result dropdowns with no accessible name, and fixed them all, so the audit now reports 0
+- Found things the tool cannot see and fixed them: no skip link, no explicit focus style so focus depended on each browser, only the toasts respecting reduced motion, and keyboard focus lost after a move on the planner board
+- Decided to be honest about the limits in docs/ACCESSIBILITY.md: the audit has no layout engine so it cannot check colour contrast as rendered, target sizes or a real screen reader, so contrast is checked from the colour tokens and the rest is a manual checklist
+- Fixed a tick mark that axe only flagged as "needs review", because its label sat on a plain span that screen readers do not reliably announce
+- Fixed my own tests: a case where I built a "broken" dropdown that was still labelled, and two older tests that looked for the old heading level and navigation markup
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
