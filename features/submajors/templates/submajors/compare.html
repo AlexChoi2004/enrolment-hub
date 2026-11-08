@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Compare two sub-majors · Enrolment Hub{% endblock %}
+{% block content %}
+<h1>Compare two sub-majors</h1>
+<p class="page-actions"><a class="btn btn-secondary" href="{{ url_for('submajors.index') }}">All sub-majors</a>
+  <a class="btn btn-secondary" href="{{ url_for('submajors.fit') }}">Which sub-major fits my progress?</a></p>
+<p>Some sub-majors teach similar subjects. Pick two to see what they share, what only one of them has, and how their focus differs.</p>
+{% set kind = 'sub-major' %}{% set compare_endpoint = 'submajors.compare' %}{% set show_endpoint = 'submajors.show' %}
+{% include '_compare.html' %}
+{% endblock %}

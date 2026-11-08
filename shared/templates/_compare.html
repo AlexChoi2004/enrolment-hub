@@ -1,0 +1,103 @@
+{# Two majors, or two sub-majors, side by side. Context: kind, options, a, b, result, message, compare_endpoint, show_endpoint. #}
+<form method="get" action="{{ url_for(compare_endpoint) }}" class="compare-form">
+  <div class="compare-pick">
+    <div>
+      <label for="cmp-a">First {{ kind }}</label>
+      <select id="cmp-a" name="a">
+        <option value="">Choose a {{ kind }}…</option>
+        {% for o in options %}<option value="{{ o.code }}"{% if o.code == a %} selected{% endif %}>{{ o.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="cmp-b">Second {{ kind }}</label>
+      <select id="cmp-b" name="b">
+        <option value="">Choose a {{ kind }}…</option>
+        {% for o in options %}<option value="{{ o.code }}"{% if o.code == b %} selected{% endif %}>{{ o.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn">Compare</button>
+  </div>
+</form>
+
+{% if message %}<p class="notice" role="status">{{ message }}</p>{% endif %}
+
+{% if result %}
+  {% set A = result.a %}{% set B = result.b %}
+  <section aria-labelledby="cmp-verdict" class="card compare-verdict compare-{{ result.verdict }}">
+    <h2 id="cmp-verdict"><span class="badge compare-badge-{{ result.verdict }}">{{ result.verdict_label }}</span></h2>
+    <p>{{ result.sentence }}</p>
+    {% if result.comparable %}
+      <p class="muted">{{ result.share_of_a }}% of {{ A.name }}'s subjects (by credit points) are also in {{ B.name }}, and {{ result.share_of_b }}% of {{ B.name }}'s are also in {{ A.name }}.</p>
+    {% endif %}
+  </section>
+
+  {% if result.comparable %}
+    <h2>What they share</h2>
+    {% if result.shared %}
+      <div class="compare-wrap"><table class="table">
+        <caption class="visually-hidden">Subjects in both {{ A.name }} and {{ B.name }}</caption>
+        <thead><tr><th scope="col">Code</th><th scope="col">Subject</th><th scope="col">Credit points</th><th scope="col">In {{ A.name }}</th><th scope="col">In {{ B.name }}</th></tr></thead>
+        <tbody>
+          {% for s in result.shared %}
+            <tr><td class="code">{{ s.code }}</td><td>{{ s.name }}</td><td>{{ s.credit_points }} cp</td><td>{{ 'Core' if s.role_a == 'core' else 'Option' }}</td><td>{{ 'Core' if s.role_b == 'core' else 'Option' }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table></div>
+    {% else %}
+      <p class="muted">No subject appears in both.</p>
+    {% endif %}
+
+    <h2>What is different</h2>
+    <div class="compare-sides">
+      {% for P, only, highlights in ((A, result.only_a, result.highlights_a), (B, result.only_b, result.highlights_b)) %}
+        <section class="card" aria-labelledby="only-{{ loop.index }}">
+          <h3 id="only-{{ loop.index }}">Only in <a href="{{ url_for(show_endpoint, code=P.code) }}">{{ P.name }}</a></h3>
+          {% if only %}
+            <p class="muted">Key subjects: {{ highlights|join(', ') }}{% if only|length > highlights|length %} and {{ only|length - highlights|length }} more{% endif %}.</p>
+            <ul class="plain">
+              {% for s in only %}<li>{{ s.name }} <span class="muted">({{ s.code }}, {{ s.credit_points }} cp, {{ 'core' if s.role == 'core' else 'option' }})</span></li>{% endfor %}
+            </ul>
+          {% else %}
+            <p class="muted">Nothing: everything in {{ P.name }} is also in the other.</p>
+          {% endif %}
+        </section>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <h2>Focus</h2>
+  {% if result.focus %}
+    <ul class="plain focus-list">
+      {% for f in result.focus.both %}<li><strong>Both:</strong> {{ f.label }}</li>{% endfor %}
+      {% for f in result.focus.only_a %}<li><strong>Only {{ A.name }}:</strong> {{ f.label }} <span class="muted">({{ f.subjects|join(', ') }})</span></li>{% endfor %}
+      {% for f in result.focus.only_b %}<li><strong>Only {{ B.name }}:</strong> {{ f.label }} <span class="muted">({{ f.subjects|join(', ') }})</span></li>{% endfor %}
+    </ul>
+    {% if not result.focus.both %}<p class="muted">They share no focus area.</p>{% endif %}
+    <p class="muted">Focus areas are worked out from subject names: a theme that runs through several of a program's subjects.</p>
+  {% else %}
+    <p class="muted">A focus area could not be worked out for both of these yet.</p>
+  {% endif %}
+
+  <h2>In their descriptions</h2>
+  <div class="compare-sides">
+    {% for P in (A, B) %}
+      <section class="card" aria-labelledby="desc-{{ loop.index }}">
+        <h3 id="desc-{{ loop.index }}">{{ P.name }}</h3>
+        {% if P.summary %}
+          <p>{{ P.summary.summary }}</p>
+          <p class="muted">Summarised from the UTS Handbook (indicative), retrieved {{ P.summary.retrieved_on }}.</p>
+        {% else %}
+          <p class="muted">No written summary has been added yet.</p>
+        {% endif %}
+        {% if P.handbook_url %}<p><a href="{{ P.handbook_url }}" target="_blank" rel="noopener noreferrer">Official description in the Handbook<span class="visually-hidden"> for {{ P.name }} (opens in a new tab)</span></a></p>{% endif %}
+      </section>
+    {% endfor %}
+  </div>
+
+  <h2>How "similar" is decided</h2>
+  <p class="muted">
+    It counts the credit points of subjects that appear in both, as a share of the smaller program: {{ (rules.close * 100)|round|int }}% or more is closely related,
+    {{ (rules.partly * 100)|round|int }}% or more is partly similar, any less is little in common. Core means required; option means you choose from a list.
+    Nothing changes until you choose a {{ kind }} yourself.
+  </p>
+{% endif %}

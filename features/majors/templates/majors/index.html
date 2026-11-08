@@ -9,7 +9,10 @@
 {% if current %}
   <p class="demo-note">Your major is <strong>{{ current.name }}</strong> ({{ current.code }}).</p>
 {% endif %}
-<p class="page-actions"><a class="btn btn-secondary" href="{{ url_for('majors.compare') }}">Compare all majors for me</a></p>
+<p class="page-actions">
+  <a class="btn btn-secondary" href="{{ url_for('majors.fit') }}">Rank all majors for my progress</a>
+  <a class="btn btn-secondary" href="{{ url_for('majors.compare') }}">Compare two majors</a>
+</p>
 
 <ul class="plain major-list">
   {% for m in majors %}

@@ -5,6 +5,12 @@
 <h1>{{ sub.name }}</h1>
 {% include '_ask_panel.html' %}
 <p class="muted">{{ sub.code }} · 24 credit points</p>
+{% set kind = 'sub-major' %}{% set show_endpoint = 'submajors.show' %}{% set code = sub.code %}
+{% include '_program_tabs.html' %}
+{% if tab == 'about' %}
+  {% set p = program %}{% set compare_url = url_for('submajors.compare', a=sub.code) %}
+  {% include '_about.html' %}
+{% else %}
 {% if sub.note %}<p class="notice">{{ sub.note }}</p>{% endif %}
 
 {% if sub.is_language %}
@@ -84,4 +90,5 @@
   </form>
 {% endif %}
 <p class="muted">The structure was supplied from the UTS Handbook and has not been independently verified. Prerequisites for subjects that exist only in sub-majors have not been researched yet.</p>
+{% endif %}
 {% endblock %}

@@ -1,0 +1,5 @@
+{# The two tabs on a major or sub-major page: its subjects (and the swap), and a short description of it. Context: kind, show_endpoint, code, tab. #}
+<nav class="tt-tabs" aria-label="{{ kind|capitalize }} sections">
+  <a href="{{ url_for(show_endpoint, code=code) }}"{% if tab != 'about' %} aria-current="page"{% endif %}>Subjects</a>
+  <a href="{{ url_for(show_endpoint, code=code, tab='about') }}"{% if tab == 'about' %} aria-current="page"{% endif %}>About</a>
+</nav>

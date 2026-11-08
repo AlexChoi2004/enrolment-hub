@@ -112,11 +112,14 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 |            |               | the tool cannot see: a skip link, a visible focus ring, reduced motion for all animation, announced error messages, and  |        |        |
 |            |               | keyboard focus that follows a card on the planner board; with Python structure checks, a checker tested against 18 broken|        |        |
 |            |               | pages, and an accessibility document with the limits and manual checks                                                   |        |        |
-| 2026-11-08 | 3 (dev tools) | Added a major comparison that ranks every major for a student's progress using the swap advisor's own rules, and a       | HOURS | PR #42 |
+| 2026-11-08 | 3 (dev tools) | Added a major comparison that ranks every major for a student's progress using the swap advisor's own rules, and a       | HOURS | PR #42  |
 |            |               | calendar download of the timetable that follows the iCalendar standard with the Sydney timezone, optional due weeks, safe|        |        |
 |            |               | handling of bad input, and an independent parser checking it in CI; made the dashboard, swap advice and comparison share |        |        |
 |            |               | one graduation rule after the comparison exposed an off-by-one for first-years; 148 new tests                            |        |        |
-
+| 2026-11-08 | 3 (dev tools) | Added a side-by-side comparison of two majors or two sub-majors (a verdict measured against the smaller program, shared  | 2 HOUR | PR #43 |
+|            |               | and unique subjects, and focus areas worked out from subject names so differences are checkable), an About tab for each  |        |        |
+|            |               | major and sub-major with a link to its official Handbook page, a "fit for my progress" ranking for sub-majors, and       |        |        |
+|            |               | renamed the earlier major ranking to keep the two questions apart; 125 new tests                                         |        |        |
 
 ## Things that went wrong or changed
 
@@ -438,6 +441,14 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Decided due weeks go on the Friday of the week as all-day events that say the real day is in the subject outline, and that exam-period tasks are left out, so the file never presents an invented date as real
 - Decided the session value in the download link is validated and never echoed into the filename or the file, and tested line-break and header injection attempts
 - Fixed my own test expectation for the planner's rule when I first guessed the wrong session label for an out-of-window subject
+
+### PR #42: Compare programs and About tabs
+- Decided to keep "which fits my progress" and "how do these two differ" as separate features with different names, because they answer different questions, so I renamed the earlier ranking and added the same ranking for sub-majors
+- Found the Handbook does not allow automated reading, so I did not read the pages: I wrote only one summary, in my own words, from what a search returned, tested that it shares no six-word run with the original, and made every other page say plainly that no summary exists and link to the Handbook
+- Decided to measure similarity against the smaller program, after checking how much the real majors overlap (the closest pair share 42%), because a fixed cut-off would have called every pair different
+- Decided to work out focus areas from subject names and list the subjects behind each, because I could not compare text I was not allowed to read and did not want to guess
+- Found a sub-major on the supplied list (SMJ10188) that is missing from the app's data, and recorded it in a test that will fail the day it is added, so the gap cannot be forgotten
+- Fixed my own tests: a one-letter payload that appears in any error sentence, and a query string I had written as two parameters when I meant one
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.

@@ -5,7 +5,9 @@ from features.advisor.service import (
     GOOD_MAX_EXTRA_CP, THINK_EXTRA_CP, THINK_EXTRA_SESSIONS, ElectiveChoiceError, assess, validate_electives,
 )
 from features.majors import service
-from features.majors.compare import compare_majors
+from features.majors.fit import rank_majors
+from features.subject_catalogue import compare as program_compare
+from features.subject_catalogue.programs import major_program, options_of
 from shared import security
 from shared.db import get_db
 from features.subject_catalogue.service import is_valid_major_code, list_majors, user_major
@@ -28,13 +30,37 @@ def index():
     ))
 
 
+@bp.get("/fit")
+@security.login_required
+def fit():
+    """Every major judged for this student by the swap advisor's rules. Read-only: it changes nothing."""
+    comparison = rank_majors(get_db(), g.user["id"], request.args.get("sort", "fit"))  # an unknown sort falls back to best fit
+    for row in comparison["rows"] + ([comparison["current"]] if comparison["current"] else []):
+        row["href"] = url_for("majors.show", code=row["code"])
+    rules = {"good_cp": GOOD_MAX_EXTRA_CP, "think_sessions": THINK_EXTRA_SESSIONS, "think_cp": THINK_EXTRA_CP}
+    return _private(render_template("majors/fit.html", comparison=comparison, rules=rules))
+
+
 @bp.get("/compare")
 @security.login_required
 def compare():
-    """Every major judged for this student by the swap advisor's rules. Read-only: it changes nothing."""
-    comparison = compare_majors(get_db(), g.user["id"], request.args.get("sort", "fit"))  # an unknown sort falls back to best fit
-    rules = {"good_cp": GOOD_MAX_EXTRA_CP, "think_sessions": THINK_EXTRA_SESSIONS, "think_cp": THINK_EXTRA_CP}
-    return _private(render_template("majors/compare.html", comparison=comparison, rules=rules))
+    """Two majors side by side: what they share, what only one has, and how their focus differs. Read-only."""
+    conn = get_db()
+    a, b = request.args.get("a", ""), request.args.get("b", "")
+    if any(code and not is_valid_major_code(code) for code in (a, b)):
+        abort(400)
+    result, message = None, None
+    if a and b and a == b:
+        message = "Pick two different majors to compare."
+    elif a and b:
+        first, second = major_program(conn, a), major_program(conn, b)
+        if first is None or second is None:
+            abort(404)
+        result = program_compare.compare_programs(first, second)
+    mine = user_major(conn, g.user["id"])
+    return _private(render_template(
+        "majors/compare.html", options=options_of(conn, "major"), a=a or (mine["code"] if mine and not b else ""), b=b, result=result, message=message,
+        rules={"close": program_compare.CLOSE, "partly": program_compare.PARTLY}))
 
 
 @bp.get("/<code>")
@@ -49,7 +75,9 @@ def show(code):
     advice = None if major["is_current"] else assess(conn, g.user["id"], "major", code)
     if advice and advice["first_choice"]:
         advice = None  # choosing a first major: there is nothing to swap from
-    return _private(render_template("majors/show.html", major=major, advice=advice))
+    tab = "about" if request.args.get("tab") == "about" else "subjects"
+    program = major_program(conn, code) if tab == "about" else None
+    return _private(render_template("majors/show.html", major=major, advice=advice, tab=tab, program=program))
 
 
 @bp.post("/<code>/choose")

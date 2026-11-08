@@ -83,7 +83,10 @@ const pages = [
   ["Subjects", "/subjects"], ["Subject detail", detail], ["Degree planner", "/planner"],
   ["Planner board (React)", "/planner/board", { bundle: "board", ready: ".board-col" }],
   ["Timetable", "/timetable"], ["My record", "/students/me"], ["Results", "/transcript"],
-  ["Choose a major", "/major"], ["Compare majors", "/major/compare"], ["Major swap", major], ["Choose a sub-major", "/submajor"], ["Sub-major swap", submajor], ["Electives", "/submajor/electives"],
+  ["Choose a major", "/major"], ["Fit for my progress: majors", "/major/fit"], ["Compare two majors", "/major/compare?a=MAJ02900&b=MAJ03445"],
+  ["Major swap", major], ["Major: About tab", `${major}?tab=about`],
+  ["Choose a sub-major", "/submajor"], ["Fit for my progress: sub-majors", "/submajor/fit"], ["Compare two sub-majors", "/submajor/compare?a=SMJ10167&b=SMJ10166"],
+  ["Sub-major swap", submajor], ["Sub-major: About tab", `${submajor}?tab=about`], ["Electives", "/submajor/electives"],
   ["Profile", "/profile"], ["Simulator: reset", "/simulator/reset"],
 ];
 for (const [name, path, island] of pages) {

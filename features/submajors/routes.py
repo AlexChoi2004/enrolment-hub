@@ -1,7 +1,9 @@
 """Choose or swap a sub-major. A student can only ever change their own."""
 from flask import Blueprint, abort, flash, g, make_response, redirect, render_template, request, url_for
 
-from features.advisor.service import ElectiveChoiceError, assess, validate_electives
+from features.advisor.service import (
+    GOOD_MAX_EXTRA_CP, THINK_EXTRA_CP, THINK_EXTRA_SESSIONS, ElectiveChoiceError, assess, validate_electives,
+)
 from shared import security
 from shared.db import get_db
 from features.subject_catalogue.service import (
@@ -12,6 +14,9 @@ from features.subject_catalogue.service import (
     user_submajor,
 )
 from features.submajors import service
+from features.submajors.fit import ELECTIVES, rank_submajors
+from features.subject_catalogue import compare as program_compare
+from features.subject_catalogue.programs import options_of, submajor_program
 
 bp = Blueprint("submajors", __name__, template_folder="templates", url_prefix="/submajor")
 
@@ -76,6 +81,39 @@ def choose_electives():
     return redirect(url_for("catalogue.list_page"), code=303)
 
 
+@bp.get("/fit")
+@security.login_required
+def fit():
+    """Every sub-major, and general electives, judged for this student by the swap advisor's rules. Read-only: it changes nothing."""
+    comparison = rank_submajors(get_db(), g.user["id"], request.args.get("sort", "fit"))  # an unknown sort falls back to best fit
+    for row in comparison["rows"] + ([comparison["current"]] if comparison["current"] else []):
+        row["href"] = url_for("submajors.electives") if row["code"] == ELECTIVES else url_for("submajors.show", code=row["code"])
+    rules = {"good_cp": GOOD_MAX_EXTRA_CP, "think_sessions": THINK_EXTRA_SESSIONS, "think_cp": THINK_EXTRA_CP}
+    return _private(render_template("submajors/fit.html", comparison=comparison, rules=rules))
+
+
+@bp.get("/compare")
+@security.login_required
+def compare():
+    """Two sub-majors side by side: what they share, what only one has, and how their focus differs. Read-only."""
+    conn = get_db()
+    a, b = request.args.get("a", ""), request.args.get("b", "")
+    if any(code and not is_valid_submajor_code(code) for code in (a, b)):
+        abort(400)
+    result, message = None, None
+    if a and b and a == b:
+        message = "Pick two different sub-majors to compare."
+    elif a and b:
+        first, second = submajor_program(conn, a), submajor_program(conn, b)
+        if first is None or second is None:
+            abort(404)
+        result = program_compare.compare_programs(first, second)
+    mine = user_submajor(conn, g.user["id"])
+    return _private(render_template(
+        "submajors/compare.html", options=options_of(conn, "submajor"), a=a or (mine["code"] if mine and not b else ""), b=b, result=result, message=message,
+        rules={"close": program_compare.CLOSE, "partly": program_compare.PARTLY}))
+
+
 @bp.get("/<code>")
 @security.login_required
 def show(code):
@@ -92,7 +130,9 @@ def show(code):
     advice = assess(conn, g.user["id"], "submajor", code, language if sub["is_language"] else None) if ready else None
     if advice and advice["first_choice"]:
         advice = None
-    return _private(render_template("submajors/show.html", sub=sub, picked=language, advice=advice))
+    tab = "about" if request.args.get("tab") == "about" else "subjects"
+    program = submajor_program(conn, code) if tab == "about" else None
+    return _private(render_template("submajors/show.html", sub=sub, picked=language, advice=advice, tab=tab, program=program))
 
 
 @bp.post("/<code>/choose")

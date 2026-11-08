@@ -6,6 +6,10 @@
   This 24 credit point block of your degree is <strong>either a sub-major or general electives</strong>, on top of your
   48 credit point major. Pick a sub-major below to see its compulsory (core) subjects and its options, or take electives instead.
 </p>
+<p class="page-actions">
+  <a class="btn btn-secondary" href="{{ url_for('submajors.fit') }}">Rank all sub-majors for my progress</a>
+  <a class="btn btn-secondary" href="{{ url_for('submajors.compare') }}">Compare two sub-majors</a>
+</p>
 {% if electives %}
   <p class="demo-note">You are taking <strong>general electives</strong> instead of a sub-major.</p>
 {% endif %}

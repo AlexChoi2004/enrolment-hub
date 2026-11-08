@@ -5,6 +5,12 @@
 <h1>{{ major.name }}</h1>
 {% include '_ask_panel.html' %}
 <p class="muted">{{ major.code }} · 48 credit points: {{ major.core_cp }} core{% if major.options_cp %} + {{ major.options_cp }} options{% endif %}</p>
+{% set kind = 'major' %}{% set show_endpoint = 'majors.show' %}{% set code = major.code %}
+{% include '_program_tabs.html' %}
+{% if tab == 'about' %}
+  {% set p = program %}{% set compare_url = url_for('majors.compare', a=major.code) %}
+  {% include '_about.html' %}
+{% else %}
 
 <h2>Core subjects <span class="muted">(all {{ major.core|length }} required)</span></h2>
 <table class="table">
@@ -63,5 +69,6 @@
     {% endif %}
     <button type="submit" class="btn">{{ 'Swap to this major' if major.has_current else 'Confirm this major' }}</button>
   </form>
+{% endif %}
 {% endif %}
 {% endblock %}

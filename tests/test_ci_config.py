@@ -51,7 +51,7 @@ def test_the_smoke_job_also_runs_the_accessibility_audit_on_every_page():
     audit = (ROOT / "frontend" / "a11y.mjs").read_text(encoding="utf-8")
     assert "process.exit(total === 0 ? 0 : 1)" in audit and "wcag22aa" in audit  # any violation fails the build
     assert '"color-contrast": { enabled: false }' in audit  # the one rule jsdom cannot run, covered by the token tests
-    for page in ("Dashboard (React)", "Planner board (React)", "Simulator: roll back", "Choose a sub-major", "Compare majors"):
+    for page in ("Dashboard (React)", "Planner board (React)", "Simulator: roll back", "Choose a sub-major", "Compare two majors", "Compare two sub-majors", "Fit for my progress: majors", "Major: About tab"):
         assert page in audit
 
 

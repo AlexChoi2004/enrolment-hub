@@ -195,11 +195,11 @@ def test_walkthrough_plan_by_dragging_and_see_the_planner_say_no(app, client, lo
     assert "Spring 2027" in classic and "48024" in classic  # the classic planner shows the same plan
 
 
-def test_walkthrough_compare_every_major_for_your_progress(client, log_in):
+def test_walkthrough_rank_every_major_for_your_progress(client, log_in):
     log_in()
     reset_to(client, "sample")
-    assert 'href="/major/compare">Compare all majors for me</a>' in html(client, "/major")
-    page = html(client, "/major/compare")
+    assert 'href="/major/fit">Rank all majors for my progress</a>' in html(client, "/major")
+    page = html(client, "/major/fit")
     assert page.index("Your major") < page.index("Artificial Intelligence and Data Analytics") and "Enterprise Software Development" in page
     assert page.count("Think carefully") >= 6 and "Possible, but it costs time" in page
     swap = html(client, "/major/MAJ10053")
@@ -215,3 +215,22 @@ def test_walkthrough_put_your_timetable_in_a_calendar(client, log_in):
     text = res.get_data(as_text=True)
     assert res.status_code == 200 and res.headers["Content-Type"].startswith("text/calendar")
     assert "DTSTART;TZID=Australia/Sydney:20270222T" in text and "RRULE:FREQ=WEEKLY;COUNT=13" in text and "Due: " in text
+
+
+def test_walkthrough_compare_two_similar_majors(client, log_in):
+    log_in()
+    reset_to(client, "sample")
+    assert 'href="/major/compare">Compare two majors</a>' in html(client, "/major")
+    form = html(client, "/major/compare")
+    assert "Cybersecurity and Privacy" in form and "Networking and Cybersecurity" in form
+    result = html(client, "/major/compare?a=MAJ02900&b=MAJ03445")
+    assert "Partly similar" in result and all(name in result for name in ("Cybersecurity", "Cryptography", "Digital Forensics"))
+    assert "<strong>Both:</strong> Cybersecurity and privacy" in result and "Only Networking and Cybersecurity:</strong> Networking and infrastructure" in result
+    about = html(client, "/major/MAJ03445?tab=about")
+    assert "About this major" in about and "https://coursehandbook.uts.edu.au/aos/2027/MAJ03445" in about
+
+
+def test_the_help_page_explains_the_about_tab_and_the_comparison(client, log_in):
+    log_in()
+    page = html(client, "/help")
+    assert "<dt>About tab</dt>" in page and "<dt>Compare two majors or sub-majors</dt>" in page and "and the same for sub-majors" in page
