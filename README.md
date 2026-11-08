@@ -13,7 +13,8 @@ Handbook, which says its own pages are indicative.
 - **Take it with you:** download your timetable as a calendar file (with the assessment due weeks if you like) for Google, Apple or Outlook calendar.
 - **Plan a degree:** choose a major and a sub-major (or general electives), enrol, plan up to ten sessions ahead, and pick classes in a timetable.
 - **Enforce the rules:** prerequisites, session offerings, a 24 credit point limit, failed subjects and retakes, with the reason shown whenever something is blocked.
-- **Compare majors:** every major ranked for what you have already done, with the same verdicts, credit points lost, extra time and graduation date as each swap page.
+- **Rank by fit:** every major, and every sub-major, ranked for what you have already done, with the same verdicts, credit points lost, extra time and graduation date as each swap page.
+- **Compare two programs:** pick two majors (or two sub-majors) to see what they share, what only one has and how their focus differs; each major and sub-major also has a short About tab.
 - **Advise on swaps:** changing major, sub-major or electives is never blocked, but you see what carries over, the extra time and a verdict first, and a risky swap needs your own confirmation.
 - **Light and dark themes:** follows your device or browser setting, with a toggle that remembers your choice.
 - **Test quickly:** a semester simulator (complete, roll back, reset) and four starting points, from a first-year student to one late in their major.
@@ -67,13 +68,13 @@ docs/               evidence, security, ethics, architecture and release notes
 | Feature (`features/`) | What it does |
 |---|---|
 | `accounts` | Login, profile, sessions and the simulated demo student |
-| `subject_catalogue` | Subjects, majors and sub-majors, handbook prerequisites and assessments, filters |
+| `subject_catalogue` | Subjects, majors and sub-majors, handbook prerequisites and assessments, filters, short descriptions with Handbook links, and the comparison of two programs |
 | `enrolment` | Enrol and withdraw, eligibility rules, results and attempts, the demo starting points |
 | `dashboard` | Progress, projected graduation and next steps: the data endpoint and the page that loads the React dashboard |
 | `degree_planner` | The planning window, suggested plans, retakes and rescheduling, and the drag-and-drop planner board |
 | `timetable` | Class choices, clash detection and a calendar (.ics) download |
-| `majors` | Choose or swap a major, with an impact preview, and a comparison of every major for your progress |
-| `submajors` | Choose or swap a sub-major or general electives, and count subjects as electives |
+| `majors` | Choose or swap a major, with an impact preview, a ranking of every major for your progress, and a side-by-side comparison of two majors |
+| `submajors` | Choose or swap a sub-major or general electives, count subjects as electives, rank sub-majors for your progress, and compare two |
 | `advisor` | Swap advice: progress, what carries over, extra time, a verdict (rules in code) |
 | `transcript` | The Results page |
 | `simulator` | Complete a semester, roll it back, reset to a starting point |

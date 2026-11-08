@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Fit for my progress · Enrolment Hub{% endblock %}
+{% block content %}
+{% set c = comparison %}
+<h1>Which major fits my progress?</h1>
+<p class="page-actions"><a class="btn btn-secondary" href="{{ url_for('majors.index') }}">All majors</a>
+  <a class="btn btn-secondary" href="{{ url_for('majors.compare') }}">Compare two majors</a></p>
+{% set kind = 'major' %}{% set current_label = 'Your major' %}{% set fit_endpoint = 'majors.fit' %}
+{% set first_text = 'You have not chosen a major yet, so nothing you have done can be lost: every major is open to you. Choose one to see its subjects.' %}
+{% include '_fit.html' %}
+{% endblock %}

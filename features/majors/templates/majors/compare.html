@@ -1,84 +1,10 @@
 {% extends 'base.html' %}
-{% block title %}Compare majors · Enrolment Hub{% endblock %}
+{% block title %}Compare two majors · Enrolment Hub{% endblock %}
 {% block content %}
-{% set c = comparison %}
-<h1>Compare majors</h1>
-<p class="page-actions"><a class="btn btn-secondary" href="{{ url_for('majors.index') }}">All majors</a></p>
-{% if c.first_choice %}
-  <p>You have not chosen a major yet, so nothing you have done can be lost: every major is open to you. Choose one to see its subjects.</p>
-{% else %}
-  <p>
-    How each major fits what you have already done, using the same rules as the swap advice on each major's own page.
-    Nothing changes until you confirm a swap there.
-  </p>
-{% endif %}
-
-<nav aria-label="Order the comparison">
-  <ul class="plain compare-sorts">
-    {% for key, name in c.sorts.items() %}
-      <li><a href="{{ url_for('majors.compare', sort=key) }}"{% if c.sort == key %} aria-current="true"{% endif %}>{{ name }}</a></li>
-    {% endfor %}
-  </ul>
-</nav>
-
-<div class="compare-wrap">
-<table class="table compare-table">
-  <caption class="visually-hidden">Majors, ordered by {{ c.sorts[c.sort]|lower }}, with how well each fits what you have done</caption>
-  <thead>
-    <tr>
-      {% if c.sort == 'fit' %}<th scope="col">#</th>{% endif %}
-      <th scope="col">Major</th>
-      <th scope="col">Fit</th>
-      <th scope="col">What carries over</th>
-      <th scope="col">Would stop counting</th>
-      <th scope="col">Extra time</th>
-      <th scope="col">You would graduate</th>
-      <th scope="col"><span class="visually-hidden">Action</span></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% macro cells(r) %}
-      <td>
-        <span class="badge fit-{{ r.tier }}">{{ r.label }}</span><br>
-        <span class="muted">{{ r.why }}</span>
-      </td>
-      <td>
-        {% if c.counted_cp %}
-          <meter min="0" max="{{ c.counted_cp }}" value="{{ r.carried_cp }}" optimum="{{ c.counted_cp }}" aria-label="Credit points that carry over to {{ r.name }}">{{ r.carry_percent }}%</meter><br>
-          {{ r.carried_cp }} of {{ c.counted_cp }} cp ({{ r.carry_percent }}%)
-        {% else %}
-          <span class="muted">Nothing done yet</span>
-        {% endif %}
-      </td>
-      <td>{% if r.lost_cp %}{{ r.lost_cp }} cp ({{ r.lost_subjects }} subject{{ '' if r.lost_subjects == 1 else 's' }}){% else %}Nothing{% endif %}</td>
-      <td>{% if r.extra_sessions %}{{ r.extra_sessions }} extra session{{ '' if r.extra_sessions == 1 else 's' }}{% else %}None{% endif %}</td>
-      <td>{{ r.graduate }}</td>
-    {% endmacro %}
-    {% if c.current %}
-      <tr class="compare-current">
-        {% if c.sort == 'fit' %}<td></td>{% endif %}
-        <th scope="row">{{ c.current.name }}<br><span class="muted">{{ c.current.code }}</span> <span class="badge st-completed">Your major</span></th>
-        {{ cells(c.current) }}
-        <td><a href="{{ url_for('majors.show', code=c.current.code) }}">Details</a></td>
-      </tr>
-    {% endif %}
-    {% for r in c.rows %}
-      <tr>
-        {% if c.sort == 'fit' %}<td>{{ loop.index }}</td>{% endif %}
-        <th scope="row">{{ r.name }}<br><span class="muted">{{ r.code }}</span></th>
-        {{ cells(r) }}
-        <td><a href="{{ url_for('majors.show', code=r.code) }}">{{ 'See this major' if c.first_choice else 'Look at this swap' }}<span class="visually-hidden"> to {{ r.name }}</span></a></td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
-</div>
-
-<h2>How the fit is decided</h2>
-<ul>
-  <li><strong>Good to switch:</strong> {{ rules.good_cp }} credit points or fewer would stop counting (about one subject).</li>
-  <li><strong>Think carefully:</strong> {{ rules.think_sessions }} or more extra sessions, or {{ rules.think_cp }} or more credit points would stop counting, or you are far through your major and almost nothing carries over.</li>
-  <li><strong>Possible, but it costs time:</strong> everything in between.</li>
-</ul>
-<p class="muted">Graduation assumes you fill every session with 24 credit points. Session dates and subject offerings are illustrative.</p>
+<h1>Compare two majors</h1>
+<p class="page-actions"><a class="btn btn-secondary" href="{{ url_for('majors.index') }}">All majors</a>
+  <a class="btn btn-secondary" href="{{ url_for('majors.fit') }}">Which major fits my progress?</a></p>
+<p>Some majors teach similar subjects. Pick two to see what they share, what only one of them has, and how their focus differs.</p>
+{% set kind = 'major' %}{% set compare_endpoint = 'majors.compare' %}{% set show_endpoint = 'majors.show' %}
+{% include '_compare.html' %}
 {% endblock %}

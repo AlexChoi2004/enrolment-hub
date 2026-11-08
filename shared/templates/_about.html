@@ -1,0 +1,32 @@
+{# A short description of a major or sub-major. Context: p (a program from programs.py), kind, compare_url. #}
+<section aria-labelledby="about-title">
+  <h2 id="about-title">About this {{ kind }}</h2>
+  {% if p.summary %}
+    <p>{{ p.summary.summary }}</p>
+    <p class="muted">Summarised in our own words from the UTS Handbook's overview (indicative), retrieved {{ p.summary.retrieved_on }}. The Handbook page for your year is the authority.</p>
+  {% else %}
+    <p class="muted">No written summary has been added for this {{ kind }} yet. What it focuses on is worked out from its subjects below, and the official description is in the Handbook.</p>
+  {% endif %}
+  {% if p.handbook_url %}
+    <p><a href="{{ p.handbook_url }}" target="_blank" rel="noopener noreferrer">Read the official description in the UTS Handbook<span class="visually-hidden"> (opens in a new tab)</span></a></p>
+  {% endif %}
+
+  <h3>What it focuses on</h3>
+  {% if p.focus %}
+    <ul class="plain focus-list">
+      {% for f in p.focus %}
+        <li><strong>{{ f.label }}</strong> <span class="muted">({{ f.subjects|length }} subject{{ '' if f.subjects|length == 1 else 's' }}: {{ f.subjects|join(', ') }})</span></li>
+      {% endfor %}
+    </ul>
+    <p class="muted">Worked out from the names of its subjects: a focus area is a theme that runs through several of them.</p>
+  {% else %}
+    <p class="muted">{{ 'The subjects depend on the language you choose, so no focus area can be worked out yet.' if p.uses_language else 'There are not enough subjects to work out a focus area.' }}</p>
+  {% endif %}
+
+  <h3>At a glance</h3>
+  <ul class="plain">
+    <li>{{ p.total_cp }} credit points: {{ p.structure }}</li>
+    {% if p.subjects %}<li>{{ p.subjects|length }} subjects listed, {{ p.listed_cp }} credit points in all</li>{% endif %}
+  </ul>
+  <p><a class="btn btn-secondary" href="{{ compare_url }}">Compare with another {{ kind }}</a></p>
+</section>

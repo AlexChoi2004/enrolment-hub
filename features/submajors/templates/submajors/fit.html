@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Fit for my progress · Enrolment Hub{% endblock %}
+{% block content %}
+{% set c = comparison %}
+<h1>Which sub-major fits my progress?</h1>
+<p class="page-actions"><a class="btn btn-secondary" href="{{ url_for('submajors.index') }}">All sub-majors</a>
+  <a class="btn btn-secondary" href="{{ url_for('submajors.compare') }}">Compare two sub-majors</a></p>
+{% set kind = 'sub-major' %}{% set current_label = 'Your choice' %}{% set fit_endpoint = 'submajors.fit' %}
+{% set first_text = 'You have not chosen a sub-major or general electives yet, so nothing you have done can be lost: every option is open to you. Choose one to see its subjects.' %}
+{% include '_fit.html' %}
+{% endblock %}
