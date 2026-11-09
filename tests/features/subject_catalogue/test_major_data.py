@@ -116,7 +116,7 @@ def test_a_subject_is_required_exactly_when_it_has_a_rule(conn):
     required = {r[0] for r in conn.execute("SELECT code FROM subjects WHERE prereq_status = 'required'")}
     assert required == with_rules
     unknown = {r[0] for r in conn.execute("SELECT code FROM subjects WHERE prereq_status = 'unknown'")}
-    assert len(unknown) == 84 and unknown.isdisjoint(with_rules)  # the 76 sub-major-only subjects and the 8 transdisciplinary electives
+    assert len(unknown) == 76 and unknown.isdisjoint(with_rules)  # the sub-major-only subjects; the 8 transdisciplinary electives now have their requisite
 
 
 def test_the_twelve_original_rules_are_kept_and_the_handbook_rules_are_added_on_top(conn):

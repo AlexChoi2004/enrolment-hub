@@ -91,11 +91,14 @@ def test_only_the_transdisciplinary_subjects_have_handbook_sessions_all_others_s
 def test_a_transdisciplinary_subject_can_only_be_planned_in_its_own_session(conn):
     from features.accounts.service import create_user
     from features.degree_planner.service import PlanError, add_to_plan
+    from features.enrolment.results import record_result
     from features.majors.service import choose_major
     from features.submajors.service import choose_electives
     user = create_user(conn, "td.session@student.uni.edu.au", "Str0ng#Pass", "Autumn 2027")["id"]
     choose_major(conn, user, "MAJ03519")
     choose_electives(conn, user)
+    for code in ("33130", "37181", "41039", "31265", "33230", "31271"):  # the 36 completed credit points a transdisciplinary subject needs
+        record_result(conn, user, code, "Autumn 2026", "passed")
     with pytest.raises(PlanError, match="not offered in Autumn 2029"):
         add_to_plan(conn, user, "95003", "Autumn 2029")  # a Spring subject
     assert "95003" in add_to_plan(conn, user, "95003", "Spring 2029")

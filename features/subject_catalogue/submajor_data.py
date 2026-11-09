@@ -95,6 +95,10 @@ TD_SUBJECTS = [
     ("95008", "TD: Transdisciplinary action lab"), ("95009", "TD: Change-making for social impact"),
 ]
 STREAM_SUBJECTS = {"CBK92069": [code for code, _ in TD_SUBJECTS]}
+# Every transdisciplinary elective has the same academic requisite: at least 36 credit points completed in a bachelor's degree (as supplied, 2027 Handbook).
+# (subject, major, minimum): no major means credit points completed anywhere in the student's degree.
+TD_CREDIT_REQUIREMENTS = [(code, None, 36) for code, _ in TD_SUBJECTS]
+TD_REQUISITE_NOTE = "Academic requisite from the 2027 Handbook (as supplied): at least 36 credit points completed in a bachelor's degree."
 # Availability from each subject's 2027 Handbook page (as supplied on 9 November 2026): (the Autumn or Spring session the app plans it in,
 # any other session the Handbook lists, which the app does not model). The February, July and December sessions are noted, not planned.
 TD_AVAILABILITY = {

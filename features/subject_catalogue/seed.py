@@ -2,7 +2,9 @@
 from features.subject_catalogue.assessment_data import ASSESSMENTS, DESCRIPTIONS
 from features.subject_catalogue.assessments import explain, illustrative_due_weeks
 from features.subject_catalogue.program_text import CODES, STREAM_CODES, aos_url, subject_handbook_url
-from features.subject_catalogue.submajor_data import SOURCE_NOTE, STREAM_SUBJECTS, STREAMS, TD_AVAILABILITY, SUBJECTS as SUBMAJOR_SUBJECTS, SUBMAJORS
+from features.subject_catalogue.submajor_data import (
+    SOURCE_NOTE, STREAM_SUBJECTS, STREAMS, SUBJECTS as SUBMAJOR_SUBJECTS, SUBMAJORS, TD_AVAILABILITY, TD_CREDIT_REQUIREMENTS, TD_REQUISITE_NOTE,
+)
 from features.subject_catalogue.seed_data import (
     CATEGORIES,
     COURSE,
@@ -50,7 +52,7 @@ def seed_catalogue(conn):
         "INSERT OR IGNORE INTO major_subjects (major_code, subject_code, role) VALUES (?, ?, ?)",
         MAJOR_SUBJECTS,
     )
-    for subject, major, minimum in CREDIT_REQUIREMENTS:
+    for subject, major, minimum in CREDIT_REQUIREMENTS + TD_CREDIT_REQUIREMENTS:
         conn.execute(
             "INSERT INTO credit_requirements (subject_code, major_code, min_cp) SELECT ?, ?, ?"
             " WHERE NOT EXISTS (SELECT 1 FROM credit_requirements WHERE subject_code = ? AND major_code IS ?)",
@@ -58,7 +60,7 @@ def seed_catalogue(conn):
         )
     conn.executemany(
         "INSERT OR IGNORE INTO prerequisite_notes (subject_code, note) VALUES (?, ?)",
-        list(PREREQUISITE_NOTES.items()),
+        list(PREREQUISITE_NOTES.items()) + [(code, TD_REQUISITE_NOTE) for code, _, _ in TD_CREDIT_REQUIREMENTS],
     )
     # The supplied lists are treated as complete: a subject with any rule requires prerequisites and every
     # other subject has none. The subjects that exist only in a sub-major have not been researched, so theirs is unknown.

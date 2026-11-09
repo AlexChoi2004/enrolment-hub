@@ -230,6 +230,8 @@ def test_free_electives_alone_do_not_satisfy_the_transdisciplinary_requirement(c
 
 
 def test_once_the_transdisciplinary_slot_is_full_a_second_one_cannot_be_taken(conn, student):
+    for code in ("33130", "37181", "41039", "31265", "33230", "31271"):  # the 36 completed credit points every transdisciplinary subject needs
+        record_result(conn, student, code, "Autumn 2026", "passed")
     assert evaluate_subjects(conn, student)["subjects"]["95004"]["reasons"] == []  # open while the slot is empty
     record_result(conn, student, "95003", "Autumn 2026", "passed")
     second = evaluate_subjects(conn, student)["subjects"]["95004"]
