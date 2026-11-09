@@ -4,6 +4,7 @@ import pytest
 
 from features.accounts.service import create_user
 from features.degree_planner.service import PlanError, add_to_plan, get_plan, suggest_plan
+from features.enrolment.results import record_result
 from features.enrolment.service import EnrolmentError, enrol, evaluate_subjects
 from features.majors.service import choose_major
 from shared import db
@@ -101,9 +102,11 @@ def test_four_electives_fill_the_block_and_the_rest_are_blocked(conn, student):
 
 def test_three_free_electives_and_one_transdisciplinary_can_be_planned_but_no_more(conn, student):
     choose_electives(conn, student)
+    for code in ("33130", "37181", "41039"):  # 18 completed + 18 planned earlier = the 36 credit points a transdisciplinary subject needs
+        record_result(conn, student, code, "Autumn 2026", "passed")
     for code in ["SYN101", "SYN103", "SYN106"]:
         add_to_plan(conn, student, code, "Spring 2028" if code != "SYN101" else "Autumn 2028")
-    add_to_plan(conn, student, "95003", "Autumn 2029")
+    add_to_plan(conn, student, "95003", "Spring 2029")  # 95003 runs in Spring (its 2027 Handbook page)
     with pytest.raises(PlanError, match="General electives requirement would be exceeded"):
         add_to_plan(conn, student, "SYN111", "Spring 2029")  # an 18 cp requirement holds three 6 cp subjects
     with pytest.raises(PlanError, match="Transdisciplinary elective requirement would be exceeded"):
@@ -112,10 +115,10 @@ def test_three_free_electives_and_one_transdisciplinary_can_be_planned_but_no_mo
 
 def test_a_transdisciplinary_subject_is_not_part_of_the_degree_without_electives_or_its_sub_major(conn, student):
     with pytest.raises(PlanError, match="Choose general electives or a sub-major first"):
-        add_to_plan(conn, student, "95003", "Autumn 2029")
+        add_to_plan(conn, student, "95003", "Spring 2029")
     choose_submajor(conn, student, INFOSEC)
     with pytest.raises(PlanError, match="instead of general electives"):
-        add_to_plan(conn, student, "95003", "Autumn 2029")
+        add_to_plan(conn, student, "95003", "Spring 2029")
 
 
 def test_a_sub_major_subject_cannot_be_planned_with_electives(conn, student):

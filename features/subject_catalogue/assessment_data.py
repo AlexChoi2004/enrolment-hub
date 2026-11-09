@@ -434,3 +434,33 @@ ASSESSMENTS = {
         note='Sample data invented for this prototype; not a real UTS subject.',
         tasks=[('Reading quizzes', 'quiz', 'individual', 20), ('Essay', 'essay', 'individual', 40), ('Case study', 'case_study', 'individual', 40)]),
 }
+
+
+# ---- The eight Transdisciplinary Electives (CBK92069), from their 2027 Handbook pages as supplied on 9 November 2026 ------------------------
+# The Handbook lists these by category and weighting only (no task titles and no dates), so a task is named by its Handbook category, numbered when
+# a category appears twice; the app's closest task type is used for the load estimate. 95005's page lists no assessment information at all.
+TD_SOURCE = "UTS Handbook 2027 (pages supplied by the student)"
+TD_RETRIEVED_ON = "2026-11-09"
+TD_NOTE = ("The 2027 Handbook page lists assessment by category and weighting only; task names here are those categories. "
+           "The Handbook marks the page indicative; the subject outline for your session is authoritative.")
+_TD = dict(verification="indicative", year=2027, session=None, source=TD_SOURCE, retrieved_on=TD_RETRIEVED_ON, note=TD_NOTE)
+ASSESSMENTS.update({
+    "95002": dict(_TD, tasks=[("Creative project 1", "portfolio", "group_individual", 35), ("Combination 1", "project", "group_individual", 30), ("Combination 2", "project", "group_individual", 35)]),
+    "95003": dict(_TD, tasks=[("Report 1", "report", "individual", 30), ("Report 2", "report", "individual", 40), ("Presentation", "presentation", "group_individual", 30)]),
+    "95004": dict(_TD, tasks=[("Quiz", "quiz", "individual", 15), ("Creative project", "portfolio", "individual", 35), ("Presentation", "presentation", "group_individual", 50)]),
+    "95005": dict(_TD, note="The 2027 Handbook page lists no assessment information for this subject.", tasks=[]),
+    "95006": dict(_TD, tasks=[("Project 1", "project", "individual", 30), ("Project 2", "project", "group", 30), ("Written submission", "essay", "individual", 40)]),
+    "95007": dict(_TD, tasks=[("Portfolio", "portfolio", "group_individual", 40), ("Presentation", "presentation", "group", 35), ("Reflection", "reflection", "individual", 25)]),
+    "95008": dict(_TD, tasks=[("Combination 1", "project", "group_individual", 65), ("Combination 2", "project", "group_individual", 35)]),
+    "95009": dict(_TD, tasks=[("Design", "design", "individual", 35), ("Project", "project", "group_individual", 25), ("Demonstration", "demonstration", "group_individual", 40)]),
+})
+DESCRIPTIONS.update({
+    "95002": ("Rethink how society's problems are framed, working in a multidisciplinary team on a UNICEF challenge about fairness between generations in the face of climate change.", ("group", "project-heavy")),
+    "95003": ("Ways of thinking about the tangled problems of sustainability, ending in proposals for global challenges; two individual reports and a group presentation.", ("theory", "report", "group")),
+    "95004": ("How everyday technologies shape our lives, and how to reimagine them to be more inclusive and sustainable, with industry or community partners.", ("group", "presentation", "project-heavy")),
+    "95005": ("A creative, collaborative response to an industry brief on the rapid growth of artificial intelligence, building critical thinking and teamwork.", ("group", "project-heavy")),
+    "95006": ("An introduction to futures studies: with the City of Sydney council, imagine a future worth wanting for the city in 2050.", ("group", "project-heavy", "report")),
+    "95007": ("Looks at the physical side of AI, such as data centres, cables and the energy, water and land they use, and designs future scenarios with a local council.", ("group", "presentation")),
+    "95008": ("Take the role of a decision-maker on real challenges set by an industry partner, testing ideas in the real world in a multidisciplinary team.", ("group", "project-heavy")),
+    "95009": ("Explores personal change and systems change together through reflective and creative work with an industry partner; the assessments are not written essays.", ("practical", "group", "project-heavy")),
+})

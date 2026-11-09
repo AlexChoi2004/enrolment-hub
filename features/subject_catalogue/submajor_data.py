@@ -95,6 +95,17 @@ TD_SUBJECTS = [
     ("95008", "TD: Transdisciplinary action lab"), ("95009", "TD: Change-making for social impact"),
 ]
 STREAM_SUBJECTS = {"CBK92069": [code for code, _ in TD_SUBJECTS]}
+# Every transdisciplinary elective has the same academic requisite: at least 36 credit points completed in a bachelor's degree (as supplied, 2027 Handbook).
+# (subject, major, minimum): no major means credit points completed anywhere in the student's degree.
+TD_CREDIT_REQUIREMENTS = [(code, None, 36) for code, _ in TD_SUBJECTS]
+TD_REQUISITE_NOTE = "Academic requisite from the 2027 Handbook (as supplied): at least 36 credit points completed in a bachelor's degree."
+# Availability from each subject's 2027 Handbook page (as supplied on 9 November 2026): (the Autumn or Spring session the app plans it in,
+# any other session the Handbook lists, which the app does not model). The February, July and December sessions are noted, not planned.
+TD_AVAILABILITY = {
+    "95002": ("Autumn", "July session (block)"), "95003": ("Spring", "February session (block)"), "95004": ("Spring", None),
+    "95005": ("Autumn", "July session (block)"), "95006": ("Autumn", None), "95007": ("Spring", None),
+    "95008": ("Autumn", None), "95009": ("Spring", "December session (block)"),
+}
 
 # Subjects that were not in the app before, as full rows for the subjects table.
 SUBJECTS = (
@@ -103,7 +114,7 @@ SUBJECTS = (
     + [(code, name, LANGUAGE_CP, "major_other", _sessions(code), "", 0)
        for _, (_, subjects) in LANGUAGES.items() for code, name in subjects]
     # Transdisciplinary electives: they count in the stream of the sub-major that lists them, or as the 6 cp transdisciplinary elective of the general electives choice
-    + [(code, name, 6, "td_elective", "Both", "", 0) for code, name in TD_SUBJECTS]
+    + [(code, name, 6, "td_elective", TD_AVAILABILITY[code][0], "", 0) for code, name in TD_SUBJECTS]
 )
 
 # (code, name, note, groups). A group is ("core" | "choose", label, credit points, [subject codes], stream code or None,

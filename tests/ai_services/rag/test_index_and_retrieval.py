@@ -220,7 +220,7 @@ def test_only_a_few_sources_come_back(conn):
 
 
 @pytest.mark.parametrize("question", [
-    "What is the capital of France?", "tell me about the weather in Sydney", "", "   ", "what is the", "?!?!",
+    "What is the capital of France?", "tell me about the weather in Brisbane", "", "   ", "what is the", "?!?!",
     "'; DROP TABLE subjects; --", "NEAR(a b) OR * AND NOT", "Who won the football?", "zzzz qqqq wwww",
 ])
 def test_a_question_the_sources_cannot_answer_is_not_enough_context(conn, question):

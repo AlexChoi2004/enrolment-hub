@@ -42,15 +42,20 @@ def close_db(_exc=None):
 
 
 # Columns added after a table was first created. CREATE TABLE IF NOT EXISTS never changes a table that exists, so these are added here.
-ADDED_COLUMNS = [("subjects", "handbook_url"), ("majors", "handbook_url"), ("submajors", "handbook_url"), ("streams", "handbook_url")]
 HANDBOOK_URL_COLUMN = "TEXT CHECK (handbook_url IS NULL OR handbook_url LIKE 'https://coursehandbook.uts.edu.au/%')"
+ADDED_COLUMNS = {
+    ("subjects", "handbook_url"): HANDBOOK_URL_COLUMN, ("majors", "handbook_url"): HANDBOOK_URL_COLUMN,
+    ("submajors", "handbook_url"): HANDBOOK_URL_COLUMN, ("streams", "handbook_url"): HANDBOOK_URL_COLUMN,
+    ("subjects", "sessions_source"): "TEXT NOT NULL DEFAULT 'illustrative' CHECK (sessions_source IN ('illustrative', 'handbook'))",
+    ("subjects", "sessions_note"): "TEXT",
+}
 
 
 def add_missing_columns(conn):
-    for table, column in ADDED_COLUMNS:
-        if table in {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}:
-            if column not in {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}:  # noqa: S608 (fixed names above)
-                conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {HANDBOOK_URL_COLUMN}")  # noqa: S608
+    tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+    for (table, column), definition in ADDED_COLUMNS.items():
+        if table in tables and column not in {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}:  # noqa: S608 (fixed names above)
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")  # noqa: S608
 
 
 def init_schema(conn):

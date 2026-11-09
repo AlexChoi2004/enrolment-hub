@@ -3,8 +3,10 @@
   <p>
     <strong>{{ subject.credit_points }} credit points</strong> ·
     {{ subject.category_label }} ·
-    Offered: {{ subject.sessions_offered }} <span class="badge">illustrative</span>
+    Offered: {{ subject.sessions_offered }}
+    {% if subject.sessions_source == 'handbook' %}<span class="badge">Handbook 2027</span>{% else %}<span class="badge">illustrative</span>{% endif %}
   </p>
+  {% if subject.sessions_note %}<p class="muted">The Handbook also lists a {{ subject.sessions_note }}. This app only plans Autumn and Spring, so that session is not shown in the planner.</p>{% endif %}
   <p>Official page: {{ links.handbook(subject.handbook_url, subject.code, subject.name) }}</p>
   {% if subject.summary %}<p>{{ subject.summary }}</p>
   {% else %}<p class="muted">Not yet populated: no description has been loaded for this subject.{% if subject.handbook_url %} The official description is on its Handbook page.{% endif %}</p>{% endif %}
@@ -21,7 +23,11 @@
   {% endif %}
   {% set a = subject.assessment %}
   {% if not a or a.status == 'none' %}
-    <p class="muted">Not yet populated: the assessment tasks and weightings have not been loaded for this subject{% if subject.handbook_url %}; the Handbook page has the official details{% else %}. You will find out when you enrol{% endif %}.</p>
+    {% if a and a.published_none %}
+      <p class="muted">The 2027 Handbook page lists no assessment information for this subject, so there is nothing to show yet.</p>
+    {% else %}
+      <p class="muted">Not yet populated: the assessment tasks and weightings have not been loaded for this subject{% if subject.handbook_url %}; the Handbook page has the official details{% else %}. You will find out when you enrol{% endif %}.</p>
+    {% endif %}
   {% else %}
     <p class="notice">{{ a.banner }}</p>
     <div class="table-wrap">

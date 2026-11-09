@@ -97,7 +97,7 @@ def test_the_stream_is_stored_apart_from_subjects_and_holds_the_eight_handbook_s
 
 
 def test_the_new_subjects_are_unverified_not_invented(conn):
-    for code in ("37242", "81529", "97101", "977917", "95003"):
+    for code in ("37242", "81529", "97101", "977917"):
         row = conn.execute("SELECT prereq_status FROM subjects WHERE code = ?", (code,)).fetchone()
         assert row[0] == "unknown"
         assert conn.execute("SELECT COUNT(*) FROM subject_descriptions WHERE subject_code = ?", (code,)).fetchone()[0] == 0

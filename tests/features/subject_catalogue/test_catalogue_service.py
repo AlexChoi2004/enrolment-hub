@@ -39,7 +39,7 @@ def test_session_filter_includes_subjects_offered_both_sessions(conn):
 def test_prerequisite_filter_required_vs_none(conn):
     required = service.list_subjects(conn, Filters(prereqs="required"))
     none = service.list_subjects(conn, Filters(prereqs="none"))
-    assert len(required) == 23
+    assert len(required) == 31  # includes the 8 transdisciplinary electives, which need 36 completed credit points
     assert len(none) == 22
     assert codes(required).isdisjoint(codes(none))
 
