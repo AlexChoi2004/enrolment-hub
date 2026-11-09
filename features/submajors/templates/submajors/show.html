@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
 {% block title %}{{ sub.name }} · Enrolment Hub{% endblock %}
 {% block content %}
+{% import '_links.html' as links %}
 <p><a href="{{ url_for('submajors.index') }}">&larr; All sub-majors</a></p>
 <h1>{{ sub.name }}</h1>
 {% include '_ask_panel.html' %}
-<p class="muted">{{ sub.code }} · 24 credit points</p>
+<p class="muted">{{ sub.code }} · {{ links.overview(sub.handbook_url, sub.name) }} · 24 credit points</p>
 {% set kind = 'sub-major' %}{% set show_endpoint = 'submajors.show' %}{% set code = sub.code %}
 {% include '_program_tabs.html' %}
 {% if tab == 'about' %}
@@ -33,16 +34,17 @@
     {% else %}{{ g.label }} <span class="muted">(choose {{ g.required_cp }} cp from {{ g.subjects|length }} subjects)</span>{% endif %}
   </h2>
   {% if g.stream %}
-    <p class="notice">Stream {{ g.stream.code }} {{ g.stream.name }}: {{ g.stream.note }}</p>
+    <p class="notice">Stream {{ g.stream.code }} {{ g.stream.name }}: {{ g.stream.note }} {{ links.overview(g.stream.handbook_url, g.stream.name) }}</p>
   {% endif %}
   {% if g.subjects %}
     <table class="table">
+      <thead><tr><th scope="col">Code</th><th scope="col">Subject</th><th scope="col">Credit points</th><th scope="col">Handbook</th></tr></thead>
       <tbody>
         {% for s in g.subjects %}
           <tr>
-            <td class="code">{{ s.code }}</td>
-            <td>{{ s.name }}{% if s.overlaps_major %} <span class="badge warn">also in your major</span>{% endif %}</td>
+            {{ links.subject_cells(s.code, s.name) }}{% if s.overlaps_major %} <span class="badge warn">also in your major</span>{% endif %}</td>
             <td>{{ s.credit_points }} cp</td>
+            <td>{{ links.handbook(s.handbook_url, s.code, s.name) }}</td>
           </tr>
         {% endfor %}
       </tbody>

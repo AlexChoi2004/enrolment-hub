@@ -146,7 +146,7 @@ def _check_placement(state, code, session, ignore_self=False):
     if not subject["in_degree"]:
         in_major, in_sub = code in state["membership"][0], code in state["membership"][1]
         major, sub = state["major"], state["submajor"]
-        if subject["stored_category"] == "general_elective":
+        if subject["stored_category"] in ("general_elective", "td_elective"):
             if sub is not None:
                 return f"{label} is not part of your degree: you chose the {sub['name']} sub-major instead of general electives."
             return f"{label} is a general elective. Choose general electives or a sub-major first."

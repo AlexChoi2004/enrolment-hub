@@ -28,7 +28,7 @@ def test_the_assessment_load_comes_with_its_reasons(client, log_in):
 def test_a_subject_with_no_breakdown_has_no_assessment_load_badge(client, log_in):
     log_in()
     page = card(html(client, "/subjects"), "41759")  # Capstone
-    assert "Assessment load" not in page and "No assessment breakdown has been published yet" in page
+    assert "Assessment load" not in page and "Not yet populated: the assessment tasks and weightings have not been loaded" in page
 
 
 def test_the_assessment_table_has_a_due_column_marked_illustrative(client, log_in):

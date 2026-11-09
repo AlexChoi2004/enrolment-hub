@@ -23,9 +23,11 @@ CATEGORIES = [
     ("honours_core", "Honours core", 24, 2),
     ("major_core", "Major core", 30, 3),
     ("major_elective", "Major electives", 18, 4),
-    ("general_elective", "General electives", 24, 5),
+    # The electives choice (instead of a sub-major) is 24 cp: 6 cp from the Transdisciplinary Electives stream (CBK92069) and 18 cp of free electives.
+    ("td_elective", "Transdisciplinary elective", 6, 5),
+    ("general_elective", "General electives", 18, 6),
     # Where subjects that belong only to other majors are stored. Never shown as a section.
-    ("major_other", "Other majors", 0, 6),
+    ("major_other", "Other majors", 0, 7),
 ]
 TOTAL_CREDIT_POINTS = 192
 
@@ -50,8 +52,8 @@ SUBJECTS = [
     ("31272", "Project Management and the Professional", 6, "core", "Autumn", "", 0),
     # Honours core: 6 + 6 + 12 = 24 cp
     ("32144", "Technology Research Preparation", 6, "honours_core", "Autumn", "", 0),
-    ("32931", "Technology Research Methods", 6, "honours_core", "Spring", "", 0),
-    ("31482", "Honours Project", 12, "honours_core", "Autumn", "", 0),
+    ("32931", "Honours Project A", 6, "honours_core", "Spring", "", 0),
+    ("31482", "Honours Project B", 12, "honours_core", "Autumn", "", 0),
     # Major core: 5 x 6 = 30 cp
     ("41025", "Introduction to Software Development", 6, "major_core", "Both", "", 0),
     ("31282", "Systems Testing and Quality Management", 6, "major_core", "Spring", "", 0),
@@ -93,7 +95,7 @@ PREREQUISITES = [
     ("31282", "31269"),  # Systems Testing and Quality Management <- Business Requirements Modelling
     ("48433", "48024"),  # Software Architecture <- Programming 2
     ("41079", "41078"),  # Computing Science Studio 2 <- Computing Science Studio 1
-    ("32931", "32144"),  # Technology Research Methods <- Technology Research Preparation
+    ("32931", "32144"),  # Honours Project A <- Technology Research Preparation
     ("41052", "31251"),  # Advanced Algorithms <- Data Structures and Algorithms
     ("32113", "31271"),  # Advanced Database <- Database Fundamentals
     ("41001", "48024"),  # Cloud Computing and SaaS <- Programming 2
@@ -128,10 +130,10 @@ MAJOR_ONLY_SUBJECTS = [
     ("32011", "Multilayer Switched Networks", 6, "major_other", "Both", "", 0),
     ("32146", "Data Visualisation and Visual Analytics", 6, "major_other", "Spring", "", 0),
     ("35005", "Lebesgue Integration and Fourier Analysis", 6, "major_other", "Both", "", 0),
-    ("35007", "Real Analysis", 6, "major_other", "Spring", "", 0),
+    ("35007", "Mathematics 3", 6, "major_other", "Spring", "", 0),
     ("37161", "Probability and Random Variables", 6, "major_other", "Spring", "", 0),
     ("37233", "Linear Algebra", 6, "major_other", "Spring", "", 0),
-    ("37234", "Complex Analysis", 6, "major_other", "Autumn", "", 0),
+    ("37234", "Mathematical Analysis", 6, "major_other", "Autumn", "", 0),
     ("37252", "Regression and Linear Models", 6, "major_other", "Spring", "", 0),
     ("37262", "Mathematical Statistics", 6, "major_other", "Autumn", "", 0),
     ("37373", "Programming for Data Analysis", 6, "major_other", "Autumn", "", 0),
@@ -166,7 +168,7 @@ MAJOR_ONLY_SUBJECTS = [
     ("48436", "Digital Forensics", 6, "major_other", "Both", "", 0),
     ("48730", "Cybersecurity", 6, "major_other", "Autumn", "", 0),
     ("57304", "The Ethics of Data and AI", 6, "major_other", "Spring", "", 0),
-    ("68416", "Computational Physics", 6, "major_other", "Spring", "", 0),
+    ("68416", "Computational Methods", 6, "major_other", "Spring", "", 0),
     ("68746", "Advanced Quantum Science", 6, "major_other", "Both", "", 0),
 ]
 
@@ -468,3 +470,6 @@ PREREQUISITE_NOTES = {
         "Not enforced here: Business Information Systems makes this subject core, but 31250 is not in that major."
     ),
 }
+
+# Names the 2027 Handbook uses, for a database built before they changed (seeding never overwrites a row, so this updates them).
+RENAMED = {"32931": "Honours Project A", "31482": "Honours Project B", "35007": "Mathematics 3", "68416": "Computational Methods", "37234": "Mathematical Analysis"}

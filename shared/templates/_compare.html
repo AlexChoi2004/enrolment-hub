@@ -1,3 +1,4 @@
+{% import '_links.html' as links %}
 {# Two majors, or two sub-majors, side by side. Context: kind, options, a, b, result, message, compare_endpoint, show_endpoint. #}
 <form method="get" action="{{ url_for(compare_endpoint) }}" class="compare-form">
   <div class="compare-pick">
@@ -36,10 +37,10 @@
     {% if result.shared %}
       <div class="compare-wrap"><table class="table">
         <caption class="visually-hidden">Subjects in both {{ A.name }} and {{ B.name }}</caption>
-        <thead><tr><th scope="col">Code</th><th scope="col">Subject</th><th scope="col">Credit points</th><th scope="col">In {{ A.name }}</th><th scope="col">In {{ B.name }}</th></tr></thead>
+        <thead><tr><th scope="col">Code</th><th scope="col">Subject</th><th scope="col">Credit points</th><th scope="col">In {{ A.name }}</th><th scope="col">In {{ B.name }}</th><th scope="col">Handbook</th></tr></thead>
         <tbody>
           {% for s in result.shared %}
-            <tr><td class="code">{{ s.code }}</td><td>{{ s.name }}</td><td>{{ s.credit_points }} cp</td><td>{{ 'Core' if s.role_a == 'core' else 'Option' }}</td><td>{{ 'Core' if s.role_b == 'core' else 'Option' }}</td></tr>
+            <tr>{{ links.subject_cells(s.code, s.name) }}</td><td>{{ s.credit_points }} cp</td><td>{{ 'Core' if s.role_a == 'core' else 'Option' }}</td><td>{{ 'Core' if s.role_b == 'core' else 'Option' }}</td><td>{{ links.handbook(s.handbook_url, s.code, s.name) }}</td></tr>
           {% endfor %}
         </tbody>
       </table></div>
@@ -55,7 +56,7 @@
           {% if only %}
             <p class="muted">Key subjects: {{ highlights|join(', ') }}{% if only|length > highlights|length %} and {{ only|length - highlights|length }} more{% endif %}.</p>
             <ul class="plain">
-              {% for s in only %}<li>{{ s.name }} <span class="muted">({{ s.code }}, {{ s.credit_points }} cp, {{ 'core' if s.role == 'core' else 'option' }})</span></li>{% endfor %}
+              {% for s in only %}<li><a href="{{ url_for('catalogue.detail_page', code=s.code) }}">{{ s.name }}</a> <span class="muted">({{ s.code }}, {{ s.credit_points }} cp, {{ 'core' if s.role == 'core' else 'option' }})</span> {{ links.handbook(s.handbook_url, s.code, s.name) }}</li>{% endfor %}
             </ul>
           {% else %}
             <p class="muted">Nothing: everything in {{ P.name }} is also in the other.</p>
@@ -86,6 +87,8 @@
         {% if P.summary %}
           <p>{{ P.summary.summary }}</p>
           <p class="muted">Summarised from the UTS Handbook (indicative), retrieved {{ P.summary.retrieved_on }}.</p>
+        {% elif P.no_overview %}
+          <p class="muted">The Handbook page has no overview for this {{ kind }}, only its structure.</p>
         {% else %}
           <p class="muted">No written summary has been added yet.</p>
         {% endif %}

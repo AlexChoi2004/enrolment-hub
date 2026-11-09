@@ -434,6 +434,9 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline-offs
 .calendar-form { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin-bottom: .4rem; }
 .calendar-option { display: inline-flex; align-items: center; gap: .4rem; }
 
+/* ===== Handbook links ===== */
+.handbook-link { white-space: nowrap; }
+
 /* ===== Compare two programs, and the About tab ===== */
 .compare-pick { display: flex; flex-wrap: wrap; align-items: end; gap: .8rem 1.2rem; margin-bottom: 1rem; }
 .compare-pick label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: .2rem; }
@@ -445,3 +448,4 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline-offs
 .compare-badge-little { background: var(--warn-soft); color: var(--warn-text); border-color: var(--warn-border); }
 .compare-badge-none, .compare-badge-unknown { background: var(--surface-2); color: var(--text); border-color: var(--border); }
 .focus-list li { margin-bottom: .3rem; }
+.focus-list ~ p.muted { margin: .5rem 0 0; }

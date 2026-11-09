@@ -79,13 +79,17 @@ def electives_preview(conn, user_id):
     _, _, electives = _current(conn, user_id)
     subjects = [
         dict(r) for r in conn.execute(
-            "SELECT code, name, credit_points, sessions_offered FROM subjects WHERE category = 'general_elective'"
+            "SELECT code, name, credit_points, sessions_offered, handbook_url FROM subjects WHERE category = 'general_elective'"
             " ORDER BY name COLLATE NOCASE"
         )
     ]
+    td_subjects = [
+        dict(r) for r in conn.execute(
+            "SELECT code, name, credit_points, sessions_offered, handbook_url FROM subjects WHERE category = 'td_elective' ORDER BY name COLLATE NOCASE")
+    ]
     has_other = _current(conn, user_id)[0] is not None
     return {
-        "subjects": subjects, "required_cp": 24, "is_current": electives, "has_current": has_other,
+        "subjects": subjects, "td_subjects": td_subjects, "required_cp": 24, "td_cp": 6, "free_cp": 18, "is_current": electives, "has_current": has_other,
         "impact": impact(conn, user_id, electives=True) if not electives else {"lost": [], "plan_removed": 0, "withdrawable": []},
     }
 

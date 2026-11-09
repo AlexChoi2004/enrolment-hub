@@ -1,16 +1,30 @@
 {% extends 'base.html' %}
 {% block title %}General electives · Enrolment Hub{% endblock %}
 {% block content %}
+{% import '_links.html' as links %}
 <p><a href="{{ url_for('submajors.index') }}">&larr; Sub-majors</a></p>
 <h1>General electives instead of a sub-major</h1>
 {% include '_ask_panel.html' %}
-<p class="muted">24 credit points: choose any 4 of the subjects below.</p>
-<p class="notice">These electives are invented sample subjects for this prototype. They are not real UTS subjects.</p>
+<p class="muted">24 credit points: {{ options.td_cp }} credit points from the Transdisciplinary Electives stream (choose 1 of {{ options.td_subjects|length }}) and {{ options.free_cp }} credit points of free electives (choose any {{ options.free_cp // 6 }}).</p>
 
+<h2>Transdisciplinary elective <span class="muted">(choose 1 of {{ options.td_subjects|length }})</span></h2>
+<p class="muted">The Handbook's list for 2027 (stream CBK92069, <a class="handbook-link" href="https://coursehandbook.uts.edu.au/aos/2027/CBK92069" target="_blank" rel="noopener noreferrer">Handbook overview<span class="visually-hidden"> for the Transdisciplinary Electives stream (opens in a new tab)</span><span aria-hidden="true"> &#8599;</span></a>). The same subjects count in the Humanitarian Engineering sub-major.</p>
 <table class="table">
+  <thead><tr><th scope="col">Code</th><th scope="col">Subject</th><th scope="col">Credit points</th><th scope="col">Handbook</th></tr></thead>
+  <tbody>
+    {% for s in options.td_subjects %}
+      <tr>{{ links.subject_cells(s.code, s.name) }}</td><td>{{ s.credit_points }} cp</td><td>{{ links.handbook(s.handbook_url, s.code, s.name) }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>Free electives <span class="muted">(choose any {{ options.free_cp // 6 }})</span></h2>
+<p class="notice">In real life any UTS subject can be a free elective. These are invented sample subjects for this prototype, not real UTS subjects.</p>
+<table class="table">
+  <thead><tr><th scope="col">Code</th><th scope="col">Subject</th><th scope="col">Credit points</th><th scope="col">Handbook</th></tr></thead>
   <tbody>
     {% for s in options.subjects %}
-      <tr><td class="code">{{ s.code }}</td><td>{{ s.name }}</td><td>{{ s.credit_points }} cp</td></tr>
+      <tr>{{ links.subject_cells(s.code, s.name) }}</td><td>{{ s.credit_points }} cp</td><td>{{ links.handbook(s.handbook_url, s.code, s.name) }}</td></tr>
     {% endfor %}
   </tbody>
 </table>

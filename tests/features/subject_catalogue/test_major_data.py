@@ -87,7 +87,7 @@ def test_a_subject_can_be_core_in_one_major_and_an_option_in_another(conn):
 
 def test_no_subject_code_is_duplicated(conn):
     total = conn.execute("SELECT COUNT(*) FROM subjects").fetchone()[0]
-    assert total == conn.execute("SELECT COUNT(DISTINCT code) FROM subjects").fetchone()[0] == 181
+    assert total == conn.execute("SELECT COUNT(DISTINCT code) FROM subjects").fetchone()[0] == 189
 
 
 def test_the_original_enterprise_software_data_is_unchanged(conn):
@@ -116,7 +116,7 @@ def test_a_subject_is_required_exactly_when_it_has_a_rule(conn):
     required = {r[0] for r in conn.execute("SELECT code FROM subjects WHERE prereq_status = 'required'")}
     assert required == with_rules
     unknown = {r[0] for r in conn.execute("SELECT code FROM subjects WHERE prereq_status = 'unknown'")}
-    assert len(unknown) == 76 and unknown.isdisjoint(with_rules)
+    assert len(unknown) == 84 and unknown.isdisjoint(with_rules)  # the 76 sub-major-only subjects and the 8 transdisciplinary electives
 
 
 def test_the_twelve_original_rules_are_kept_and_the_handbook_rules_are_added_on_top(conn):

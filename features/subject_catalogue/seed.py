@@ -1,7 +1,8 @@
 """Load the supplied handbook-derived data into SQLite (idempotent)."""
 from features.subject_catalogue.assessment_data import ASSESSMENTS, DESCRIPTIONS
 from features.subject_catalogue.assessments import explain, illustrative_due_weeks
-from features.subject_catalogue.submajor_data import SOURCE_NOTE, STREAMS, SUBJECTS as SUBMAJOR_SUBJECTS, SUBMAJORS
+from features.subject_catalogue.program_text import CODES, STREAM_CODES, aos_url, subject_handbook_url
+from features.subject_catalogue.submajor_data import SOURCE_NOTE, STREAM_SUBJECTS, STREAMS, SUBJECTS as SUBMAJOR_SUBJECTS, SUBMAJORS
 from features.subject_catalogue.seed_data import (
     CATEGORIES,
     COURSE,
@@ -12,6 +13,7 @@ from features.subject_catalogue.seed_data import (
     MAJORS,
     PREREQUISITE_NOTES,
     PREREQUISITES,
+    RENAMED,
     SUBJECTS,
 )
 
@@ -26,6 +28,11 @@ def seed_catalogue(conn):
         "INSERT OR IGNORE INTO requirement_categories"
         " (category, label, required_credit_points, sort_order) VALUES (?, ?, ?, ?)",
         CATEGORIES,
+    )
+    # A database built earlier keeps its rows, so bring the requirement sections up to date too (this never touches a student's data).
+    conn.executemany(
+        "UPDATE requirement_categories SET label = ?, required_credit_points = ?, sort_order = ? WHERE category = ?",
+        [(label, cp, order, category) for category, label, cp, order in CATEGORIES],
     )
     conn.executemany(
         "INSERT OR IGNORE INTO subjects"
@@ -63,7 +70,9 @@ def seed_catalogue(conn):
         "UPDATE subjects SET prereq_status = 'unknown' WHERE code = ? AND prereq_status = 'none'",
         [(row[0],) for row in SUBMAJOR_SUBJECTS],
     )
+    conn.executemany("UPDATE subjects SET name = ? WHERE code = ? AND name != ?", [(name, code, name) for code, name in RENAMED.items()])
     seed_submajors(conn)
+    seed_handbook_links(conn)
     seed_assessments(conn)
 
 
@@ -107,12 +116,16 @@ def seed_submajors(conn):
     """The sub-majors, their groups and the streams. Safe to run twice."""
     for code, name, cp, note in STREAMS:
         conn.execute("INSERT OR IGNORE INTO streams (code, name, cp, note) VALUES (?, ?, ?, ?)", (code, name, cp, note))
+        conn.execute("UPDATE streams SET note = ? WHERE code = ?", (note, code))  # a database built earlier gets the current note
+    for stream, subjects in STREAM_SUBJECTS.items():
+        conn.executemany("INSERT OR IGNORE INTO stream_subjects (stream_code, subject_code) VALUES (?, ?)", [(stream, s) for s in subjects])
     for code, name, note, groups in SUBMAJORS:
         conn.execute(
             "INSERT OR IGNORE INTO submajors (code, name, total_cp, note, source, academic_year, verification)"
-            " VALUES (?, ?, 24, ?, ?, 2027, 'supplied')",
+            " VALUES (?, ?, 24, ?, ?, 2027, 'verified')",
             (code, name, note, SOURCE_NOTE),
         )
+        conn.execute("UPDATE submajors SET note = ?, source = ?, verification = 'verified' WHERE code = ?", (note, SOURCE_NOTE, code))
         for position, (kind, label, required_cp, subjects, stream, language) in enumerate(groups, 1):
             language_name = label.split(" (")[0] if language else None
             conn.execute(
@@ -127,3 +140,11 @@ def seed_submajors(conn):
                 "INSERT OR IGNORE INTO submajor_group_subjects (group_id, subject_code) VALUES (?, ?)",
                 [(group_id, s) for s in subjects],
             )
+
+
+def seed_handbook_links(conn):
+    """Store the official Handbook page on every subject, major, sub-major and stream that has one. Safe to run twice."""
+    conn.executemany("UPDATE subjects SET handbook_url = ? WHERE code = ?", [(subject_handbook_url(r[0]), r[0]) for r in conn.execute("SELECT code FROM subjects").fetchall()])
+    conn.executemany("UPDATE majors SET handbook_url = ? WHERE code = ?", [(aos_url(c), c) for c in CODES if c.startswith("MAJ")])
+    conn.executemany("UPDATE submajors SET handbook_url = ? WHERE code = ?", [(aos_url(c), c) for c in CODES if c.startswith("SMJ")])
+    conn.executemany("UPDATE streams SET handbook_url = ? WHERE code = ?", [(aos_url(c), c) for c in STREAM_CODES])

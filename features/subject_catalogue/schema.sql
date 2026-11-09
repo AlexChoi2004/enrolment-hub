@@ -27,7 +27,9 @@ CREATE TABLE IF NOT EXISTS subjects (
     -- 'none'     = the supplied data lists no prerequisites for this subject.
     -- 'unknown'  = prerequisites genuinely not known (keeps "unknown" distinct from "none").
     prereq_status    TEXT NOT NULL DEFAULT 'none'
-                     CHECK (prereq_status IN ('required', 'none', 'unknown'))
+                     CHECK (prereq_status IN ('required', 'none', 'unknown')),
+    -- the official UTS Handbook page for this record; only the Handbook's own site is allowed
+    handbook_url TEXT CHECK (handbook_url IS NULL OR handbook_url LIKE 'https://coursehandbook.uts.edu.au/%')
 );
 
 -- A subject's prerequisites are ANDed together, group by group. Rows of one subject that share an
@@ -58,6 +60,8 @@ CREATE TABLE IF NOT EXISTS majors (
     name        TEXT NOT NULL,
     core_cp     INTEGER NOT NULL CHECK (core_cp >= 0),
     options_cp  INTEGER NOT NULL CHECK (options_cp >= 0),
+    -- the official UTS Handbook page for this record; only the Handbook's own site is allowed
+    handbook_url TEXT CHECK (handbook_url IS NULL OR handbook_url LIKE 'https://coursehandbook.uts.edu.au/%'),
     CHECK (core_cp + options_cp = 48)
 );
 
@@ -80,7 +84,9 @@ CREATE TABLE IF NOT EXISTS submajors (
     note           TEXT NOT NULL DEFAULT '',
     source         TEXT NOT NULL,
     academic_year  INTEGER,
-    verification   TEXT NOT NULL CHECK (verification IN ('verified', 'supplied', 'unverified'))
+    verification   TEXT NOT NULL CHECK (verification IN ('verified', 'supplied', 'unverified')),
+    -- the official UTS Handbook page for this record; only the Handbook's own site is allowed
+    handbook_url TEXT CHECK (handbook_url IS NULL OR handbook_url LIKE 'https://coursehandbook.uts.edu.au/%')
 );
 
 CREATE TABLE IF NOT EXISTS submajor_groups (
@@ -108,7 +114,9 @@ CREATE TABLE IF NOT EXISTS streams (
     code TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     cp   INTEGER NOT NULL CHECK (cp > 0),
-    note TEXT NOT NULL DEFAULT ''
+    note TEXT NOT NULL DEFAULT '',
+    -- the official UTS Handbook page for this record; only the Handbook's own site is allowed
+    handbook_url TEXT CHECK (handbook_url IS NULL OR handbook_url LIKE 'https://coursehandbook.uts.edu.au/%')
 );
 
 CREATE TABLE IF NOT EXISTS stream_subjects (

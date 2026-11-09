@@ -116,7 +116,7 @@ def get_record(conn, user_id):
 def _out_of_degree_reason(code, stored, major, submajor, uses_electives, in_major_lists, in_sub_lists):
     """Why a subject is not part of this student's degree."""
     in_major, in_sub = code in in_major_lists, code in in_sub_lists
-    if stored == "general_elective":  # the 24 cp block is either a sub-major or general electives
+    if stored in ("general_elective", "td_elective"):  # the 24 cp block is either a sub-major or general electives
         if submajor is not None:
             return f"Not part of your degree: you chose the {submajor['name']} sub-major instead of general electives"
         return "Choose general electives or a sub-major to take this subject"

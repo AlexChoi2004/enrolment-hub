@@ -101,7 +101,7 @@ def test_the_table_is_accessible(client, log_in):
     log_in()
     html = page(client, "/major/compare?a=MAJ02900&b=MAJ03445")
     assert '<caption class="visually-hidden">Subjects in both Cybersecurity and Privacy and Networking and Cybersecurity</caption>' in html
-    assert html.count('<th scope="col">') == 5 and 'aria-labelledby="cmp-verdict"' in html and html.count("<h1>") == 1
+    assert html.count('<th scope="col">') == 6 and 'aria-labelledby="cmp-verdict"' in html and html.count("<h1>") == 1
 
 
 def test_the_rules_are_explained_from_the_real_cut_offs(client, log_in):
@@ -133,11 +133,18 @@ def test_the_about_tab_shows_the_summary_the_focus_and_the_handbook_link(client,
     assert "<h2>Core subjects" not in html and 'href="/major/compare?a=MAJ10053">Compare with another major</a>' in html
 
 
-def test_a_major_without_a_written_summary_says_so_and_still_links_to_the_handbook(client, log_in):
+def test_a_major_whose_handbook_page_has_no_overview_says_so_and_still_links_to_the_handbook(client, log_in):
     log_in()
-    html = page(client, "/major/MAJ02900?tab=about")
-    assert "No written summary has been added for this major yet" in html and "https://coursehandbook.uts.edu.au/aos/2027/MAJ02900" in html
-    assert "<strong>Cybersecurity and privacy</strong>" in html and "9 subjects" in html  # the focus still comes from its subjects
+    html = page(client, "/major/MAJ01156?tab=about")  # Mathematical Analysis: the Handbook page lists a structure but no overview
+    assert "has no overview, so there is no description to summarise" in html and "https://coursehandbook.uts.edu.au/aos/2027/MAJ01156" in html
+    assert "No written summary has been added" not in html and "<strong>Mathematics</strong>" in html  # the focus still comes from its subjects
+
+
+def test_a_major_with_a_summary_shows_it_with_its_source_and_a_handbook_note(client, log_in):
+    log_in()
+    html = page(client, "/major/MAJ03445?tab=about")
+    assert "Gives students the knowledge and skills to design networks" in html and "retrieved 2026-11-08" in html
+    assert "take 41039 Programming 1 rather than 48023 Programming Fundamentals" in html  # the Handbook's note about this major
 
 
 @pytest.mark.parametrize("tab", ["", "subjects", "ABOUT", "about%20", "x", "%3Cscript%3E", "about%26tab%3Dx"])

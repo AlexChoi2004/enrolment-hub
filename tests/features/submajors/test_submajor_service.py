@@ -322,24 +322,24 @@ def test_language_prerequisites_are_not_enforced_because_they_are_not_verified(c
 
 # --- streams -----------------------------------------------------------------------------------------------------------------
 
-def test_a_stream_is_not_a_subject_and_has_no_subjects_loaded_yet(conn):
+def test_a_stream_is_not_a_subject_and_lists_its_eight_subjects(conn):
     assert conn.execute("SELECT COUNT(*) FROM subjects WHERE code = 'CBK92069'").fetchone()[0] == 0
     assert conn.execute("SELECT COUNT(*) FROM streams WHERE code = 'CBK92069'").fetchone()[0] == 1
-    assert conn.execute("SELECT COUNT(*) FROM stream_subjects WHERE stream_code = 'CBK92069'").fetchone()[0] == 0
+    assert conn.execute("SELECT COUNT(*) FROM stream_subjects WHERE stream_code = 'CBK92069'").fetchone()[0] == 8
 
 
-def test_a_requirement_with_no_subjects_loaded_cannot_be_planned_and_says_so(conn, student):
+def test_the_streams_requirement_can_be_planned_now_that_its_subjects_are_loaded(conn, student):
     choose_submajor(conn, student, HUMANITARIAN)
     suggest_plan(conn, student)
     plan = get_plan(conn, student)
-    assert plan["complete"] is False
-    assert any("CBK92069" in note and "have not been loaded" in note for note in plan["notes"])
-    assert plan["remaining_cp"] == 6  # exactly the stream's 6 cp
+    assert not any("have not been loaded" in note for note in plan["notes"])
+    stream = next(s for s in plan["elective_sections"] if "CBK92069" in s["label"])
+    assert (stream["choose"], stream["chosen"], stream["need"]) == (1, 1, 0)  # one 6 cp transdisciplinary subject was placed
 
 
 def test_the_stream_is_shown_with_its_note(conn):
     group = next(g for g in catalogue.get_submajor(conn, HUMANITARIAN)["all_groups"] if g["stream"])
-    assert group["stream"]["code"] == "CBK92069" and "require verification" in group["stream"]["note"]
+    assert group["stream"]["code"] == "CBK92069" and "eight subjects" in group["stream"]["note"]
 
 
 # --- full plans ---------------------------------------------------------------------------------------------------------------

@@ -1,14 +1,14 @@
 """Sub-majors: 24 cp blocks of the degree, each with compulsory (core) subjects and selectable options.
 
 SUPPLIED STRUCTURE: the sub-majors below (codes, names, which subjects are core or options, how many credit points
-to select) were supplied from the UTS Handbook text. They are NOT independently verified.
+to select) were supplied from the UTS Handbook text, and checked against the Handbook pages on 8 November 2026 (tests/features/subject_catalogue/test_handbook_check.py).
 NOT VERIFIED: prerequisites, descriptions, assessments and session offerings of the subjects that exist only in these
 sub-majors. Their offerings are illustrative; the others are marked "prerequisites not verified" and not enforced.
 Subjects are stored once in the subject catalogue; membership of a sub-major is stored separately.
 """
 import zlib
 
-SOURCE_NOTE = "Structure supplied from the UTS Handbook (2027 course structure); not independently verified."
+SOURCE_NOTE = "Structure checked against the UTS Handbook page for this sub-major (2027; Humanitarian Engineering is the 2026 page) on 8 November 2026."
 
 
 def _sessions(code):
@@ -84,11 +84,17 @@ LANGUAGES = {
 }
 LANGUAGE_CP = 8
 
-# Streams are lists of subjects chosen from. The contents of CBK92069 were not supplied, so none are stored.
+# Streams are lists of subjects chosen from. CBK92069 is used by the Humanitarian Engineering sub-major and by the general electives choice.
 STREAMS = [
-    ("CBK92069", "Transdisciplinary Electives", 6,
-     "The subjects in this stream have not been loaded yet; they require verification."),
+    ("CBK92069", "Transdisciplinary Electives", 6, "Choose 6 credit points (one subject) from these eight subjects, as the Handbook lists them for 2027."),
 ]
+TD_SUBJECTS = [
+    ("95002", "TD: Reframing, remixing, reimagining society"), ("95003", "TD: Sustainability in an interconnected world"),
+    ("95004", "TD: Technologies reimagined in a complex world"), ("95005", "TD: Shaping technologies that shape us"),
+    ("95006", "TD: Envisioning futures worth wanting"), ("95007", "TD: Pathways to societal transitions"),
+    ("95008", "TD: Transdisciplinary action lab"), ("95009", "TD: Change-making for social impact"),
+]
+STREAM_SUBJECTS = {"CBK92069": [code for code, _ in TD_SUBJECTS]}
 
 # Subjects that were not in the app before, as full rows for the subjects table.
 SUBJECTS = (
@@ -96,6 +102,8 @@ SUBJECTS = (
      for code, name, cp in SUBMAJOR_ONLY]
     + [(code, name, LANGUAGE_CP, "major_other", _sessions(code), "", 0)
        for _, (_, subjects) in LANGUAGES.items() for code, name in subjects]
+    # Transdisciplinary electives: they count in the stream of the sub-major that lists them, or as the 6 cp transdisciplinary elective of the general electives choice
+    + [(code, name, 6, "td_elective", "Both", "", 0) for code, name in TD_SUBJECTS]
 )
 
 # (code, name, note, groups). A group is ("core" | "choose", label, credit points, [subject codes], stream code or None,
@@ -105,7 +113,7 @@ SUBMAJORS = [
         ("core", "Core", 18, ["37233", "37242", "37345"], None, None),
         ("choose", "Options", 6, ["68416", "37161"], None, None),
     ]),
-    ("SMJ10196", "Humanitarian Engineering", "The subjects in the Transdisciplinary Electives stream have not been loaded.", [
+    ("SMJ10196", "Humanitarian Engineering", "The Handbook page for this sub-major is the 2026 version.", [
         ("core", "Core", 12, ["43029", "99200"], None, None),
         ("choose", "Transdisciplinary electives (stream CBK92069)", 6, [], "CBK92069", None),
         ("choose", "Options", 6, ["977917", "97901", "41130"], None, None),
@@ -122,7 +130,7 @@ SUBMAJORS = [
         ("choose", "Options", 6, ["31777", "41001", "31260", "41020", "40007"], None, None),
     ]),
     ("SMJ10167", "Mathematical Analysis Extension",
-     "The handbook text showed 'Options 218 Credit Points'; it is read here as two groups of 6 cp and 18 cp. Verify this.", [
+     "The Handbook lists two groups of options: choose 6 credit points from the first group and 18 from the second.", [
         ("choose", "Options group 1", 6, ["35005", "37262"], None, None),
         ("choose", "Options group 2", 18, ["37335", "37242", "37345", "37495", "37363", "37336"], None, None),
     ]),

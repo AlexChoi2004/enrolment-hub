@@ -153,7 +153,8 @@ def test_choosing_general_electives_adds_their_group(tmp_path):
     conn = db.connect(str(path))
     choose_electives(conn, 1)
     groups = {g["key"]: g for g in build_board(conn, 1)["groups"]}
-    assert groups["general_elective"]["kind"] == "choose" and (groups["general_elective"]["choose"], groups["general_elective"]["need"]) == (4, 4)
+    assert groups["general_elective"]["kind"] == "choose" and (groups["general_elective"]["choose"], groups["general_elective"]["need"]) == (3, 3)  # 18 cp of free electives
+    assert groups["td_elective"]["kind"] == "choose" and (groups["td_elective"]["choose"], groups["td_elective"]["need"], groups["td_elective"]["count"]) == (1, 1, 8)  # the 6 cp stream slot
     assert "sub_core" not in groups
 
 

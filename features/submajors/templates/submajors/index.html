@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Sub-major or electives · Enrolment Hub{% endblock %}
 {% block content %}
+{% import '_links.html' as links %}
 <h1>{{ 'Swap sub-major' if current else 'Choose your sub-major' }}{% if not current %} or electives{% endif %}</h1>
 <p>
   This 24 credit point block of your degree is <strong>either a sub-major or general electives</strong>, on top of your
@@ -26,7 +27,7 @@
   {% for s in submajors %}
     <li class="card{{ ' plan-complete' if current and current.code == s.code }}">
       <a href="{{ url_for('submajors.show', code=s.code) }}"><strong>{{ s.name }}</strong></a>
-      <span class="muted">{{ s.code }}</span><br>
+      <span class="muted">{{ s.code }}</span> {{ links.overview(s.handbook_url, s.name) }}<br>
       {% if s.is_language %}
         Choose one of {{ s.languages|length }} language programs · 24 cp (three 8 cp subjects)
       {% elif s.choose_cp %}

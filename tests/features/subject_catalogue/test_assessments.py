@@ -27,15 +27,15 @@ def count(conn, sql, *args):
 
 def test_every_subject_has_exactly_one_current_structure_and_the_researched_ones_have_a_description(conn):
     subjects = count(conn, "SELECT COUNT(*) FROM subjects")
-    assert subjects == 181
-    assert count(conn, "SELECT COUNT(*) FROM subject_descriptions") == 105  # the 76 sub-major-only subjects are not researched yet
+    assert subjects == 189
+    assert count(conn, "SELECT COUNT(*) FROM subject_descriptions") == 105  # the 76 sub-major-only subjects and the 8 transdisciplinary electives are not researched yet
     assert count(conn, "SELECT COUNT(*) FROM assessment_structures WHERE is_current = 1") == subjects
     assert count(conn, "SELECT COUNT(DISTINCT subject_code) FROM assessment_structures WHERE is_current = 1") == subjects
 
 
 def test_the_verification_labels_are_split_as_expected(conn):
     counts = dict(conn.execute("SELECT verification, COUNT(*) FROM assessment_structures GROUP BY verification").fetchall())
-    assert counts == {"indicative": 85, "historical": 2, "unverified": 6 + 76, "synthetic": 12}
+    assert counts == {"indicative": 85, "historical": 2, "unverified": 6 + 76 + 8, "synthetic": 12}
 
 
 def test_the_weights_of_every_structure_with_tasks_add_up_to_100(conn):
@@ -245,7 +245,7 @@ def test_a_new_structure_must_add_up_and_use_known_values(conn):
 
 
 def test_loading_all_assessment_information_covers_every_subject(conn):
-    assert len(load_assessment_info(conn)) == 181
+    assert len(load_assessment_info(conn)) == 189
 
 
 # --- the pages ------------------------------------------------------------------------------------------------------
@@ -288,15 +288,15 @@ def test_a_group_assessment_is_labelled(client, log_in):
 def test_an_unverified_subject_says_there_is_no_breakdown_and_shows_no_table(client, log_in):
     log_in()
     page = card(html(client, "/subjects"), "41759")  # Capstone
-    assert "No assessment breakdown has been published yet" in page and "find out when you enrol" in page
-    assert "<table" not in page and "Source:" not in page
+    assert "Not yet populated: the assessment tasks and weightings have not been loaded" in page and "Handbook page has the official details" in page
+    assert "<table" not in page.split("<h2>Assessment</h2>")[1].split("<h2>Prerequisites</h2>")[0] and "Source:" not in page
     assert "A culminating project subject" in page  # the description is still shown
 
 
 def test_unconfirmed_tasks_for_43030_are_not_shown_to_students(client, log_in):
     log_in()
     page = card(html(client, "/subjects"), "43030")
-    assert "No assessment breakdown has been published yet" in page
+    assert "Not yet populated: the assessment tasks and weightings have not been loaded" in page
     assert "job advertisement" not in page.lower() and "development portfolio" not in page.lower()
 
 

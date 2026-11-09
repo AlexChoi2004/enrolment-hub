@@ -10,7 +10,7 @@ THEMES = (
     ("Artificial intelligence and machine learning", r"Artificial Intelligence|Machine Learning|Neural|Computational Intelligence|Natural Language|Deep Learning"),
     ("Data analysis and visualisation", r"Data Analytics|Data Visuali|Visual Analytics|Business Intelligence|Predictive|Programming for Data|Analytics"),
     ("Statistics and probability", r"Statist|Probability|Regression|Stochastic"),
-    ("Mathematics", r"Algebra|Calculus|Real Analysis|Complex Analysis|Integration|Differential|Optimis|Mathematical|Computational Physics"),
+    ("Mathematics", r"Algebra|Calculus|Real Analysis|Complex Analysis|Integration|Differential|Optimis|Mathematic|Computational (Physics|Methods)"),
     ("Cybersecurity and privacy", r"Security|Cybersecurity|Cryptograph|Privacy|Forensics|Penetration"),
     ("Networking and infrastructure", r"Network|Routing|Switch|Internet of Things|IoT|Infrastructure|Cloud Computing"),
     ("Software development", r"Software|Application Development|Programming|Studio|Systems Testing|\.NET|iOS Development|Advanced Algorithms"),

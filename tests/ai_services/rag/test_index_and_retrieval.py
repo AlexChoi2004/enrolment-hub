@@ -26,7 +26,7 @@ def refs(conn, question):
 
 def test_there_is_one_source_for_every_subject_major_sub_major_and_rule(conn):
     counts = {r["kind"]: r["n"] for r in conn.execute("SELECT kind, COUNT(*) AS n FROM rag_chunks GROUP BY kind")}
-    assert counts == {"subject": 181, "major": 8, "submajor": 8, "rule": len(RULES)} and len(RULES) == 18
+    assert counts == {"subject": 189, "major": 8, "submajor": 8, "rule": len(RULES)} and len(RULES) == 18
 
 
 def test_every_source_has_a_title_a_source_label_and_a_unique_reference(conn):
@@ -107,7 +107,8 @@ def test_a_sub_major_source_has_core_options_and_languages(conn):
     assert "Core, all required (6 credit points): 41181" in chunk(conn, "submajor:SMJ10157")["body"]
     lote = chunk(conn, "submajor:SMJ09035")["body"]
     assert "Language program Japanese (CBK90495)" in lote and "Choose exactly one language program" in lote
-    assert "have not been loaded" in chunk(conn, "submajor:SMJ10196")["body"]  # the empty stream is stated, not invented
+    humanitarian = chunk(conn, "submajor:SMJ10196")["body"]
+    assert "have not been loaded" not in humanitarian and "TD: Sustainability in an interconnected world" in humanitarian  # the stream's eight subjects are now loaded
 
 
 # --- the written rules match what the code does ---------------------------------------------------------------------------------------

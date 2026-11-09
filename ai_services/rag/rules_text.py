@@ -8,8 +8,9 @@ SOURCE = "How this app works"
 RULES = [
     ("rule:degree-structure", "Degree structure and credit points",
      "The degree is the Bachelor of Computing Science (Honours), 192 credit points. It is 96 credit points of core subjects, "
-     "24 credit points of honours core (Technology Research Preparation, Technology Research Methods and the 12 credit point "
-     "Honours Project), 48 credit points for a major, and 24 credit points that are either a sub-major or general electives. "
+     "24 credit points of honours core (Technology Research Preparation, Honours Project A and the 12 credit point "
+     "Honours Project B), 48 credit points for a major, and 24 credit points that are either a sub-major or general electives "
+     "(6 credit points from the Transdisciplinary Electives stream and 18 credit points of free electives). "
      "Most subjects are 6 credit points; language subjects are 8 credit points and the Honours Project is 12."),
     ("rule:session-load", "Sessions and the 24 credit point limit",
      "A full load is 24 credit points in a session, usually four 6 credit point subjects. Sessions are Autumn (Semester 1) and "
@@ -54,9 +55,10 @@ RULES = [
      "goes ahead. Extra subjects mean extra tuition (HECS or otherwise); no dollar amount is shown because the app does not know the "
      "student's fees. No advice is shown when choosing a first major."),
     ("rule:count-as-electives", "Counting subjects as general electives",
-     "On the general electives path, when a swap would make subjects the student has done or is doing stop counting, and the 24 credit "
-     "point electives block still has room, the swap page offers to count them as general electives instead of losing them. Only subjects "
-     "that would stop counting because of the swap can be offered, up to the free space. A student on a sub-major has no electives block, "
+     "On the general electives path, when a swap would make subjects the student has done or is doing stop counting, and the 18 credit "
+     "points of free electives still have room, the swap page offers to count them as general electives instead of losing them. The other "
+     "6 credit points of the electives block must be one Transdisciplinary Electives subject (stream CBK92069), which free electives can never "
+     "replace. Only subjects that would stop counting because of the swap can be offered, up to the free space. A student on a sub-major has no electives block, "
      "so no offer is made. The choices are cleared if the student leaves the electives path."),
     ("rule:sub-major-vs-major", "Sub-majors, majors and overlaps",
      "A sub-major is a separate 24 credit point requirement, not part of the 48 credit point major. A sub-major is made of core subjects "

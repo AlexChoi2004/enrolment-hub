@@ -31,8 +31,8 @@ def info(conn, user_id, code):
 # --- names now match the handbook ---------------------------------------------------------------------------------
 
 @pytest.mark.parametrize("code,name", [
-    ("31482", "Honours Project"), ("32931", "Technology Research Methods"), ("35007", "Real Analysis"),
-    ("37234", "Complex Analysis"), ("68416", "Computational Physics"),
+    ("31482", "Honours Project B"), ("32931", "Honours Project A"), ("35007", "Mathematics 3"),
+    ("37234", "Mathematical Analysis"), ("68416", "Computational Methods"),
 ])
 def test_subject_names_match_the_handbook(conn, code, name):
     assert conn.execute("SELECT name FROM subjects WHERE code = ?", (code,)).fetchone()[0] == name
@@ -54,9 +54,9 @@ def test_a_second_route_from_the_handbook_is_accepted(conn, student):
     assert info(conn, student, "41001")["status"] == "available"
 
 
-def test_honours_project_now_needs_technology_research_methods(conn):
+def test_honours_project_b_needs_honours_project_a(conn):
     reasons = info(conn, 1, "31482")["reasons"]  # John Doe has not completed 32931
-    assert reasons == ["Needs 32931 Technology Research Methods"]
+    assert reasons == ["Needs 32931 Honours Project A"]
 
 
 def test_a_subject_without_a_handbook_prerequisite_has_none(conn, student):

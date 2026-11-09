@@ -1,11 +1,13 @@
+{% import '_links.html' as links %}
 <div class="detail">
   <p>
     <strong>{{ subject.credit_points }} credit points</strong> ·
     {{ subject.category_label }} ·
     Offered: {{ subject.sessions_offered }} <span class="badge">illustrative</span>
   </p>
+  <p>Official page: {{ links.handbook(subject.handbook_url, subject.code, subject.name) }}</p>
   {% if subject.summary %}<p>{{ subject.summary }}</p>
-  {% else %}<p class="muted">No description in the supplied data.</p>{% endif %}
+  {% else %}<p class="muted">Not yet populated: no description has been loaded for this subject.{% if subject.handbook_url %} The official description is on its Handbook page.{% endif %}</p>{% endif %}
   {% if subject.style_tags %}
     <p>{% for t in subject.style_tags %}<span class="badge">{{ t }}</span> {% endfor %}</p>
   {% endif %}
@@ -19,7 +21,7 @@
   {% endif %}
   {% set a = subject.assessment %}
   {% if not a or a.status == 'none' %}
-    <p>{{ a.banner if a else 'No assessment breakdown has been published yet. You will find out when you enrol.' }}</p>
+    <p class="muted">Not yet populated: the assessment tasks and weightings have not been loaded for this subject{% if subject.handbook_url %}; the Handbook page has the official details{% else %}. You will find out when you enrol{% endif %}.</p>
   {% else %}
     <p class="notice">{{ a.banner }}</p>
     <div class="table-wrap">

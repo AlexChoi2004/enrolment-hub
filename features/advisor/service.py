@@ -19,6 +19,7 @@ from features.enrolment.service import current_session_of, next_session
 from features.subject_catalogue.service import degree_subjects, get_major, get_submajor
 
 SESSION_CP = 24
+FREE_ELECTIVE_CP = 18  # the general electives choice is 6 cp from the Transdisciplinary stream plus this many cp of free electives
 KINDS = ("major", "submajor", "electives")
 TIERS = {"good": "Good to switch", "costs_time": "Possible, but it costs time", "think": "Think carefully"}
 # Tier rules (credit points that would stop counting). Shown to the student, so they can see why.
@@ -147,7 +148,7 @@ def assess(conn, user_id, kind, code=None, language=None, elective_codes=()):
     offer = None
     lost_before = [c for c in before["counted"] if c not in after["counted"]]
     if on_electives_path and lost_before:
-        space = max(0, 24 - after["electives_cp"] - planned_electives)
+        space = max(0, FREE_ELECTIVE_CP - after["electives_cp"] - planned_electives)
         if space > 0:
             names = {r["code"]: r["name"] for r in conn.execute("SELECT code, name FROM subjects")}
             offer = {

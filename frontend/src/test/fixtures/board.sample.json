@@ -256,19 +256,8 @@
       "valid_sessions": []
     },
     {
-      "code": "31482",
-      "name": "Honours Project",
-      "credit_points": 12,
-      "category": "Honours core",
-      "category_key": "honours_core",
-      "state": "todo",
-      "problem": null,
-      "retake": false,
-      "valid_sessions": []
-    },
-    {
       "code": "32931",
-      "name": "Technology Research Methods",
+      "name": "Honours Project A",
       "credit_points": 6,
       "category": "Honours core",
       "category_key": "honours_core",
@@ -282,6 +271,17 @@
         "Spring 2030",
         "Spring 2031"
       ]
+    },
+    {
+      "code": "31482",
+      "name": "Honours Project B",
+      "credit_points": 12,
+      "category": "Honours core",
+      "category_key": "honours_core",
+      "state": "todo",
+      "problem": null,
+      "retake": false,
+      "valid_sessions": []
     },
     {
       "code": "41759",
