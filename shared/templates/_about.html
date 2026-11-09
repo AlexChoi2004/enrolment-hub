@@ -4,9 +4,12 @@
   {% if p.summary %}
     <p>{{ p.summary.summary }}</p>
     <p class="muted">Summarised in our own words from the UTS Handbook's overview (indicative), retrieved {{ p.summary.retrieved_on }}. The Handbook page for your year is the authority.</p>
+  {% elif p.no_overview %}
+    <p class="muted">The Handbook page for this {{ kind }} lists its structure but has no overview, so there is no description to summarise. What it focuses on is worked out from its subjects below.</p>
   {% else %}
     <p class="muted">No written summary has been added for this {{ kind }} yet. What it focuses on is worked out from its subjects below, and the official description is in the Handbook.</p>
   {% endif %}
+  {% if p.note %}<p class="notice">{{ p.note }}</p>{% endif %}
   {% if p.handbook_url %}
     <p><a href="{{ p.handbook_url }}" target="_blank" rel="noopener noreferrer">Read the official description in the UTS Handbook<span class="visually-hidden"> (opens in a new tab)</span></a></p>
   {% endif %}

@@ -138,7 +138,7 @@ def test_text_hidden_in_the_facts_cannot_make_the_checker_pass(conn):
 def test_the_advisor_is_given_the_electives_offer(conn):
     model = FakeLLM("Possible, but it costs time. The decision is yours.")
     advise(conn, 1, "electives", None, None, model)
-    assert "electives_offer" in model.calls[0][1] and '"space_cp": 24' in model.calls[0][1]
+    assert "electives_offer" in model.calls[0][1] and '"space_cp": 18' in model.calls[0][1]
 
 
 # --- the pages ---------------------------------------------------------------------------------------------------------------------------------

@@ -87,6 +87,7 @@ const pages = [
   ["Major swap", major], ["Major: About tab", `${major}?tab=about`],
   ["Choose a sub-major", "/submajor"], ["Fit for my progress: sub-majors", "/submajor/fit"], ["Compare two sub-majors", "/submajor/compare?a=SMJ10167&b=SMJ10166"],
   ["Sub-major swap", submajor], ["Sub-major: About tab", `${submajor}?tab=about`], ["Electives", "/submajor/electives"],
+  ["Major: Subjects tab", major], ["Humanitarian Engineering (stream)", "/submajor/SMJ10196"], ["Transdisciplinary elective subject", "/subjects/95003"],
   ["Profile", "/profile"], ["Simulator: reset", "/simulator/reset"],
 ];
 for (const [name, path, island] of pages) {

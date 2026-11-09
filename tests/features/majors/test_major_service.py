@@ -342,10 +342,10 @@ def test_or_accepts_either_alternative(conn, student):
 def test_and_with_or_inside_names_each_missing_group(conn, student):
     choose_major(conn, student, QUANTUM)  # 41173 <- 43025 AND (41039 OR 68416)
     assert note(conn, student, "41173") == (
-        "Needs 43025 Introduction to Quantum Computing, (41039 Programming 1 or 68416 Computational Physics)"
+        "Needs 43025 Introduction to Quantum Computing, (41039 Programming 1 or 68416 Computational Methods)"
     )
     complete(conn, student, "43025")
-    assert note(conn, student, "41173") == "Needs (41039 Programming 1 or 68416 Computational Physics)"
+    assert note(conn, student, "41173") == "Needs (41039 Programming 1 or 68416 Computational Methods)"
     complete(conn, student, "41039")
     assert status(conn, student, "41173") == "available"
 

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Choose a major · Enrolment Hub{% endblock %}
 {% block content %}
+{% import '_links.html' as links %}
 <h1>{{ 'Swap major' if current else 'Choose your major' }}</h1>
 <p>
   Every major is worth 48 credit points. Pick one to see its compulsory (core) subjects and its options,
@@ -18,7 +19,7 @@
   {% for m in majors %}
     <li class="card{{ ' plan-complete' if current and current.code == m.code }}">
       <a href="{{ url_for('majors.show', code=m.code) }}"><strong>{{ m.name }}</strong></a>
-      <span class="muted">{{ m.code }}</span><br>
+      <span class="muted">{{ m.code }}</span> {{ links.overview(m.handbook_url, m.name) }}<br>
       {% if m.options_cp %}
         {{ m.core_count }} core subjects, plus choose {{ m.choose }} of {{ m.option_count }} options
       {% else %}

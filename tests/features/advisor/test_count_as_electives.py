@@ -41,7 +41,7 @@ def electives_student(conn):
 
 def test_moving_a_sub_major_to_electives_offers_to_count_its_subjects(conn):
     offer = assess(conn, 1, "electives")["electives_offer"]
-    assert offer["space_cp"] == 24 and offer["max_cp"] == 24
+    assert offer["space_cp"] == 18 and offer["max_cp"] == 18  # the free electives are 18 cp: the other 6 cp of the block is the transdisciplinary stream
     assert [e["code"] for e in offer["eligible"]] == SUB_CORE
     assert {e["status"] for e in offer["eligible"]} == {"completed"}
 
@@ -62,20 +62,20 @@ def test_no_offer_for_a_first_choice(conn):
 
 def test_a_major_swap_on_the_electives_path_offers_the_lost_major_subjects(electives_student, conn):
     offer = assess(conn, electives_student, "major", "MAJ10053")["electives_offer"]
-    assert offer["space_cp"] == 24 and "41025" in [e["code"] for e in offer["eligible"]]
+    assert offer["space_cp"] == 18 and "41025" in [e["code"] for e in offer["eligible"]]
 
 
 def test_the_offer_only_covers_the_space_that_is_free(electives_student, conn):
     for code in ("SYN101", "SYN103"):
-        record_result(conn, electives_student, code, "Autumn 2026", "passed")  # 12 of the 24 cp are used
-    assert assess(conn, electives_student, "major", "MAJ10053")["electives_offer"]["space_cp"] == 12
+        record_result(conn, electives_student, code, "Autumn 2026", "passed")  # 12 of the 18 cp are used
+    assert assess(conn, electives_student, "major", "MAJ10053")["electives_offer"]["space_cp"] == 6
 
 
 def test_planned_electives_also_use_up_the_space(electives_student, conn):
     from features.degree_planner.service import add_to_plan
 
     add_to_plan(conn, electives_student, "SYN101", "Spring 2027")
-    assert assess(conn, electives_student, "major", "MAJ10053")["electives_offer"]["space_cp"] == 18
+    assert assess(conn, electives_student, "major", "MAJ10053")["electives_offer"]["space_cp"] == 12
 
 
 def test_a_full_electives_block_means_no_offer(electives_student, conn):
@@ -86,12 +86,12 @@ def test_a_full_electives_block_means_no_offer(electives_student, conn):
 
 # --- the effect on the advice ---------------------------------------------------------------------------------------------------
 
-def test_counting_every_subject_as_electives_makes_the_swap_free(conn):
+def test_counting_three_subjects_as_electives_leaves_only_one_lost(conn):
     plain = assess(conn, 1, "electives")
-    counted = assess(conn, 1, "electives", elective_codes=SUB_CORE)
+    counted = assess(conn, 1, "electives", elective_codes=SUB_CORE[:3])  # the free electives hold 18 cp, so three of the four subjects
     assert plain["tier"] == "costs_time" and plain["lost_cp"] == 24
-    assert counted["tier"] == "good" and counted["lost_cp"] == 0 and counted["extra_sessions"] == 0 and counted["needs_ack"] is False
-    assert counted["counted_as_electives"] == SUB_CORE and counted["graduate_before"] == counted["graduate_after"]
+    assert counted["tier"] == "good" and counted["lost_cp"] == 6 and counted["needs_ack"] is False
+    assert counted["counted_as_electives"] == SUB_CORE[:3]
 
 
 def test_counting_some_of_them_reduces_what_is_lost(conn):
@@ -134,10 +134,16 @@ def test_a_subject_that_is_only_planned_cannot_be_chosen(electives_student, conn
 
 
 def test_more_than_the_free_space_is_refused(electives_student, conn):
-    for code in ("SYN101", "SYN103", "SYN106"):
-        record_result(conn, electives_student, code, "Autumn 2026", "passed")  # 18 used, 6 free
+    for code in ("SYN101", "SYN103"):
+        record_result(conn, electives_student, code, "Autumn 2026", "passed")  # 12 of the 18 cp used, 6 free
     with pytest.raises(ElectiveChoiceError, match="Only 6 credit points of general electives are free; you chose 12"):
         validate_electives(conn, electives_student, "major", "MAJ10053", None, ["41025", "41052"])
+
+
+def test_all_four_subjects_cannot_be_counted_because_only_18_cp_are_free(conn):
+    with pytest.raises(ElectiveChoiceError, match="Only 18 credit points of general electives are free; you chose 24"):
+        validate_electives(conn, 1, "electives", None, None, SUB_CORE)
+    assert validate_electives(conn, 1, "electives", None, None, SUB_CORE[:3]) == SUB_CORE[:3]
 
 
 def test_choosing_when_there_is_no_room_is_refused(conn):
@@ -148,27 +154,27 @@ def test_choosing_when_there_is_no_room_is_refused(conn):
 # --- making the swap with them ---------------------------------------------------------------------------------------------------
 
 def test_the_chosen_subjects_count_as_general_electives_after_the_swap(conn):
-    result = choose_electives(conn, 1, count_as_electives=SUB_CORE)
-    assert result["counted_as_electives"] == 4 and result["no_longer_counted"] == 0
-    assert rows(conn) == sorted(SUB_CORE)
+    result = choose_electives(conn, 1, count_as_electives=SUB_CORE[:3])
+    assert result["counted_as_electives"] == 3 and result["no_longer_counted"] == 1
+    assert rows(conn) == sorted(SUB_CORE[:3])
     cats = categories(conn)
-    assert "sub_core" not in cats and cats["general_elective"]["required_credit_points"] == 24
+    assert "sub_core" not in cats and cats["general_elective"]["required_credit_points"] == 18 and cats["td_elective"]["required_credit_points"] == 6
     progress = evaluate_subjects(conn, 1)["categories"]["general_elective"]
-    assert progress["counted_cp"] == 24 and progress["completed"] == 4
+    assert progress["counted_cp"] == 18 and progress["completed"] == 3
 
 
 def test_counted_subjects_keep_their_completed_status_and_fill_the_block(conn):
-    choose_electives(conn, 1, count_as_electives=SUB_CORE)
+    choose_electives(conn, 1, count_as_electives=SUB_CORE[:3])
     subjects = evaluate_subjects(conn, 1)["subjects"]
-    assert all(subjects[c]["status"] == "completed" for c in SUB_CORE)
+    assert all(subjects[c]["status"] == "completed" for c in SUB_CORE[:3])
     assert subjects["SYN102"]["reasons"] == ["General electives requirement already complete"]  # the block is full
 
 
 def test_the_credit_points_are_not_counted_twice(conn):
-    choose_electives(conn, 1, count_as_electives=SUB_CORE)
+    choose_electives(conn, 1, count_as_electives=SUB_CORE[:3])
     plan = get_plan(conn, 1)
     assert plan["completed_cp"] + plan["enrolled_cp"] + plan["planned_cp"] + plan["remaining_cp"] == 192
-    assert plan["extra_cp"] == 0
+    assert plan["extra_cp"] == 6  # the fourth subject stays on the record but does not count
 
 
 def test_without_choices_they_stay_on_the_record_but_do_not_count(conn):
@@ -231,7 +237,7 @@ def stored_rows(app, user=1):
 def test_the_electives_page_offers_the_subjects_with_checkboxes(client, log_in):
     log_in()
     page = html(client, "/submajor/electives")
-    assert "Count these as general electives?" in page and "<strong>24</strong> credit points of that block are still free" in page
+    assert "Count these as general electives?" in page and "<strong>18</strong> credit points of that block are still free" in page
     assert page.count('name="count_as_electives"') == 4 and 'value="48080"' in page and "(6 cp, completed)" in page
 
 
@@ -240,14 +246,20 @@ def test_the_major_swap_page_has_no_offer_for_a_sub_major_student(client, log_in
     assert "Count these as general electives?" not in html(client, "/major/MAJ10053")
 
 
-def test_ticking_all_of_them_lets_the_swap_through_without_the_cost_tick(app, client, log_in):
+def test_ticking_three_of_them_lets_the_swap_through_without_the_cost_tick(app, client, log_in):
     log_in()
-    data = {"csrf_token": token(client), "count_as_electives": SUB_CORE}  # no acknowledge needed: nothing is lost
+    data = {"csrf_token": token(client), "count_as_electives": SUB_CORE[:3]}  # no acknowledge needed: only one subject (6 cp) is lost
     res = client.post("/submajor/electives/choose", data=data)
-    assert res.status_code == 303 and stored_rows(app) == sorted(SUB_CORE)
+    assert res.status_code == 303 and stored_rows(app) == sorted(SUB_CORE[:3])
     page = html(client, "/subjects")
-    assert "Counted 4 subject(s) as general electives." in page and "no longer count" not in page
-    assert "General electives" in page and "4 of 4 chosen" in page
+    assert "Counted 3 subject(s) as general electives." in page
+    assert "General electives" in page and "3 of 3 chosen" in page and "0 of 1 chosen" in page
+
+
+def test_ticking_all_four_is_refused_because_the_free_electives_hold_only_18_cp(app, client, log_in):
+    log_in()
+    again = client.post("/submajor/electives/choose", data={"csrf_token": token(client), "count_as_electives": SUB_CORE, "acknowledge": "1"}, follow_redirects=True)
+    assert stored_rows(app) == [] and "Only 18 credit points of general electives are free; you chose 24" in again.get_data(as_text=True)
 
 
 def test_ticking_some_still_needs_the_cost_tick(app, client, log_in):
@@ -274,4 +286,4 @@ def test_the_swap_advice_tool_mentions_the_offer(conn):
     from ai_services.tools.registry import call_tool
 
     offer = call_tool(conn, 1, "get_swap_advice", {"kind": "electives"})["data"]["electives_offer"]
-    assert offer["space_cp"] == 24 and len(offer["eligible"]) == 4
+    assert offer["space_cp"] == 18 and len(offer["eligible"]) == 4

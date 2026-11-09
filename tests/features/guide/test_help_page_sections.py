@@ -132,11 +132,11 @@ def test_walkthrough_keep_a_sub_majors_subjects_as_general_electives(app, client
     post(client, "/submajor/electives/choose", count_as_electives=two)  # only two: the cost tick is still needed
     conn = db.connect(app.config["DATABASE"])
     assert conn.execute("SELECT general_electives FROM users WHERE id = 1").fetchone()[0] == 0
-    post(client, "/submajor/electives/choose", count_as_electives=["48080", "81529", "81546", "81547"])  # all four: no tick needed
+    post(client, "/submajor/electives/choose", count_as_electives=["48080", "81529", "81546"])  # three of the four: only 6 cp is lost, so no tick is needed
     assert conn.execute("SELECT general_electives FROM users WHERE id = 1").fetchone()[0] == 1
     conn.close()
     subjects = html(client, "/subjects")
-    assert "Counted 4 subject(s) as general electives." in subjects and "4 of 4 chosen" in subjects
+    assert "Counted 3 subject(s) as general electives." in subjects and "3 of 3 chosen" in subjects and "0 of 1 chosen" in subjects
 
 
 def test_walkthrough_a_heavy_semester(client, log_in):

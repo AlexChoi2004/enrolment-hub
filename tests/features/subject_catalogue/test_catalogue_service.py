@@ -11,8 +11,8 @@ def codes(subjects):
     return {s["code"] for s in subjects}
 
 
-def test_lists_all_45_subjects(conn):
-    assert len(service.list_subjects(conn)) == 45  # without a student, the original subjects only
+def test_lists_all_53_subjects(conn):
+    assert len(service.list_subjects(conn)) == 53  # without a student, the original subjects and the 8 transdisciplinary electives
 
 
 def test_search_by_name_is_case_insensitive(conn):
@@ -52,7 +52,7 @@ def test_percent_sign_is_not_a_wildcard(conn):
 def test_sql_injection_text_is_treated_as_plain_text(conn):
     assert service.list_subjects(conn, Filters(q="' OR 1=1 --")) == []
     assert service.list_subjects(conn, Filters(q="'; DROP TABLE subjects; --")) == []
-    assert len(service.list_subjects(conn)) == 45  # table still intact
+    assert len(service.list_subjects(conn)) == 53  # table still intact
 
 
 def test_relations_are_attached(conn):
@@ -115,7 +115,7 @@ def test_subjects_are_grouped_by_category_then_sorted_by_name(conn):
 def test_categories_report_how_many_subjects_they_hold(conn):
     counts = {c["category"]: c["subject_count"] for c in service.list_categories(conn)}
     assert counts == {
-        "core": 16, "honours_core": 3, "major_core": 5, "major_elective": 9, "general_elective": 12,
+        "core": 16, "honours_core": 3, "major_core": 5, "major_elective": 9, "td_elective": 8, "general_elective": 12,
     }
 
 
@@ -129,7 +129,8 @@ def test_category_rules_are_plain_english(conn):
     assert rule("core") == "All 16 required \u00b7 96 cp"
     assert rule("honours_core") == "All 3 required \u00b7 24 cp"
     assert rule("major_elective") == "Choose 3 of 9 \u00b7 18 cp required"
-    assert rule("general_elective") == "Choose 4 of 12 \u00b7 24 cp required"
+    assert rule("td_elective") == "Choose 1 of 8 \u00b7 6 cp required"
+    assert rule("general_elective") == "Choose 3 of 12 \u00b7 18 cp required"
     assert service.category_rule("sub_choose_7", 6, 18) == "Choose 18 cp from 6 subjects"
 
 

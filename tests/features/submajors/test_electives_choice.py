@@ -50,13 +50,14 @@ def test_until_one_is_chosen_the_electives_and_sub_major_subjects_are_both_unava
     assert reasons(conn, student, "37242") == ["Choose a sub-major to take this subject"]
 
 
-def test_choosing_electives_counts_24_cp_of_them(conn, student):
+def test_choosing_electives_counts_6_cp_transdisciplinary_and_18_cp_free(conn, student):
     result = choose_electives(conn, student)
     assert result == {"swapped": False, "plan_removed": 0, "no_longer_counted": 0, "withdrawn": 0, "counted_as_electives": 0}
     cats = categories(conn, student)
-    assert cats["general_elective"]["required_credit_points"] == 24 and cats["general_elective"]["subject_count"] == 12
+    assert cats["td_elective"]["required_credit_points"] == 6 and cats["td_elective"]["subject_count"] == 8  # the Transdisciplinary Electives stream
+    assert cats["general_elective"]["required_credit_points"] == 18 and cats["general_elective"]["subject_count"] == 12  # free electives
     assert not any(k.startswith("sub_") for k in cats)
-    assert sum(c["required_credit_points"] for c in cats.values()) == 96 + 24 + 48 + 24 == 192
+    assert sum(c["required_credit_points"] for c in cats.values()) == 96 + 24 + 48 + 6 + 18 == 192
 
 
 def test_the_two_are_alternatives_not_both(conn, student):
@@ -98,12 +99,23 @@ def test_four_electives_fill_the_block_and_the_rest_are_blocked(conn, student):
         enrol(conn, student, "SYN102", AUTUMN)
 
 
-def test_four_electives_can_be_planned_but_not_a_fifth(conn, student):
+def test_three_free_electives_and_one_transdisciplinary_can_be_planned_but_no_more(conn, student):
     choose_electives(conn, student)
-    for code in ["SYN101", "SYN103", "SYN106", "SYN109"]:
+    for code in ["SYN101", "SYN103", "SYN106"]:
         add_to_plan(conn, student, code, "Spring 2028" if code != "SYN101" else "Autumn 2028")
+    add_to_plan(conn, student, "95003", "Autumn 2029")
     with pytest.raises(PlanError, match="General electives requirement would be exceeded"):
-        add_to_plan(conn, student, "SYN111", "Spring 2029")
+        add_to_plan(conn, student, "SYN111", "Spring 2029")  # an 18 cp requirement holds three 6 cp subjects
+    with pytest.raises(PlanError, match="Transdisciplinary elective requirement would be exceeded"):
+        add_to_plan(conn, student, "95004", "Spring 2029")  # and the stream slot holds one
+
+
+def test_a_transdisciplinary_subject_is_not_part_of_the_degree_without_electives_or_its_sub_major(conn, student):
+    with pytest.raises(PlanError, match="Choose general electives or a sub-major first"):
+        add_to_plan(conn, student, "95003", "Autumn 2029")
+    choose_submajor(conn, student, INFOSEC)
+    with pytest.raises(PlanError, match="instead of general electives"):
+        add_to_plan(conn, student, "95003", "Autumn 2029")
 
 
 def test_a_sub_major_subject_cannot_be_planned_with_electives(conn, student):
@@ -208,7 +220,8 @@ def test_the_electives_page_lists_the_samples_and_warns_they_are_invented(client
     register()
     page = html(client, "/submajor/electives")
     assert "Introduction to Statistics" in page and "invented sample subjects" in page
-    assert "Choose general electives" in page and "choose any 4" in page
+    assert "Choose general electives" in page and "choose any 3" in page
+    assert "Transdisciplinary elective" in page and "choose 1 of 8" in page and "TD: Sustainability in an interconnected world" in page
 
 
 def test_choosing_electives_through_the_page(app, client, register):
@@ -217,7 +230,8 @@ def test_choosing_electives_through_the_page(app, client, register):
     assert res.status_code == 303 and stored(app, 2) == (None, 1)
     page = html(client, "/subjects")
     assert "Confirmed 24 cp of general electives instead of a sub-major." in page
-    assert "General electives" in page and "Choose 4 of 12" in page and "0 of 4 chosen" in page
+    assert "General electives" in page and "Choose 3 of 12" in page and "0 of 3 chosen" in page
+    assert "Transdisciplinary elective" in page and "Choose 1 of 8" in page and "0 of 1 chosen" in page
     assert "General electives instead of a sub-major" in page  # the header line
     assert "chosen a sub-major or general electives yet" not in page
 
@@ -268,7 +282,7 @@ def test_the_planner_counts_the_electives_instead_of_prompting(client, register)
     client.post("/submajor/electives/choose", data={"csrf_token": token(client)})
     page = html(client, "/planner")
     assert "chosen a sub-major or general electives" not in page
-    assert "General electives: choose 4 more (0 of 4 chosen)" in page
+    assert "General electives: choose 3 more (0 of 3 chosen)" in page and "Transdisciplinary elective: choose 1 more (0 of 1 chosen)" in page
 
 
 def test_swapping_to_electives_can_withdraw_in_progress_sub_major_subjects(conn, student):

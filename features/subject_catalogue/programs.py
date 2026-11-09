@@ -1,5 +1,5 @@
 """Majors and sub-majors in one shape, so they can be described and compared the same way."""
-from features.subject_catalogue.program_text import handbook_url, summary_of
+from features.subject_catalogue.program_text import handbook_url, has_no_overview, note_of, summary_of
 from features.subject_catalogue.service import get_major, get_submajor, list_majors, list_submajors
 from features.subject_catalogue.themes import focus_areas
 
@@ -7,7 +7,7 @@ KINDS = ("major", "submajor")
 
 
 def _entry(subject, role):
-    return {"code": subject["code"], "name": subject["name"], "credit_points": subject["credit_points"], "role": role}
+    return {"code": subject["code"], "name": subject["name"], "credit_points": subject["credit_points"], "role": role, "handbook_url": subject.get("handbook_url")}
 
 
 def _finish(kind, code, name, total_cp, subjects, structure, uses_language=False):
@@ -19,7 +19,7 @@ def _finish(kind, code, name, total_cp, subjects, structure, uses_language=False
     return {
         "kind": kind, "code": code, "name": name, "total_cp": total_cp, "subjects": unique, "listed_cp": sum(s["credit_points"] for s in unique),
         "structure": structure, "uses_language": uses_language, "focus": focus_areas([s["name"] for s in unique]),
-        "handbook_url": handbook_url(code), "summary": summary_of(code),
+        "handbook_url": handbook_url(code), "summary": summary_of(code), "no_overview": has_no_overview(code), "note": note_of(code),
     }
 
 

@@ -97,7 +97,8 @@ def test_a_sub_major_shows_core_and_options_separately(client, register):
 def test_a_stream_is_shown_as_a_stream_with_its_note(client, register):
     register()
     page = html(client, "/submajor/SMJ10196")
-    assert "Stream CBK92069 Transdisciplinary Electives" in page and "have not been loaded yet" in page
+    assert "Stream CBK92069 Transdisciplinary Electives" in page and "eight subjects" in page and "have not been loaded" not in page
+    assert "TD: Sustainability in an interconnected world" in page and "TD: Change-making for social impact" in page
     assert "In-country Contemporary Society Study" in page
 
 
@@ -106,7 +107,7 @@ def test_the_option_groups_of_mathematical_analysis_extension_are_listed_separat
     page = html(client, "/submajor/SMJ10167")
     assert "Options group 1" in page and "choose 6 cp from 2 subjects" in page
     assert "Options group 2" in page and "choose 18 cp from 6 subjects" in page
-    assert "218" in page  # the flagged handbook formatting issue is shown
+    assert "two groups of options" in page  # the Handbook's two option groups are explained
 
 
 def test_the_language_sub_major_lists_programs_and_waits_for_a_choice(client, register):

@@ -234,7 +234,9 @@ https://coursehandbook.uts.edu.au/aos/2027/MAJ02901""".split()
 
 
 def test_every_handbook_link_is_exactly_the_one_supplied():
-    assert sorted(handbook_url(u.rsplit("/", 1)[1]) for u in GIVEN) == sorted(GIVEN) and len(GIVEN) == len(CODES) == 17
+    degree = [u for u in GIVEN if not u.endswith("SMJ10188")]  # SMJ10188 is on the first list but not in the Handbook's own list for this degree
+    assert sorted(handbook_url(u.rsplit("/", 1)[1]) for u in degree) == sorted(degree) and len(degree) == len(CODES) == 16
+    assert handbook_url("SMJ10188") is None
     assert handbook_url("SMJ10196").endswith("/2026/SMJ10196") and HANDBOOK_YEAR == {"SMJ10196": 2026}
 
 
@@ -247,10 +249,9 @@ def test_every_major_and_sub_major_in_the_app_is_in_the_handbook_list(conn):
         assert all(o["code"] in CODES for o in options_of(conn, kind))
 
 
-def test_one_sub_major_on_the_list_is_not_in_the_app_yet(conn):
-    """SMJ10188 is on the Handbook list but its subjects have not been added: this test will fail, on purpose, the day they are."""
+def test_the_app_has_exactly_the_eight_majors_and_eight_sub_majors_of_the_degree(conn):
     in_app = {o["code"] for kind in ("major", "submajor") for o in options_of(conn, kind)}
-    assert set(CODES) - in_app == {"SMJ10188"}
+    assert in_app == set(CODES) and len(in_app) == 16  # the Handbook's own list for this degree; SMJ10188 is not in it
 
 
 def test_summaries_are_only_kept_for_known_codes_and_say_when_they_were_written():
@@ -265,3 +266,23 @@ def test_a_summary_is_our_own_words_not_a_copy_of_the_handbook():
     text = SUMMARIES["MAJ10053"]["summary"]
     words = handbook_opening.lower().split()
     assert not any(" ".join(words[i:i + 6]) in text.lower() for i in range(len(words) - 5))  # no run of six words is the same
+
+
+def test_every_program_either_has_a_summary_or_is_marked_as_having_no_overview():
+    from features.subject_catalogue.program_text import NO_OVERVIEW
+    assert set(SUMMARIES) | set(NO_OVERVIEW) == set(CODES) and not set(SUMMARIES) & set(NO_OVERVIEW)
+    assert len(SUMMARIES) == 10 and sorted(NO_OVERVIEW) == ["MAJ01156", "SMJ10156", "SMJ10157", "SMJ10165", "SMJ10166", "SMJ10167"]
+
+
+def test_no_two_summaries_share_a_run_of_six_words():
+    """The summaries are written separately in our own words, so none repeats another (a copied boilerplate would)."""
+    runs = {}
+    for code, entry in SUMMARIES.items():
+        words = re.findall(r"[a-z0-9']+", entry["summary"].lower())
+        for i in range(len(words) - 5):
+            run = " ".join(words[i:i + 6])
+            assert runs.setdefault(run, code) == code, (run, code, runs[run])
+
+
+def test_a_summary_says_it_is_a_summary_and_when_it_was_written():
+    assert all(re.fullmatch(r"\d{4}-\d\d-\d\d", e["retrieved_on"]) and 150 < len(e["summary"]) < 700 for e in SUMMARIES.values())

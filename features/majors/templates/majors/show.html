@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
 {% block title %}{{ major.name }} · Enrolment Hub{% endblock %}
 {% block content %}
+{% import '_links.html' as links %}
 <p><a href="{{ url_for('majors.index') }}">&larr; All majors</a></p>
 <h1>{{ major.name }}</h1>
 {% include '_ask_panel.html' %}
-<p class="muted">{{ major.code }} · 48 credit points: {{ major.core_cp }} core{% if major.options_cp %} + {{ major.options_cp }} options{% endif %}</p>
+<p class="muted">{{ major.code }} · {{ links.overview(major.handbook_url, major.name) }} · 48 credit points: {{ major.core_cp }} core{% if major.options_cp %} + {{ major.options_cp }} options{% endif %}</p>
 {% set kind = 'major' %}{% set show_endpoint = 'majors.show' %}{% set code = major.code %}
 {% include '_program_tabs.html' %}
 {% if tab == 'about' %}
@@ -14,9 +15,10 @@
 
 <h2>Core subjects <span class="muted">(all {{ major.core|length }} required)</span></h2>
 <table class="table">
+  <thead><tr><th scope="col">Code</th><th scope="col">Subject</th><th scope="col">Credit points</th><th scope="col">Handbook</th></tr></thead>
   <tbody>
     {% for s in major.core %}
-      <tr><td class="code">{{ s.code }}</td><td>{{ s.name }}</td><td>{{ s.credit_points }} cp</td></tr>
+      <tr>{{ links.subject_cells(s.code, s.name) }}</td><td>{{ s.credit_points }} cp</td><td>{{ links.handbook(s.handbook_url, s.code, s.name) }}</td></tr>
     {% endfor %}
   </tbody>
 </table>
@@ -24,9 +26,10 @@
 {% if major.options %}
   <h2>Options <span class="muted">(choose {{ major.choose }} of {{ major.options|length }})</span></h2>
   <table class="table">
+    <thead><tr><th scope="col">Code</th><th scope="col">Subject</th><th scope="col">Credit points</th><th scope="col">Handbook</th></tr></thead>
     <tbody>
       {% for s in major.options %}
-        <tr><td class="code">{{ s.code }}</td><td>{{ s.name }}</td><td>{{ s.credit_points }} cp</td></tr>
+        <tr>{{ links.subject_cells(s.code, s.name) }}</td><td>{{ s.credit_points }} cp</td><td>{{ links.handbook(s.handbook_url, s.code, s.name) }}</td></tr>
       {% endfor %}
     </tbody>
   </table>

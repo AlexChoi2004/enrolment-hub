@@ -1,0 +1,19 @@
+{# Links to the official UTS Handbook. External links open in a new tab and say so, for people using a screen reader. #}
+{% macro handbook(url, code, name) -%}
+  {%- if url -%}
+    <a class="handbook-link" href="{{ url }}" target="_blank" rel="noopener noreferrer">Handbook<span class="visually-hidden"> page for {{ code }} {{ name }} (opens in a new tab)</span><span aria-hidden="true"> &#8599;</span></a>
+  {%- else -%}
+    <span class="muted"><span aria-hidden="true">&ndash;</span><span class="visually-hidden">No Handbook page for {{ code }} {{ name }}</span></span>
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro overview(url, name) -%}
+  {%- if url -%}
+    <a class="handbook-link" href="{{ url }}" target="_blank" rel="noopener noreferrer">Handbook overview<span class="visually-hidden"> for {{ name }} (opens in a new tab)</span><span aria-hidden="true"> &#8599;</span></a>
+  {%- endif -%}
+{%- endmacro %}
+
+{# A subject's code and name, each linking to its page in this app. #}
+{% macro subject_cells(code, name) -%}
+  <td class="code"><a href="{{ url_for('catalogue.detail_page', code=code) }}">{{ code }}</a></td><td><a href="{{ url_for('catalogue.detail_page', code=code) }}">{{ name }}</a>
+{%- endmacro %}

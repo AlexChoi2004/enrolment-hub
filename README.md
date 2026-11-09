@@ -14,6 +14,7 @@ Handbook, which says its own pages are indicative.
 - **Plan a degree:** choose a major and a sub-major (or general electives), enrol, plan up to ten sessions ahead, and pick classes in a timetable.
 - **Enforce the rules:** prerequisites, session offerings, a 24 credit point limit, failed subjects and retakes, with the reason shown whenever something is blocked.
 - **Rank by fit:** every major, and every sub-major, ranked for what you have already done, with the same verdicts, credit points lost, extra time and graduation date as each swap page.
+- **Check it at the source:** every subject, major, sub-major and the Transdisciplinary stream links to its official UTS Handbook page (opens in a new tab); the majors, sub-majors and language lists were checked against the Handbook's 2027 pages and a test keeps them in step.
 - **Compare two programs:** pick two majors (or two sub-majors) to see what they share, what only one has and how their focus differs; each major and sub-major also has a short About tab.
 - **Advise on swaps:** changing major, sub-major or electives is never blocked, but you see what carries over, the extra time and a verdict first, and a risky swap needs your own confirmation.
 - **Light and dark themes:** follows your device or browser setting, with a toggle that remembers your choice.

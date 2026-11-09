@@ -44,7 +44,7 @@ def test_mathematical_analysis_extension_has_two_option_groups_of_6_and_18(conn)
     assert [(g["kind"], g["required_cp"]) for g in gs] == [("choose", 6), ("choose", 18)]
     assert members(conn, gs[0]["id"]) == ["35005", "37262"] and len(members(conn, gs[1]["id"])) == 6
     note = conn.execute("SELECT note FROM submajors WHERE code = 'SMJ10167'").fetchone()[0]
-    assert "218" in note and "Verify" in note  # the handbook formatting issue is flagged, not hidden
+    assert "two groups of options" in note and "6 credit points" in note and "18" in note and "Verify" not in note  # the Handbook page confirms it, so it is no longer in doubt
 
 
 def test_the_supplied_core_subjects_are_exact(conn):
@@ -87,24 +87,26 @@ def test_each_language_has_the_supplied_number_of_subjects(conn):
     assert sizes == {"Chinese": 13, "French": 10, "German": 8, "Italian": 8, "Japanese": 10, "Spanish": 10}
 
 
-def test_the_stream_is_stored_apart_from_subjects_and_flagged(conn):
+def test_the_stream_is_stored_apart_from_subjects_and_holds_the_eight_handbook_subjects(conn):
     stream = conn.execute("SELECT * FROM streams WHERE code = 'CBK92069'").fetchone()
-    assert stream["name"] == "Transdisciplinary Electives" and stream["cp"] == 6 and "require verification" in stream["note"]
+    assert stream["name"] == "Transdisciplinary Electives" and stream["cp"] == 6 and "eight subjects" in stream["note"]
+    members_of_stream = sorted(r[0] for r in conn.execute("SELECT subject_code FROM stream_subjects WHERE stream_code = 'CBK92069'"))
+    assert members_of_stream == [f"9500{n}" for n in range(2, 10)]
     group = [g for g in groups(conn, "SMJ10196") if g["stream_code"]][0]
-    assert members(conn, group["id"]) == []  # the stream's subjects were not supplied, so none are invented
+    assert sorted(r[0] for r in conn.execute("SELECT subject_code FROM stream_subjects WHERE stream_code = ?", (group["stream_code"],))) == members_of_stream
 
 
 def test_the_new_subjects_are_unverified_not_invented(conn):
-    for code in ("37242", "81529", "97101", "977917"):
+    for code in ("37242", "81529", "97101", "977917", "95003"):
         row = conn.execute("SELECT prereq_status FROM subjects WHERE code = ?", (code,)).fetchone()
         assert row[0] == "unknown"
         assert conn.execute("SELECT COUNT(*) FROM subject_descriptions WHERE subject_code = ?", (code,)).fetchone()[0] == 0
         assert conn.execute("SELECT COUNT(*) FROM prerequisites WHERE subject_code = ?", (code,)).fetchone()[0] == 0
 
 
-def test_the_sub_major_data_records_its_source_and_year(conn):
+def test_the_sub_major_data_records_that_it_was_checked_against_the_handbook(conn):
     rows = conn.execute("SELECT source, academic_year, verification FROM submajors").fetchall()
-    assert all(r["academic_year"] == 2027 and r["verification"] == "supplied" and "not independently verified" in r["source"] for r in rows)
+    assert all(r["academic_year"] == 2027 and r["verification"] == "verified" and "checked against the UTS Handbook" in r["source"] and "8 November 2026" in r["source"] for r in rows)
 
 
 def test_the_database_refuses_a_sub_major_that_is_not_24_credit_points(conn):

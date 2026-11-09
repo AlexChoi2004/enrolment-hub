@@ -6,6 +6,7 @@ enrolment, planner and (later) AI features. All SQL uses bound parameters.
 import re
 from dataclasses import dataclass
 
+from features.subject_catalogue.program_text import HANDBOOK_YEAR, aos_url
 from features.subject_catalogue.assessments import load_assessment_info
 from features.subject_catalogue.assessment_load import assessment_load_map
 
@@ -55,20 +56,20 @@ def is_valid_language_code(code):
 
 def is_choose_category(category):
     """Categories where the student selects some credit points from a list (rather than taking every subject)."""
-    return category in ("major_elective", "general_elective") or (category or "").startswith("sub_choose_")
+    return category in ("major_elective", "td_elective", "general_elective") or (category or "").startswith("sub_choose_")
 
 
 # --- majors --------------------------------------------------------------------------------------
 
 def _major_row(conn, code):
-    row = conn.execute("SELECT code, name, core_cp, options_cp FROM majors WHERE code = ?", (code,)).fetchone()
+    row = conn.execute("SELECT code, name, core_cp, options_cp, handbook_url FROM majors WHERE code = ?", (code,)).fetchone()
     return dict(row) if row else None
 
 
 def list_majors(conn):
     """Every major with a short summary of its structure (no subject lists)."""
     majors = []
-    for r in conn.execute("SELECT code, name, core_cp, options_cp FROM majors ORDER BY name COLLATE NOCASE"):
+    for r in conn.execute("SELECT code, name, core_cp, options_cp, handbook_url FROM majors ORDER BY name COLLATE NOCASE"):
         m = dict(r)
         counts = conn.execute(
             "SELECT SUM(role = 'core') AS core, SUM(role = 'option') AS options FROM major_subjects WHERE major_code = ?",
@@ -88,7 +89,7 @@ def get_major(conn, code):
     for role, key in (("core", "core"), ("option", "options")):
         major[key] = [
             dict(r) for r in conn.execute(
-                "SELECT s.code, s.name, s.credit_points, s.sessions_offered FROM major_subjects ms"
+                "SELECT s.code, s.name, s.credit_points, s.sessions_offered, s.handbook_url FROM major_subjects ms"
                 " JOIN subjects s ON s.code = ms.subject_code WHERE ms.major_code = ? AND ms.role = ?"
                 " ORDER BY s.name COLLATE NOCASE",
                 (code, role),
@@ -113,7 +114,7 @@ def _load_submajor(conn, row, language=None):
         group["category"] = "sub_core" if g["kind"] == "core" else f"sub_choose_{g['id']}"
         group["subjects"] = [
             dict(r) for r in conn.execute(
-                "SELECT s.code, s.name, s.credit_points, s.sessions_offered FROM subjects s WHERE s.code IN"
+                "SELECT s.code, s.name, s.credit_points, s.sessions_offered, s.handbook_url FROM subjects s WHERE s.code IN"
                 " (SELECT subject_code FROM submajor_group_subjects WHERE group_id = ?"
                 "  UNION SELECT subject_code FROM stream_subjects WHERE stream_code = ?)"
                 " ORDER BY s.name COLLATE NOCASE",
@@ -124,6 +125,8 @@ def _load_submajor(conn, row, language=None):
         if g["stream_code"]:
             stream = conn.execute("SELECT code, name, note FROM streams WHERE code = ?", (g["stream_code"],)).fetchone()
             group["stream"] = dict(stream) if stream else None
+            if group["stream"]:  # the stream is linked at the year of the page it is listed on (Humanitarian Engineering is the 2026 page)
+                group["stream"]["handbook_url"] = aos_url(g["stream_code"], HANDBOOK_YEAR.get(sub["code"]))
         groups.append(group)
     sub["all_groups"] = groups
     sub["is_language"] = any(g["language_program"] for g in groups)
@@ -203,6 +206,8 @@ def degree_subjects(conn, user_id):
         stored = subject["category"]
         if stored == "general_elective":  # counts only if the student chose electives instead of a sub-major
             effective = "general_elective" if uses_electives else None
+        elif stored == "td_elective":  # a transdisciplinary subject: the electives' 6 cp stream slot, or the stream of a sub-major that lists it (Humanitarian Engineering)
+            effective = "td_elective" if uses_electives else sub_roles.get(subject["code"])
         elif stored in NON_MAJOR_CATEGORIES:
             effective = stored
         elif subject["code"] in roles:
@@ -246,7 +251,8 @@ def degree_categories(conn, user_id):
                          else "Sub-major " + g["label"][0].lower() + g["label"][1:])
                 categories.append({"category": g["category"], "label": label,
                                    "required_credit_points": g["required_cp"], "sort_order": 5 + g["position"]})
-    if uses_general_electives(conn, user_id):
+    if uses_general_electives(conn, user_id):  # the 24 cp choice is 6 cp from the Transdisciplinary Electives stream plus 18 cp of free electives
+        categories.append(base["td_elective"])
         categories.append(base["general_elective"])
     counts = {}
     for subject in degree_subjects(conn, user_id):
@@ -318,7 +324,7 @@ def group_text(names, group):
     return parts[0] if len(parts) == 1 else "(" + " or ".join(parts) + ")"
 
 
-ELECTIVE_CATEGORIES_SIMPLE = {"major_elective", "general_elective"}
+ELECTIVE_CATEGORIES_SIMPLE = {"major_elective", "td_elective", "general_elective"}
 
 
 def category_rule(category, subject_count, required_credit_points):
