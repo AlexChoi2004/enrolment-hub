@@ -125,6 +125,10 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 |            |               | on every subject and program behind a database check, split the electives into a 6 cp transdisciplinary slot and 18 cp   |        |        |
 |            |               | of free electives with tests that neither can replace the other, loaded the eight transdisciplinary subjects, and marked |        |        |
 |            |               | what the Handbook would not let me read as not yet populated; 87 new tests                                               |        |        |
+| 2026-11-09 | 3 (dev tools) | Loaded the 2027 assessments, descriptions and real session availability for the eight transdisciplinary subjects from    | 1 HOUR | PR #45 |
+|            |               | their Handbook pages, recorded the one page that lists no assessment as exactly that, marked Handbook-sourced sessions   |        |        |
+|            |               | apart from illustrative ones, and added the Handbook's 36 completed credit point requisite by reusing the existing       |        |        |
+|            |               | credit-point requirement, enforced in enrolment, the planner and the planner board; 66 new tests                         |        |        |
 
 ## Things that went wrong or changed
 
@@ -463,6 +467,14 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Found the elective block needs two separate requirements, not one of 24 cp, and changed the count-as-electives space to 18 cp, which also meant three of John's four sub-major subjects can count, not all four
 - Noticed the supplied prompt left out part of two sub-majors compared with the Handbook text, and kept the Handbook text, flagging the difference
 - Fixed my own tests: a count I guessed wrong, Capstone being core in six majors not five, and a test that bypassed the rule the app enforces for a second transdisciplinary subject
+
+### PR #45: Transdisciplinary assessments, sessions and prerequisite
+- Corrected my mistake from earlier: I said I could read the Handbook, but the site blocks automated access, so the data was supplied by pasting each page and the source line says so
+- Decided to record 95005 as "the 2027 Handbook page lists no assessment" instead of leaving it as "not yet populated" or inventing tasks, because the app should tell "looked and found nothing" apart from "not looked at yet"
+- Decided to name tasks by the Handbook's categories and keep its group classification, because the pages give categories and weightings only and inventing task titles would present guesses as official
+- Decided the sessions of these eight subjects are real data and every other subject's stay illustrative, with a column and a badge that say which is which, and to plan only Autumn and Spring while noting the other sessions on the page
+- Decided to reuse the existing credit-point requirement for the 36 credit point requisite instead of adding a new kind of rule, so enrolment, the planner and the board all enforce it the same way as other subjects, and tested the planner counting earlier-session credit points but not same-session ones
+- Fixed my own tests: a retrieval test whose "weather in Sydney" question now matched a description mentioning Sydney's council, counts of described subjects and structures, and three that planned a transdisciplinary subject before the student had 36 credit points
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
