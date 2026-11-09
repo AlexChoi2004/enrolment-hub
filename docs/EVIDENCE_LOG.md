@@ -112,7 +112,7 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 |            |               | the tool cannot see: a skip link, a visible focus ring, reduced motion for all animation, announced error messages, and  |        |        |
 |            |               | keyboard focus that follows a card on the planner board; with Python structure checks, a checker tested against 18 broken|        |        |
 |            |               | pages, and an accessibility document with the limits and manual checks                                                   |        |        |
-| 2026-11-08 | 3 (dev tools) | Added a major comparison that ranks every major for a student's progress using the swap advisor's own rules, and a       | HOURS | PR #42  |
+| 2026-11-08 | 3 (dev tools) | Added a major comparison that ranks every major for a student's progress using the swap advisor's own rules, and a       | 1 HOUR | PR #42  |
 |            |               | calendar download of the timetable that follows the iCalendar standard with the Sydney timezone, optional due weeks, safe|        |        |
 |            |               | handling of bad input, and an independent parser checking it in CI; made the dashboard, swap advice and comparison share |        |        |
 |            |               | one graduation rule after the comparison exposed an off-by-one for first-years; 148 new tests                            |        |        |
@@ -120,6 +120,11 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 |            |               | and unique subjects, and focus areas worked out from subject names so differences are checkable), an About tab for each  |        |        |
 |            |               | major and sub-major with a link to its official Handbook page, a "fit for my progress" ranking for sub-majors, and       |        |        |
 |            |               | renamed the earlier major ranking to keep the two questions apart; 125 new tests                                         |        |        |
+| 2026-11-09 | 3 (dev tools) | Checked every major, sub-major, language list, subject name and credit point against the Handbook's 2027 structure       | 1 HOUR | PR #44 |
+|            |               | (all matched except five renamed subjects and the missing transdisciplinary stream), stored the official Handbook link   |        |        |
+|            |               | on every subject and program behind a database check, split the electives into a 6 cp transdisciplinary slot and 18 cp   |        |        |
+|            |               | of free electives with tests that neither can replace the other, loaded the eight transdisciplinary subjects, and marked |        |        |
+|            |               | what the Handbook would not let me read as not yet populated; 87 new tests                                               |        |        |
 
 ## Things that went wrong or changed
 
@@ -442,13 +447,22 @@ Goals: 1 ethics, 2 security, 3 dev tools, 4 other
 - Decided the session value in the download link is validated and never echoed into the filename or the file, and tested line-break and header injection attempts
 - Fixed my own test expectation for the planner's rule when I first guessed the wrong session label for an out-of-window subject
 
-### PR #42: Compare programs and About tabs
+### PR #43: Compare programs and About tabs
 - Decided to keep "which fits my progress" and "how do these two differ" as separate features with different names, because they answer different questions, so I renamed the earlier ranking and added the same ranking for sub-majors
 - Found the Handbook does not allow automated reading, so I did not read the pages: I wrote only one summary, in my own words, from what a search returned, tested that it shares no six-word run with the original, and made every other page say plainly that no summary exists and link to the Handbook
 - Decided to measure similarity against the smaller program, after checking how much the real majors overlap (the closest pair share 42%), because a fixed cut-off would have called every pair different
 - Decided to work out focus areas from subject names and list the subjects behind each, because I could not compare text I was not allowed to read and did not want to guess
 - Found a sub-major on the supplied list (SMJ10188) that is missing from the app's data, and recorded it in a test that will fail the day it is added, so the gap cannot be forgotten
 - Fixed my own tests: a one-letter payload that appears in any error sentence, and a query string I had written as two parameters when I meant one
+
+### PR #44: Handbook links and the electives rule
+- Decided to check the app's structures against the Handbook before changing anything, by turning the supplied Handbook text into data and testing against it, so "verified" is something the tests keep true; everything matched except five subject names and the missing stream
+- Found the Handbook does not allow automated reading, so I did not fill the eight transdisciplinary subjects' descriptions or assessments, and made those pages say "not yet populated" instead of inventing them
+- Decided the Handbook link is a column beside each subject, with the name linking to the in-app page, because the supplied instructions disagreed about whether the name should open the Handbook or the app
+- Decided a link can only point at the Handbook, enforced by the database, and that an invented sample elective gets no link, so the page never presents something invented as an official page
+- Found the elective block needs two separate requirements, not one of 24 cp, and changed the count-as-electives space to 18 cp, which also meant three of John's four sub-major subjects can count, not all four
+- Noticed the supplied prompt left out part of two sub-majors compared with the Handbook text, and kept the Handbook text, flagging the difference
+- Fixed my own tests: a count I guessed wrong, Capstone being core in six majors not five, and a test that bypassed the rule the app enforces for a second transdisciplinary subject
 
 ## AI assistance used (disclose in the report as the subject requires)
 - Schema, seed data, tests and catalogue code were drafted with Claude. I reviewed, ran and committed each chunk myself.
