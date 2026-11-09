@@ -156,6 +156,8 @@ def load_assessment_info(conn):
             "source": s["source"] if s and status != "none" else "",
             "year": s["academic_year"] if s else None,
             "retrieved_on": s["retrieved_on"] if s else None,
+            # the page was read and lists no assessment at all (different from "not looked at yet")
+            "published_none": bool(s and s["verification"] == "indicative" and not rows),
             "banner": _banner(status, s["source"] if s else "", s["academic_year"] if s else None,
                               s["retrieved_on"] if s else None),
             # Kept for staff and for later verification work. Never shown to students or given to the AI.

@@ -29,7 +29,11 @@ CREATE TABLE IF NOT EXISTS subjects (
     prereq_status    TEXT NOT NULL DEFAULT 'none'
                      CHECK (prereq_status IN ('required', 'none', 'unknown')),
     -- the official UTS Handbook page for this record; only the Handbook's own site is allowed
-    handbook_url TEXT CHECK (handbook_url IS NULL OR handbook_url LIKE 'https://coursehandbook.uts.edu.au/%')
+    handbook_url TEXT CHECK (handbook_url IS NULL OR handbook_url LIKE 'https://coursehandbook.uts.edu.au/%'),
+    -- where sessions_offered comes from: 'illustrative' (invented for the prototype) or 'handbook' (a Handbook page)
+    sessions_source TEXT NOT NULL DEFAULT 'illustrative' CHECK (sessions_source IN ('illustrative', 'handbook')),
+    -- other sessions the Handbook lists that the app does not model (it plans Autumn and Spring only)
+    sessions_note TEXT
 );
 
 -- A subject's prerequisites are ANDed together, group by group. Rows of one subject that share an

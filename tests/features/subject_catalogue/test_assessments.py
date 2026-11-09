@@ -28,14 +28,14 @@ def count(conn, sql, *args):
 def test_every_subject_has_exactly_one_current_structure_and_the_researched_ones_have_a_description(conn):
     subjects = count(conn, "SELECT COUNT(*) FROM subjects")
     assert subjects == 189
-    assert count(conn, "SELECT COUNT(*) FROM subject_descriptions") == 105  # the 76 sub-major-only subjects and the 8 transdisciplinary electives are not researched yet
+    assert count(conn, "SELECT COUNT(*) FROM subject_descriptions") == 113  # the 76 sub-major-only subjects are not researched yet; the 8 transdisciplinary electives are
     assert count(conn, "SELECT COUNT(*) FROM assessment_structures WHERE is_current = 1") == subjects
     assert count(conn, "SELECT COUNT(DISTINCT subject_code) FROM assessment_structures WHERE is_current = 1") == subjects
 
 
 def test_the_verification_labels_are_split_as_expected(conn):
     counts = dict(conn.execute("SELECT verification, COUNT(*) FROM assessment_structures GROUP BY verification").fetchall())
-    assert counts == {"indicative": 85, "historical": 2, "unverified": 6 + 76 + 8, "synthetic": 12}
+    assert counts == {"indicative": 85 + 8, "historical": 2, "unverified": 6 + 76, "synthetic": 12}  # the 8 transdisciplinary electives are read from the 2027 Handbook
 
 
 def test_the_weights_of_every_structure_with_tasks_add_up_to_100(conn):
@@ -43,7 +43,7 @@ def test_the_weights_of_every_structure_with_tasks_add_up_to_100(conn):
         "SELECT s.subject_code, COALESCE(SUM(a.weight), 0) AS total FROM assessment_structures s"
         " JOIN assessments a ON a.structure_id = s.id GROUP BY s.id"
     ).fetchall()
-    assert len(rows) == 99  # the 85 indicative, 2 historical and 12 sample ones; every unverified structure has no tasks
+    assert len(rows) == 106  # 92 indicative (95005's page lists none), 2 historical and 12 sample ones; every unverified structure has no tasks
     assert [r["subject_code"] for r in rows if r["total"] != 100] == []
 
 
@@ -86,7 +86,7 @@ def test_the_supplied_descriptions_are_stored_as_given(conn):
 def test_descriptions_live_apart_from_assessments(conn):
     conn.execute("DELETE FROM assessments")
     conn.commit()
-    assert count(conn, "SELECT COUNT(*) FROM subject_descriptions") == 105
+    assert count(conn, "SELECT COUNT(*) FROM subject_descriptions") == 113
     assert assessment_info(conn, "41039")["summary"]  # the description survives; the tasks are gone
     assert assessment_info(conn, "41039")["status"] == "none"
 

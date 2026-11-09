@@ -103,7 +103,7 @@ def test_three_free_electives_and_one_transdisciplinary_can_be_planned_but_no_mo
     choose_electives(conn, student)
     for code in ["SYN101", "SYN103", "SYN106"]:
         add_to_plan(conn, student, code, "Spring 2028" if code != "SYN101" else "Autumn 2028")
-    add_to_plan(conn, student, "95003", "Autumn 2029")
+    add_to_plan(conn, student, "95003", "Spring 2029")  # 95003 runs in Spring (its 2027 Handbook page)
     with pytest.raises(PlanError, match="General electives requirement would be exceeded"):
         add_to_plan(conn, student, "SYN111", "Spring 2029")  # an 18 cp requirement holds three 6 cp subjects
     with pytest.raises(PlanError, match="Transdisciplinary elective requirement would be exceeded"):
@@ -112,10 +112,10 @@ def test_three_free_electives_and_one_transdisciplinary_can_be_planned_but_no_mo
 
 def test_a_transdisciplinary_subject_is_not_part_of_the_degree_without_electives_or_its_sub_major(conn, student):
     with pytest.raises(PlanError, match="Choose general electives or a sub-major first"):
-        add_to_plan(conn, student, "95003", "Autumn 2029")
+        add_to_plan(conn, student, "95003", "Spring 2029")
     choose_submajor(conn, student, INFOSEC)
     with pytest.raises(PlanError, match="instead of general electives"):
-        add_to_plan(conn, student, "95003", "Autumn 2029")
+        add_to_plan(conn, student, "95003", "Spring 2029")
 
 
 def test_a_sub_major_subject_cannot_be_planned_with_electives(conn, student):

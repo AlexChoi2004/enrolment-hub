@@ -2,7 +2,7 @@
 from features.subject_catalogue.assessment_data import ASSESSMENTS, DESCRIPTIONS
 from features.subject_catalogue.assessments import explain, illustrative_due_weeks
 from features.subject_catalogue.program_text import CODES, STREAM_CODES, aos_url, subject_handbook_url
-from features.subject_catalogue.submajor_data import SOURCE_NOTE, STREAM_SUBJECTS, STREAMS, SUBJECTS as SUBMAJOR_SUBJECTS, SUBMAJORS
+from features.subject_catalogue.submajor_data import SOURCE_NOTE, STREAM_SUBJECTS, STREAMS, TD_AVAILABILITY, SUBJECTS as SUBMAJOR_SUBJECTS, SUBMAJORS
 from features.subject_catalogue.seed_data import (
     CATEGORIES,
     COURSE,
@@ -73,6 +73,7 @@ def seed_catalogue(conn):
     conn.executemany("UPDATE subjects SET name = ? WHERE code = ? AND name != ?", [(name, code, name) for code, name in RENAMED.items()])
     seed_submajors(conn)
     seed_handbook_links(conn)
+    seed_td_availability(conn)
     seed_assessments(conn)
 
 
@@ -148,3 +149,11 @@ def seed_handbook_links(conn):
     conn.executemany("UPDATE majors SET handbook_url = ? WHERE code = ?", [(aos_url(c), c) for c in CODES if c.startswith("MAJ")])
     conn.executemany("UPDATE submajors SET handbook_url = ? WHERE code = ?", [(aos_url(c), c) for c in CODES if c.startswith("SMJ")])
     conn.executemany("UPDATE streams SET handbook_url = ? WHERE code = ?", [(aos_url(c), c) for c in STREAM_CODES])
+
+
+def seed_td_availability(conn):
+    """The transdisciplinary subjects' sessions come from their 2027 Handbook pages, not from the illustrative pattern. Safe to run twice."""
+    conn.executemany(
+        "UPDATE subjects SET sessions_offered = ?, sessions_source = 'handbook', sessions_note = ? WHERE code = ?",
+        [(season, note, code) for code, (season, note) in TD_AVAILABILITY.items()],
+    )

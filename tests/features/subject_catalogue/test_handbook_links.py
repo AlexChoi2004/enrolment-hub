@@ -169,13 +169,11 @@ def test_the_electives_page_links_the_transdisciplinary_subjects_and_the_stream(
 
 
 @pytest.mark.parametrize("code", hb.TD_STREAM[2])
-def test_each_transdisciplinary_subject_has_a_page_that_says_what_is_not_loaded_and_links_the_handbook(client, log_in, code):
+def test_each_transdisciplinary_subject_has_a_page_with_its_handbook_link_and_2027_details(client, log_in, code):
     log_in()
     html = page(client, f"/subjects/{code}")
     assert "TD: " in html and "6 credit points" in html and handbook_links_in(html) == [SUBJECT.format(year=2027, code=code)]
-    assert "Not yet populated: no description has been loaded for this subject." in html
-    assert "Not yet populated: the assessment tasks and weightings have not been loaded" in html and "<table" not in html.split("<h2>Assessment</h2>")[1].split("<h2>Prerequisites</h2>")[0]
-    assert "invented" not in html.split("<h2>Assessment</h2>")[1].lower() and "weighting" not in html.split("<h2>Assessment</h2>")[1].lower().replace("weightings have not been loaded", "")
+    assert "Not yet populated: no description" not in html and "Handbook 2027" in html and "illustrative</span>" not in html.split("<h2>Assessment</h2>")[0]
 
 
 def test_a_subject_page_shows_its_handbook_link(client, log_in):

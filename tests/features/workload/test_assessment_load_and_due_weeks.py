@@ -38,7 +38,7 @@ def test_every_known_subject_gets_a_score_from_1_to_5_and_every_score_is_used(co
 
 def test_a_subject_without_an_assessment_breakdown_gets_no_score_not_an_average(conn):
     unknown = [c for c, d in load_context(conn)["load"].items() if d["score"] is None]
-    assert len(unknown) == 90 and "41759" in unknown  # the Capstone has no confirmed breakdown
+    assert len(unknown) == 83 and "41759" in unknown  # the Capstone has no confirmed breakdown
     assert load_context(conn)["load"]["41759"]["reasons"] == ["Not enough information: there is no confirmed assessment breakdown."]
 
 
