@@ -4,4 +4,4 @@ pre-commit
 detect-secrets
 pip-audit
 icalendar>=6.0     # an independent parser, used only to check the calendar export
-recurring-ical-events>=3.0
+recurring-ical-events>=3.8.2
